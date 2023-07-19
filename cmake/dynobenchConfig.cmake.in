@@ -1,0 +1,15 @@
+get_filename_component(DYNOBENCH_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+include(CMakeFindDependencyMacro)
+
+list(APPEND CMAKE_MODULE_PATH ${DYNOBENCH_CMAKE_DIR})
+# NOTE: to find FindRapidJSON.cmake
+# find_dependency(RapidJSON @MIN_RapidJSON_VERSION@)
+# list(REMOVE_AT CMAKE_MODULE_PATH -1)
+#
+# find_dependency(boost_regex @MIN_BOOST_VERSION@)
+
+if(NOT TARGET dynobench::dynobench)
+  include("${DYNOBENCH_CMAKE_DIR}/dynobenchTargets.cmake")
+endif()
+
+set(DYNOBENCH_lIBRARIES dynobench::dynobench)

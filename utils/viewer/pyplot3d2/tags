@@ -1,0 +1,67 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/quim/sandbox/pyplot-3d/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	/cb34dade/
+Arrow	basic.py	/^class Arrow:$/;"	c
+Camera	camera.py	/^class Camera:$/;"	c
+Cube	basic.py	/^class Cube:$/;"	c
+Line	basic.py	/^class Line:$/;"	c
+Plane	basic.py	/^class Plane:$/;"	c
+R	uav.py	/^    R = np.zeros((3, 3, steps))$/;"	v
+Sphere	basic.py	/^class Sphere:$/;"	c
+Uav	uav.py	/^class Uav:$/;"	c
+__init__	basic.py	/^    def __init__(self, ax, c='b', x0=np.array([0.0, 0.0, 0.0]).T, \\$/;"	m	class:Line
+__init__	basic.py	/^    def __init__(self, ax, dimensions, c='b', x=np.array([0, 0, 0]).T, \\$/;"	m	class:Cube
+__init__	basic.py	/^    def __init__(self, ax, direction, c='b', x0=np.array([0.0, 0.0, 0.0]).T, \\$/;"	m	class:Arrow
+__init__	basic.py	/^    def __init__(self, ax, h, w, c='b', x=np.array([0, 0, 0]).T, \\$/;"	m	class:Plane
+__init__	basic.py	/^    def __init__(self, ax, r, c='b', x0=np.array([0, 0, 0]).T, resolution=20):$/;"	m	class:Sphere
+__init__	camera.py	/^    def __init__(self, ax, c='b', x=np.array([0.0, 0.0, 0.0]).T, R=np.eye(3)):$/;"	m	class:Camera
+__init__	uav.py	/^    def __init__(self, ax, arm_length):$/;"	m	class:Uav
+ani	uav.py	/^    ani = animation.FuncAnimation(fig, update_plot, frames=steps, \\$/;"	v
+arm_length	uav.py	/^    arm_length = 0.24  # in meters$/;"	v
+ax	basic.py	/^    ax = fig.gca(projection='3d')$/;"	v
+ax	camera.py	/^    ax = fig.gca(projection='3d')$/;"	v
+ax	uav.py	/^    ax = fig.gca(projection='3d')$/;"	v
+c1	basic.py	/^    c1 = Cube(ax, [3, 4, 5])$/;"	v
+camera	camera.py	/^    camera = Camera(ax)$/;"	v
+draw	basic.py	/^    def draw(self):$/;"	m	class:Arrow
+draw	basic.py	/^    def draw(self):$/;"	m	class:Cube
+draw	basic.py	/^    def draw(self):$/;"	m	class:Line
+draw	basic.py	/^    def draw(self):$/;"	m	class:Plane
+draw	basic.py	/^    def draw(self):$/;"	m	class:Sphere
+draw	camera.py	/^    def draw(self):$/;"	m	class:Camera
+draw_at	basic.py	/^    def draw_at(self, position=np.array([0.0, 0.0, 0.0]).T):$/;"	m	class:Sphere
+draw_at	basic.py	/^    def draw_at(self, x=np.array([0.0, 0.0, 0.0]).T, R=np.eye(3)):$/;"	m	class:Cube
+draw_at	basic.py	/^    def draw_at(self, x=np.array([0.0, 0.0, 0.0]).T, R=np.eye(3)):$/;"	m	class:Plane
+draw_at	camera.py	/^    def draw_at(self, x=np.array([0.0, 0.0, 0.0]).T, R=np.eye(3)):$/;"	m	class:Camera
+draw_at	uav.py	/^    def draw_at(self, x=np.array([0.0, 0.0, 0.0]).T, R=np.eye(3)):$/;"	m	class:Uav
+draw_from_to	basic.py	/^    def draw_from_to(self, x0=np.array([0.0, 0.0, 0.0]).T, \\$/;"	m	class:Line
+draw_from_to	basic.py	/^    def draw_from_to(self, x=np.array([0.0, 0.0, 0.0]).T, \\$/;"	m	class:Arrow
+fig	basic.py	/^    fig = plt.figure()$/;"	v
+fig	camera.py	/^    fig = plt.figure()$/;"	v
+fig	uav.py	/^    fig = plt.figure()$/;"	v
+np	basic.py	/^import numpy as np$/;"	I	nameref:module:numpy
+np	camera.py	/^    import numpy as np$/;"	I	nameref:module:numpy
+np	camera.py	/^import numpy as np$/;"	I	nameref:module:numpy
+np	uav.py	/^import numpy as np$/;"	I	nameref:module:numpy
+np	utils.py	/^import numpy as np$/;"	I	nameref:module:numpy
+plt	basic.py	/^import matplotlib.pyplot as plt$/;"	I	nameref:module:matplotlib.pyplot
+plt	camera.py	/^    import matplotlib.pyplot as plt$/;"	I	nameref:module:matplotlib.pyplot
+plt	uav.py	/^    import matplotlib.pyplot as plt$/;"	I	nameref:module:matplotlib.pyplot
+rot1	utils.py	/^def rot1(angle, degrees=False):$/;"	f
+rot2	utils.py	/^def rot2(angle, degrees=False):$/;"	f
+rot3	utils.py	/^def rot3(angle, degrees=False):$/;"	f
+steps	uav.py	/^    steps = 60$/;"	v
+t_end	uav.py	/^    t_end = 1$/;"	v
+uav_plot	uav.py	/^    uav_plot = Uav(ax, arm_length)$/;"	v
+update_plot	uav.py	/^    def update_plot(i, x, R):$/;"	f
+x	uav.py	/^    x = np.zeros((3, steps))$/;"	v
+ypr	uav.py	/^        ypr = np.array([i, 0.1 * i, 0.0])$/;"	v
+ypr_to_R	utils.py	/^def ypr_to_R(ypr, degrees=False):$/;"	f

@@ -1,0 +1,28 @@
+name: unicycle2_v0-bugtrap_0
+environment:
+  #original
+  min: [0.0, 0.0]
+  max: [6, 6]
+  # #viewer
+  # min: [0.0, -1.0]
+  # max: [6, 6]
+  obstacles:
+    - type: box
+      center: [4.5, 3]
+      size: [0.2, 3.2]
+    - type: box
+      center: [3, 1.5]
+      size: [3.2, 0.2]
+    - type: box
+      center: [3, 4.5]
+      size: [3.2, 0.2]
+    - type: box
+      center: [1.5, 4.05]
+      size: [0.2, 1.1]
+    - type: box
+      center: [1.5, 1.95]
+      size: [0.2, 1.1]
+robots:
+  - type: unicycle2_v0
+    start: [3.8, 3, 0, 0, 0] # x,y,theta,v,w
+    goal: [5.2, 3, 0, 0, 0] # x,y,theta,v,w
