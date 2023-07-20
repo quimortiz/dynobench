@@ -388,7 +388,7 @@ void Model_robot::collision_distance_diff(
 
   CollisionOut c;
   assert(nx_col > 0);
-  assert(nx_col <= x.size());
+  assert(nx_col <= static_cast<size_t>(x.size()));
 
   collision_distance(x, c);
   f = c.distance;

@@ -216,9 +216,12 @@ void Model_car_with_trailers::constraintsIneqDiff(
     Eigen::Ref<Eigen::MatrixXd> Jx, Eigen::Ref<Eigen::MatrixXd> Ju,
     const Eigen::Ref<const Eigen::VectorXd> x,
     const Eigen::Ref<const Eigen::VectorXd> &u) {
+
   (void)u;
-  CHECK_EQ(static_cast<size_t>(Jx.cols()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jx.rows()), 2, AT);
+  (void)Ju;
+  (void)x;
+  CHECK_EQ(static_cast<size_t>(Jx.cols()), nx, "");
+  CHECK_EQ(static_cast<size_t>(Jx.rows()), 2, "");
 
   Jx(0, 2) = 1;
   Jx(0, 3) = -1;
@@ -295,7 +298,8 @@ void Model_car_with_trailers::calcV(
 void Model_car_with_trailers::regularization_cost(
     Eigen::Ref<Eigen::VectorXd> r, const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &u) {
-  CHECK_EQ(r.size(), 2, AT);
+  (void)x;
+  CHECK_EQ(r.size(), 2, "");
   r = u;
 }
 
@@ -397,6 +401,8 @@ double Model_car_with_trailers::lower_bound_time(
 
 double lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                             const Eigen::Ref<const Eigen::VectorXd> &y) {
+  (void)x;
+  (void)y;
   return 0;
 }
 
@@ -406,8 +412,12 @@ double lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
 Model_acrobot::Model_acrobot(const Acrobot_params &acrobot_params,
                              const Eigen::VectorXd &p_lb,
                              const Eigen::VectorXd &p_ub)
+
     : Model_robot(std::make_shared<RnSOn>(2, 2, std::vector<size_t>{0, 1}), 1),
       params(acrobot_params) {
+
+  (void)p_lb;
+  (void)p_ub;
   is_2d = false;
   translation_invariance = 0;
   invariance_reuse_col_shape = false;
@@ -2093,7 +2103,7 @@ void Car_params::read_from_yaml(YAML::Node &node) {
   APPLYXn(CAR_PARAMS_INOUT);
 #undef X
 
-  assert(num_trailers == hitch_lengths.size());
+  assert(num_trailers == static_cast<size_t>(hitch_lengths.size()));
 }
 
 Model_car2::Model_car2(const Car2_params &params, const Eigen::VectorXd &p_lb,

@@ -80,8 +80,9 @@
 
 // Example usage:
 
-// #define INOUTARGS_dbrrt                                                        \
-//   do_optimization, cost_jump, best_cost_prune_factor, cost_weight, cost_bound, \
+// #define INOUTARGS_dbrrt
+//   do_optimization, cost_jump, best_cost_prune_factor, cost_weight,
+//   cost_bound,
 //       ao_rrt_rebuild_tree, ao_rrt
 
 // #define X(a) loader.set(VAR_WITH_NAME(a));

@@ -33,7 +33,7 @@
 #define CHECK(A, msg)                                                          \
   if (!A) {                                                                    \
     std::cout << "CHECK failed: '" << #A << " " << A << " '"                   \
-              << " -- " << msg << std::endl;                                   \
+              << " -- " << msg << "AT: " << AT << std::endl;                   \
     throw std::runtime_error(msg);                                             \
   }
 
@@ -46,21 +46,24 @@
 #define CHECK_EQ(A, B, msg)                                                    \
   if (!(A == B)) {                                                             \
     std::cout << "CHECK_EQ failed: '" << #A << "'=" << A << " '" << #B         \
-              << "'=" << B << " -- " << msg << std::endl;                      \
+              << "'=" << B << " -- " << msg << std::endl                       \
+              << "AT: " << AT << std::endl;                                    \
     throw std::runtime_error(msg);                                             \
   }
 
 #define CHECK_NEQ(A, B, msg)                                                   \
   if (A == B) {                                                                \
     std::cout << "CHECK_NEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << std::endl;                      \
+              << "'=" << B << " -- " << msg << std::endl                       \
+              << "AT: " << AT << std::endl;                                    \
     throw std::runtime_error(msg);                                             \
   }
 
 #define CHECK_GEQ(A, B, msg)                                                   \
   if (!(A >= B)) {                                                             \
     std::cout << "CHECK_GEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << std::endl;                      \
+              << "'=" << B << " -- " << msg << std::endl                       \
+              << "AT: " << AT << std::endl;                                    \
     throw std::runtime_error(msg);                                             \
   }
 
@@ -77,21 +80,22 @@
 #define CHECK_LEQ(A, B, msg)                                                   \
   if (!(A <= B)) {                                                             \
     std::cout << "CHECK_LEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << std::endl;                      \
+              << "'=" << B << " -- " << msg << std::endl                       \
+              << "AT: " << AT << std::endl;                                    \
     throw std::runtime_error(msg);                                             \
   }
 
 #define CHECK_GE(A, B, msg)                                                    \
   if (!(A > B)) {                                                              \
     std::cout << "CHECK_GE failed: '" << #A << "'=" << A << " '" << #B         \
-              << "'=" << B << " -- " << msg << std::endl;                      \
+              << "'=" << B << " -- " << msg << "AT: " << AT << std::endl;      \
     throw std::runtime_error(msg);                                             \
   }
 
 #define CHECK_SEQ(A, B, msg)                                                   \
   if (!(A <= B)) {                                                             \
     std::cout << "CHECK_SEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << std::endl;                      \
+              << "'=" << B << " -- " << msg << "AT: " << AT << std::endl;      \
     throw std::runtime_error(msg);                                             \
   }
 

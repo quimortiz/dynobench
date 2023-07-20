@@ -235,6 +235,9 @@ struct Model_robot {
   virtual void regularization_cost(Eigen::Ref<Eigen::VectorXd> r,
                                    const Eigen::Ref<const Eigen::VectorXd> &x,
                                    const Eigen::Ref<const Eigen::VectorXd> &u) {
+    (void)r;
+    (void)x;
+    (void)u;
 
     NOT_IMPLEMENTED;
   }
@@ -244,6 +247,10 @@ struct Model_robot {
                            Eigen::Ref<Eigen::MatrixXd> Ju,
                            const Eigen::Ref<const Eigen::VectorXd> &x,
                            const Eigen::Ref<const Eigen::VectorXd> &u) {
+    (void)Jx;
+    (void)Ju;
+    (void)x;
+    (void)u;
 
     NOT_IMPLEMENTED;
   }
@@ -446,7 +453,7 @@ struct Model_robot {
                                    std::vector<Eigen::VectorXd> &us_out) {
 
     // basic transformation is translation invariance
-    CHECK_EQ(p.size(), translation_invariance, AT);
+    CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
     // TODO: avoid memory allocation inside this function!!
 
     CHECK_EQ(us_out.size(), us_in.size(), AT);

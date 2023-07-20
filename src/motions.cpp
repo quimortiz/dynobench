@@ -300,20 +300,22 @@ double check_u_bounds(const std::vector<Vxd> &us_out,
   CHECK(model, AT);
 
   double max_out = 0;
-  for (const auto &u : us_out) {
 
-    if (check_bounds_distance(u, model->get_u_lb(), model->get_u_ub()) > 1e-3) {
+  for (size_t i = 0; i < us_out.size(); i++) {
+    auto &u = us_out.at(i);
+    double d = check_bounds_distance(u, model->get_u_lb(), model->get_u_ub());
+
+    if (d > 1e-2 && verbose) {
+      std::cout << "U BOUND VIOLATION t=" << i << std::endl;
+      CSTR_(d);
       CSTR_V(u);
       CSTR_V(model->get_u_lb());
       CSTR_V(model->get_u_ub());
     }
-
-    max_out = std::max(max_out, check_bounds_distance(u, model->get_u_lb(),
-                                                      model->get_u_ub()));
+    max_out = std::max(max_out, d);
   }
 
   return max_out;
-  ;
 }
 
 double check_x_bounds(const std::vector<Vxd> &xs_out,
@@ -329,7 +331,7 @@ double check_x_bounds(const std::vector<Vxd> &xs_out,
     double d = check_bounds_distance(x, model->get_x_lb(), model->get_x_ub());
 
     if (d > .01 && verbose) {
-      std::cout << "BOUND VIOLATION t=" << i << std::endl;
+      std::cout << "X BOUND VIOLATION t=" << i << std::endl;
       CSTR_(d);
       CSTR_V(x);
       CSTR_V(model->get_x_lb());
@@ -709,7 +711,7 @@ make_componentwise_histogram(const std::vector<Eigen::VectorXd> &states) {
   CHECK(states.size(), AT);
   std::vector<std::vector<Bin>> out;
 
-  for (size_t i = 0; i < states.front().size(); i++) {
+  for (size_t i = 0; i < static_cast<size_t>(states.front().size()); i++) {
     std::vector<double> xi;
     for (const auto &s : states) {
       xi.push_back(s(i));

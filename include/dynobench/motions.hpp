@@ -91,6 +91,7 @@ template <class Archive>
 inline void load(Archive &ar, Eigen::VectorXd &v,
                  const unsigned int file_version) {
 
+  (void)file_version;
   naive_eigen_vector_load(ar, v);
 }
 
@@ -98,6 +99,7 @@ template <class Archive>
 inline void save(Archive &ar, const Eigen::VectorXd &v,
                  const unsigned int file_version) {
 
+  (void)file_version;
   naive_eigen_vector_save(ar, v);
 }
 } // namespace serialization
@@ -225,7 +227,7 @@ struct Trajectory {
     ar &feasible;
     ar &start;
     ar &goal;
-    if (file_version > 0)
+    if (file_version > 0) // TODO: check if I can remove the if here
       ar &info;
   }
 
@@ -243,6 +245,7 @@ struct Trajectories {
 
   template <class Archive>
   inline void serialize(Archive &ar, const unsigned int file_version) {
+    (void)file_version;
     ar &data;
   }
 

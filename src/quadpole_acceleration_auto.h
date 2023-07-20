@@ -1,6 +1,6 @@
 #include <cmath>
-void quadpole_2d(const double *x, const double *u, const double *data,
-                 double *fdotdot, double *Jx, double *Ju) {
+void inline quadpole_2d(const double *x, const double *u, const double *data,
+                        double *fdotdot, double *Jx, double *Ju) {
   // Auto generated 2023-06-08--16-58-03 from sympy
   using namespace std;
   const double xx = x[0];
@@ -19,6 +19,10 @@ void quadpole_2d(const double *x, const double *u, const double *data,
   const double l = data[3];
   const double r = data[4];
   const double g = data[5];
+  (void)xx;
+  (void)yy;
+  (void)vvx;
+  (void)vvy;
   fdotdot[0] =
       (-1.0 * f1 * m * sin(oo) +
        0.25 * f1 * m_p * (sin(oo + 2 * qq) + sin(3 * oo + 2 * qq)) +
