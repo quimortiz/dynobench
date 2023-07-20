@@ -33,11 +33,13 @@ void get_states_and_actions(const YAML::Node &data,
 struct Problem {
   using Vxd = Eigen::VectorXd;
 
+  Problem(const std::string &t_file) : Problem(t_file.c_str()){};
   Problem(const char *t_file) : file(t_file) { read_from_yaml(t_file); }
   Problem() = default;
 
   std::string name; // name of the proble: E.g. bugtrap-car1
   std::string file;
+  std::string models_base_path;
 
   Eigen::VectorXd goal;
   Eigen::VectorXd start;
@@ -123,7 +125,9 @@ struct Trajectory {
   std::string info = "";
 
   Trajectory() = default;
+
   Trajectory(const char *file) { read_from_yaml(file); }
+  Trajectory(const std::string &t_file) : Trajectory(t_file.c_str()){};
 
   Eigen::VectorXd start;
   Eigen::VectorXd goal;
