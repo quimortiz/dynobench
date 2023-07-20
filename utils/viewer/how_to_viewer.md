@@ -30,4 +30,3 @@ ml.trajraw-0.yaml
 
 (croco) ⋊> ~/s/w/k/build on dev ⨯ python3 ../viewer/viewer_cli.py --robot unicycle2   --env ../benchmark/unicycle_second_order_0/bugtrap_0.yaml   --result ../results_new/unicycle_second_order_0/bugtrap_0
 //geo_v1/2023-06-20--19-41-53/run_1_out.yaml.trajraw-3.yaml --result2 ../results_new/unicycle_second_order_0/bugtrap_0/geo_v1/2023-06-20--19-41-53/run_1_out.yaml.trajopt-3.yaml
-

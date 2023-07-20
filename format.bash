@@ -9,7 +9,3 @@ find include/ -iname "*.h" -o  -iname "*.cpp" -o  -iname "*.hpp" | xargs clang-f
 find test/ -iname "*.h" -o  -iname "*.cpp" -o  -iname "*.hpp" | xargs clang-format-15  -i
 
 find utils/viewer -name '*.py' -exec autopep8 --in-place --ignore E402 --aggressive '{}' \;
-
-
-
-
