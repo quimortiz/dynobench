@@ -1,8 +1,8 @@
-
 # import .viewer_utils
 
 from pathlib import Path
 import sys
+
 sys.path.append(str(Path(__file__).parent))
 
 
@@ -13,8 +13,7 @@ import yaml
 import numpy as np
 
 
-class RobotViewer():
-
+class RobotViewer:
     def __init__(self, RobotDrawerClass=None):
         self.RobotDrawerClass = RobotDrawerClass
         self.labels_x = []
@@ -25,11 +24,11 @@ class RobotViewer():
 
     def view_trajectory(self, ax, result, **kwargs):
         viewer_utils.draw_traj_default(
-            ax, result, self.RobotDrawerClass, draw_normal_every=150)
+            ax, result, self.RobotDrawerClass, draw_normal_every=150
+        )
 
     def view_trajectory_minimal(self, ax, result, **kwargs):
-        viewer_utils.draw_traj_minimal(
-            ax, result, self.RobotDrawerClass)
+        viewer_utils.draw_traj_minimal(ax, result, self.RobotDrawerClass)
 
     def view_static(self, ax, env, result, **kwargs):
         self.view_problem(ax, env, **kwargs)
@@ -40,11 +39,17 @@ class RobotViewer():
 
     def plot_traj(self, axs, result, **kwargs):
         viewer_utils.plot_traj_default(
-            axs, result, self.labels_x, self.labels_u, **kwargs)
+            axs, result, self.labels_x, self.labels_u, **kwargs
+        )
 
     def make_video(self, env, result, filename_video: str = ""):
-        viewer_utils.make_video_default(env, result, lambda ax, env: self.view_problem(ax, env),
-                                        self.RobotDrawerClass, filename_video)
+        viewer_utils.make_video_default(
+            env,
+            result,
+            lambda ax, env: self.view_problem(ax, env),
+            self.RobotDrawerClass,
+            filename_video,
+        )
 
     def is_3d(self) -> bool:
         return False
@@ -60,10 +65,8 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
     parser.add_argument("--out", help="file out", default="auto")
     parser.add_argument("--prim", help="primitives ", default="")
     # parser.add_argument("--", help="output file containing solution")
-    parser.add_argument('-s', '--store',
-                        action='store_true')  # on/off flag
-    parser.add_argument('-i', '--interactive',
-                        action='store_true')  # on/off flag
+    parser.add_argument("-s", "--store", action="store_true")  # on/off flag
+    parser.add_argument("-i", "--interactive", action="store_true")  # on/off flag
 
     print("argv", argv)
     # args = parser.parse_args(argv)
@@ -79,7 +82,7 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
     if is_3d:
         # fig = plt.figure()
         fig = plt.figure(figsize=(16, 10))
-        ax = plt.axes(projection='3d')
+        ax = plt.axes(projection="3d")
     else:
         fig, ax = plt.subplots()
 
@@ -90,9 +93,7 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
     ax.set_title(env["name"])
 
     if args.store:
-
         if is_3d:
-
             # for line in ax.xaxis.get_ticklines():
             #     line.set_visible(False)
             # for line in ax.yaxis.get_ticklines():
@@ -127,7 +128,8 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
     # Load Env
     if show_single_state:
         raise ValueError(
-            "not implemented -- how would you like to give a single state?")
+            "not implemented -- how would you like to give a single state?"
+        )
         # if is_3d:
         #     fig = plt.figure()
         #     ax = plt.axes(projection='3d')
@@ -163,7 +165,7 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
         with open(args.result) as f:
             __result = yaml.safe_load(f)
 
-        if ("states" in __result and "actions" in __result):
+        if "states" in __result and "actions" in __result:
             result = __result
         else:
             result = __result["result"][0]
@@ -171,9 +173,9 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
         if is_3d:
             # fig = plt.figure()
             fig = plt.figure(figsize=(16, 10))
-            ax = plt.axes(projection='3d')
+            ax = plt.axes(projection="3d")
             # ax.grid(b=None)
-            ax.axis('off')
+            ax.axis("off")
         else:
             fig, ax = plt.subplots()
 
@@ -184,7 +186,7 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
             with open(args.result2) as f:
                 __result2 = yaml.safe_load(f)
 
-            if ("states" in __result and "actions" in __result):
+            if "states" in __result and "actions" in __result:
                 result2 = __result2
             else:
                 result2 = __result2["result"][0]

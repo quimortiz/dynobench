@@ -2,7 +2,7 @@ import numpy as np
 
 
 def rot1(angle, degrees=False):
-    '''
+    """
     Converts pitch angle (a rotation around the 1st body axis) to a rotation
     matrix in SO(3).
 
@@ -12,7 +12,7 @@ def rot1(angle, degrees=False):
             default = False
     Returns:
         R: (numpy.ndarray) 3x3 rotation matrix in SO(3)
-    '''
+    """
 
     if degrees:
         angle = np.deg2rad(angle)
@@ -30,7 +30,7 @@ def rot1(angle, degrees=False):
 
 
 def rot2(angle, degrees=False):
-    '''
+    """
     Converts roll angle (a rotation around the 2nd body axis) to a rotation
     matrix in SO(3).
 
@@ -40,7 +40,7 @@ def rot2(angle, degrees=False):
             default = False
     Returns:
         R: (numpy.ndarray) 3x3 rotation matrix in SO(3)
-    '''
+    """
 
     if degrees:
         angle = np.deg2rad(angle)
@@ -58,7 +58,7 @@ def rot2(angle, degrees=False):
 
 
 def rot3(angle, degrees=False):
-    '''
+    """
     Converts yaw angle (a rotation around the 3rd body axis) to a rotation
     matrix in SO(3).
 
@@ -68,7 +68,7 @@ def rot3(angle, degrees=False):
             default = False
     Returns:
         R: (numpy.ndarray) 3x3 rotation matrix in SO(3)
-    '''
+    """
 
     if degrees:
         angle = np.deg2rad(angle)
@@ -86,7 +86,7 @@ def rot3(angle, degrees=False):
 
 
 def ypr_to_R(ypr, degrees=False):
-    '''
+    """
     Converts yaw, pitch, roll angles to a rotation matrix in SO(3).
 
     Args:
@@ -95,7 +95,7 @@ def ypr_to_R(ypr, degrees=False):
             default = False
     Returns:
         R: (numpy.ndarray) 3x3 rotation matrix in SO(3)
-    '''
+    """
 
     R3 = rot3(ypr[0], degrees)
     R2 = rot2(ypr[1], degrees)

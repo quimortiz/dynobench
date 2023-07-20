@@ -1,4 +1,3 @@
-
 import sys
 from pathlib import Path
 
@@ -19,34 +18,37 @@ import viewer_utils
 from robot_viewer import RobotViewer
 
 
-class Robot():
+class Robot:
     def __init__(self):
-        self.l1 = 1.
-        self.l2 = 1.
-        self.size = [1, .05]
-        self.lc1 = self.l1 / 2.
-        self.lc2 = self.l2 / 2.
+        self.l1 = 1.0
+        self.l2 = 1.0
+        self.size = [1, 0.05]
+        self.lc1 = self.l1 / 2.0
+        self.lc2 = self.l2 / 2.0
 
     def get_pivots(self, x):
         q1 = x[0]
         q2 = x[1]
-        p1 = self.l1 * \
-            np.array([np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)])
-        p2 = p1 + self.l2 * \
-            np.array([np.cos(3 * np.pi / 2 + q1 + q2),
-                      np.sin(3 * np.pi / 2 + q1 + q2)])
+        p1 = self.l1 * np.array(
+            [np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)]
+        )
+        p2 = p1 + self.l2 * np.array(
+            [np.cos(3 * np.pi / 2 + q1 + q2), np.sin(3 * np.pi / 2 + q1 + q2)]
+        )
         return p1, p2
 
     def get_centers(self, x):
         q1 = x[0]
         q2 = x[1]
-        c1 = self.lc1 * \
-            np.array([np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)])
-        pivot2 = self.l1 * \
-            np.array([np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)])
-        c2 = pivot2 + self.lc2 * \
-            np.array([np.cos(3 * np.pi / 2 + q1 + q2),
-                      np.sin(3 * np.pi / 2 + q1 + q2)])
+        c1 = self.lc1 * np.array(
+            [np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)]
+        )
+        pivot2 = self.l1 * np.array(
+            [np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)]
+        )
+        c2 = pivot2 + self.lc2 * np.array(
+            [np.cos(3 * np.pi / 2 + q1 + q2), np.sin(3 * np.pi / 2 + q1 + q2)]
+        )
         return c1, c2
 
     def draw(self, ax, x, **kwargs):
@@ -76,18 +78,19 @@ class Robot():
             #     "color",
             #     ".6")
         )
-        self.dot1, = ax.plot([0], [0], 'o', color="black")
-        self.dot2, = ax.plot([pivot2[0]], [pivot2[1]], 'o', color="black")
-        self.dot3, = ax.plot([pivot3[0]], [pivot3[1]], 'o', color="black")
+        (self.dot1,) = ax.plot([0], [0], "o", color="black")
+        (self.dot2,) = ax.plot([pivot2[0]], [pivot2[1]], "o", color="black")
+        (self.dot3,) = ax.plot([pivot3[0]], [pivot3[1]], "o", color="black")
 
     def get_ends(self, x):
         q1 = x[0]
         q2 = x[1]
-        e1 = self.l1 * \
-            np.array([np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)])
-        e2 = e1 + self.l2 * \
-            np.array([np.cos(3 * np.pi / 2 + q1 + q2),
-                      np.sin(3 * np.pi / 2 + q1 + q2)])
+        e1 = self.l1 * np.array(
+            [np.cos(3 * np.pi / 2 + q1), np.sin(3 * np.pi / 2 + q1)]
+        )
+        e2 = e1 + self.l2 * np.array(
+            [np.cos(3 * np.pi / 2 + q1 + q2), np.sin(3 * np.pi / 2 + q1 + q2)]
+        )
         return e1, e2
 
     def draw_basic(self, ax, x, **kwargs):
@@ -103,20 +106,21 @@ class Robot():
         ax.plot(E2s_x, E2s_y)
 
     def update(self, x):
-
         pivot2, pivot3 = self.get_pivots(x)
         c1, c2 = self.get_centers(x)
 
         xy_1 = np.asarray(c1) - np.asarray(self.size) / 2
         self.p1.set_xy(xy_1)
         t = matplotlib.transforms.Affine2D().rotate_around(
-            c1[0], c1[1], 3 * np.pi / 2 + x[0])
+            c1[0], c1[1], 3 * np.pi / 2 + x[0]
+        )
         self.p1.set_transform(t + self.ax.transData)
 
         xy_2 = np.asarray(c2) - np.asarray(self.size) / 2
         self.p2.set_xy(xy_2)
         t = matplotlib.transforms.Affine2D().rotate_around(
-            c2[0], c2[1], 3 * np.pi / 2 + x[0] + x[1])
+            c2[0], c2[1], 3 * np.pi / 2 + x[0] + x[1]
+        )
         self.p2.set_transform(t + self.ax.transData)
 
         self.dot2.set_xdata([pivot2[0]])
@@ -129,7 +133,6 @@ class Robot():
 
 
 class AcrobotViewer(RobotViewer):
-
     def __init__(self):
         super().__init__(Robot)
         self.labels_x = ["q1", "q2", "w1", "w2"]
@@ -137,6 +140,5 @@ class AcrobotViewer(RobotViewer):
 
 
 if __name__ == "__main__":
-
     viewer = AcrobotViewer()
     viewer_utils.check_viewer(viewer)

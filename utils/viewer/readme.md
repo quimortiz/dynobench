@@ -39,5 +39,3 @@ python3 viewer_cli.py --robot unicycle1 --env ../envs/unicycle1_v0/bugtrap_0.yam
 
 
 ## Create videos
-
-

@@ -23,4 +23,3 @@ dynamics: quad2dpole
 # drag_against_vel: false
 # k_drag_linear: .0001
 # k_drag_angular: .0001
-

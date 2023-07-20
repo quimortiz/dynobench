@@ -29,7 +29,7 @@ The sole purpose of this library is to provide a few customizable 3D shapes so t
     # initialize plot
     fig = plt.figure()
     ax = fig.gca(projection='3d')
-    
+
     arm_length = 0.24  # in meters
     uav = Uav(ax, arm_length)
 
@@ -37,7 +37,7 @@ The sole purpose of this library is to provide a few customizable 3D shapes so t
 
     plt.show()
     ```
-    
+
 1. Run the code.
     ```sh
     python3 /name/of/your/file
@@ -64,14 +64,14 @@ from utils import pyplot3d.ypr_to_R
 
 def update_plot(i, x, R):
     uav_plot.update_plot(x[:, i], R[:, :, i])
-    
+
     # These limits must be set manually since we use
     # a different axis frame configuration than the
     # one matplotlib uses.
     xmin, xmax = -2, 2
     ymin, ymax = -2, 2
     zmin, zmax = -2, 2
-    
+
     ax.set_xlim([xmin, xmax])
     ax.set_ylim([ymax, ymin])
     ax.set_zlim([zmax, zmin])
@@ -104,4 +104,3 @@ ani = animation.FuncAnimation(fig, update_plot, frames=20, fargs=(x, R,));
 # If using Jupyter Notebooks
 # from IPython.display import HTML
 # HTML(ani.to_jshtml())
-

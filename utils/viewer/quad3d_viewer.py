@@ -1,4 +1,3 @@
-
 import numpy as np
 import viewer_utils
 import yaml
@@ -8,6 +7,7 @@ from robot_viewer import RobotViewer
 
 from pathlib import Path
 import sys
+
 sys.path.append(str(Path(__file__).parent))
 from pyplot3d2.uav import Uav
 from pyplot3d2.utils import ypr_to_R
@@ -24,7 +24,6 @@ from mpl_toolkits.mplot3d.axes3d import Axes3D
 
 
 class Arrow3D(FancyArrowPatch):
-
     def __init__(self, x, y, z, dx, dy, dz, *args, **kwargs):
         super().__init__((0, 0), (0, 0), *args, **kwargs)
         self._xyz = (x, y, z)
@@ -49,17 +48,18 @@ class Arrow3D(FancyArrowPatch):
 
         return np.min(zs)
 
+
 # For seamless integration we add the arrow3D method to the Axes3D class.
 
 
 def _arrow3D(ax, x, y, z, dx, dy, dz, *args, **kwargs):
-    '''Add an 3d arrow to an `Axes3D` instance.'''
+    """Add an 3d arrow to an `Axes3D` instance."""
 
     arrow = Arrow3D(x, y, z, dx, dy, dz, *args, **kwargs)
     ax.add_artist(arrow)
 
 
-setattr(Axes3D, 'arrow3D', _arrow3D)
+setattr(Axes3D, "arrow3D", _arrow3D)
 
 # Example
 
@@ -85,7 +85,7 @@ setattr(Axes3D, 'arrow3D', _arrow3D)
 # fig.tight_layout()
 
 
-class Robot():
+class Robot:
     def __init__(self):
         pass
 
@@ -94,8 +94,9 @@ class Robot():
         self.lx = ls[0]
         self.ly = ls[1]
         self.lz = ls[2]
-        self.h, = ax.plot([x[0]], [x[1]], [x[2]],
-                          color=".5", linestyle="", marker=".")
+        (self.h,) = ax.plot(
+            [x[0]], [x[1]], [x[2]], color=".5", linestyle="", marker="."
+        )
 
         print("drawing uav")
         arm_length = 0.24  # in meters
@@ -107,17 +108,23 @@ class Robot():
         print("p is", p)
         self.uav.draw_at(p, R_mat, **kwargs)
 
-        scale = .4
-        ax.arrow3D(p[0], p[1], p[2],
-                   scale * R_mat[0, 2], scale *
-                   R_mat[1, 2], scale * R_mat[2, 2],
-                   mutation_scale=20,
-                   arrowstyle="-|>",
-                   **kwargs)
+        scale = 0.4
+        ax.arrow3D(
+            p[0],
+            p[1],
+            p[2],
+            scale * R_mat[0, 2],
+            scale * R_mat[1, 2],
+            scale * R_mat[2, 2],
+            mutation_scale=20,
+            arrowstyle="-|>",
+            **kwargs,
+        )
         # linestyle='dashed')
-#
 
-        #
+    #
+
+    #
 
     def update(self, x, ax, uav):
         ll = viewer_utils.update_frame([self.lx, self.ly, self.lz], x)
@@ -151,7 +158,7 @@ class Robot():
         #
         # ys = [p[1] for p in xs]
         zs = [p[2] for p in Xs]
-        ax.plot3D(xs, ys, zs, 'blue', alpha=0.5, zorder=100)
+        ax.plot3D(xs, ys, zs, "blue", alpha=0.5, zorder=100)
         # ax.plot3D(xs, ys, zs, 'blue')
         # ax.plot(xs, ys, zs,'bo')
         #         'blue')
@@ -161,11 +168,9 @@ class Robot():
 
 
 class Quad3dViewer(RobotViewer):
-    """
-    """
+    """ """
 
     def __init__(self):
-
         super().__init__(Robot)
         self.labels_x = [
             "x",
@@ -180,14 +185,14 @@ class Quad3dViewer(RobotViewer):
             "vz",
             "wx",
             "wy",
-            "wz"]
+            "wz",
+        ]
         self.labels_u = ["f1", "f2", "f3", "f4"]
 
     def is_3d(self) -> bool:
         return True
 
     def view_problem(self, ax, env, **kwargs):
-
         if isinstance(env, str):
             with open(env, "r") as f:
                 env = yaml.safe_load(f)
@@ -250,11 +255,13 @@ class Quad3dViewer(RobotViewer):
             spheres and cubes as cubes.  Required since `ax.axis('equal')`
             and `ax.set_aspect('equal')` don't work on 3D.
             """
-            limits = np.array([
-                ax.get_xlim3d(),
-                ax.get_ylim3d(),
-                ax.get_zlim3d(),
-            ])
+            limits = np.array(
+                [
+                    ax.get_xlim3d(),
+                    ax.get_ylim3d(),
+                    ax.get_zlim3d(),
+                ]
+            )
             origin = np.mean(limits, axis=1)
             radius = 0.5 * np.max(np.abs(limits[:, 1] - limits[:, 0]))
             _set_axes_radius(ax, origin, radius)
@@ -327,13 +334,13 @@ class Quad3dViewer(RobotViewer):
 
     def view_trajectory(self, ax, result, **kwargs):
         viewer_utils.draw_traj_default(
-            ax, result, self.RobotDrawerClass, draw_basic_every=1000)
+            ax, result, self.RobotDrawerClass, draw_basic_every=1000
+        )
 
     def make_video(self, env, result, filename_video: str = ""):
-
         # fig = plt.figure()
         fig = plt.figure(figsize=(16, 10))
-        ax = plt.axes(projection='3d')
+        ax = plt.axes(projection="3d")
         self.view_problem(ax, env)
         ax.set_title(env["name"])
 
@@ -356,17 +363,15 @@ class Quad3dViewer(RobotViewer):
         uavs = [r.uav]
 
         def animate_func(i):
-            """
-            """
+            """ """
             state = states[i]
             return r.update(state, ax, uavs)
 
         T = len(states)
 
-        anim = animation.FuncAnimation(fig, animate_func,
-                                       frames=T,
-                                       interval=10,
-                                       blit=False)
+        anim = animation.FuncAnimation(
+            fig, animate_func, frames=T, interval=10, blit=False
+        )
 
         if len(filename_video):
             speed = 10
@@ -380,6 +385,5 @@ class Quad3dViewer(RobotViewer):
 
 
 if __name__ == "__main__":
-
     viewer = Quad3dViewer()
     viewer_utils.check_viewer(viewer, is_3d=True)
