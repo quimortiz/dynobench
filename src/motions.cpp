@@ -125,15 +125,14 @@ void Trajectory::to_yaml_format(std::ostream &out,
   }
 };
 
-void Trajectory::update_feasibility(double traj_tol, double goal_tol,
-                                    double col_tol, double x_bound_tol,
-                                    double u_bound_tol, bool verbose) {
-  traj_feas = max_jump < traj_tol;
-  goal_feas = goal_distance < goal_tol;
-  start_feas = start_distance < goal_tol;
-  col_feas = max_collision < col_tol;
-  x_bounds_feas = x_bound_distance < x_bound_tol;
-  u_bounds_feas = u_bound_distance < u_bound_tol;
+void Trajectory::update_feasibility(const Feasibility_thresholds &thresholds,
+                                    bool verbose) {
+  traj_feas = max_jump < thresholds.traj_tol;
+  goal_feas = goal_distance < thresholds.goal_tol;
+  start_feas = start_distance < thresholds.goal_tol;
+  col_feas = max_collision < thresholds.col_tol;
+  x_bounds_feas = x_bound_distance < thresholds.x_bound_tol;
+  u_bounds_feas = u_bound_distance < thresholds.u_bound_tol;
 
   feasible = traj_feas && goal_feas && start_feas && col_feas &&
              x_bounds_feas && u_bounds_feas;

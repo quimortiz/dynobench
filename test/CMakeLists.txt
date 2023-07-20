@@ -27,7 +27,14 @@ cmake_print_variables(${Boost_LIBRARIES})
 # Now simply link against gtest as needed. Eg
 add_executable(test_dynobench test_hello_world.cpp test_base.cpp
                               test_models.cpp)
+
+add_executable(test_check_trajectory test_check_trajectory.cpp)
+
 target_link_libraries(test_dynobench dynobench::dynobench
                       Boost::unit_test_framework)
 
+target_link_libraries(test_check_trajectory dynobench::dynobench
+                      Boost::unit_test_framework)
+
 add_test(NAME test_dynobench COMMAND test_dynobench)
+add_test(NAME test_check_trajectory COMMAND test_check_trajectory)

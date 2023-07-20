@@ -105,6 +105,55 @@ inline void save(Archive &ar, const Eigen::VectorXd &v,
 } // namespace serialization
 } // namespace boost
 
+struct Feasibility_thresholds {
+  double traj_tol = 1e-2;
+  double goal_tol = 1e-2;
+  double col_tol = 1e-2;
+  double x_bound_tol = 1e-2;
+  double u_bound_tol = 1e-2;
+
+  void __load_data(void *source, bool boost, bool write = false,
+                   const std::string &be = "") {
+
+    Loader loader;
+    loader.use_boost = boost;
+    loader.print = write;
+    loader.source = source;
+    loader.be = be;
+
+    loader.set(VAR_WITH_NAME(traj_tol));
+    loader.set(VAR_WITH_NAME(goal_tol));
+    loader.set(VAR_WITH_NAME(col_tol));
+    loader.set(VAR_WITH_NAME(x_bound_tol));
+    loader.set(VAR_WITH_NAME(u_bound_tol));
+  };
+
+  void add_options(po::options_description &desc) { __load_data(&desc, true); }
+
+  void print(std::ostream &out, const std::string &be = "") const {
+    auto ptr = const_cast<Feasibility_thresholds *>(this);
+    ptr->__load_data(&out, false, true, be);
+  }
+
+  void read_from_yaml(const char *file) {
+    std::cout << "loading file: " << file << std::endl;
+    YAML::Node node = YAML::LoadFile(file);
+    read_from_yaml(node);
+  }
+
+  void read_from_yaml(YAML::Node &node) {
+
+    if (node["options_dbastar"]) {
+      __read_from_node(node["options_dbastar"]);
+    } else {
+      __read_from_node(node);
+    }
+  }
+  void __read_from_node(const YAML::Node &node) {
+    __load_data(&const_cast<YAML::Node &>(node), false);
+  }
+};
+
 struct Trajectory {
 
   double time_stamp; // when it was generated?
@@ -213,9 +262,9 @@ struct Trajectory {
     return trajectories;
   }
 
-  void update_feasibility(double traj_tol = 1e-2, double goal_tol = 1e-2,
-                          double col_tol = 1e-2, double x_bound_tol = 1e-2,
-                          double u_bound_tol = 1e-2, bool verbose = false);
+  void update_feasibility(
+      const Feasibility_thresholds &thresholds = Feasibility_thresholds(),
+      bool verbose = false);
 
   // boost serialization
 

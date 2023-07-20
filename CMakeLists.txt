@@ -15,6 +15,8 @@ find_package(yaml-cpp REQUIRED)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
+add_executable(check_trajectory ./src/check_trajectory.cpp)
+
 add_library(dynobench ./src/robot_models.cpp ./src/robot_models_base.cpp
                       ./src/motions.cpp)
 
@@ -32,6 +34,11 @@ target_compile_options(dynobench PRIVATE -Wall -Wextra)
 target_link_libraries(dynobench PUBLIC fcl yaml-cpp Boost::program_options
                                        Boost::serialization)
 
+target_link_libraries(
+  check_trajectory
+  PUBLIC dynobench
+  PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
+
 # Installation instructions
 
 include(GNUInstallDirs)
@@ -42,10 +49,6 @@ install(
   EXPORT dynobench-targets
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-# This is required so that the exported target has the name JSONUtils and not
-# jsonutils
-set_target_properties(dynobench PROPERTIES EXPORT_NAME dynobench)
 
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
