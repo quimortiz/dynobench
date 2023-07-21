@@ -28,12 +28,12 @@ target_link_libraries(
   PRIVATE dynobench::dynobench )
 ```
 
-As an example, you can check the `CMakeLists.txt`  and the project structure in [dynoplan](https://github.com/quimortiz/dynoplan)
+As an example, you can check the `CMakeLists.txt`  and the project structure in [Dynoplan](https://github.com/quimortiz/dynoplan)
 
 
 ### As external Project
 
-First, build dynobench from source and install with:
+First, build Dynobench from source and install with:
 
 ```bash
 git clone https://github.com/quimortiz/dynobench
@@ -71,7 +71,7 @@ int main() {
 
 ```
 
-CMakeLists.txt (using dynobench as external project)
+CMakeLists.txt (using Dynobench as an external project)
 ```cmake
 cmake_minimum_required(VERSION 3.5)
 project(
@@ -93,4 +93,40 @@ add_executable(main main.cpp)
 # target_include_directories(main PRIVATE ${DYNOBENCH_INCLUDE_DIRS} )
 
 target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
+```
+
+## Adding a new dynamical system
+
+Let's add a single integrator in 2D. We already have this model implemented `Model_single_integrator_2d`, but
+let's create the same model step by step with a different name `Model_single_integrator_2d_fancy`.
+
+Add the dynamics
+
+```tex
+\mathbf{x} = [x,y]
+\mathbf{u} = [v_x , v_y]
+\dot{ \mathbf{x} } =  \mathbf{u}
+\mathbf{x}_{k+1} = \mathbf{x} + \mathbf{u} \delta_t
+```
+
+
+```cpp
+
+```
+
+Add the robot in the factory
+```
+```
+
+
+Add the viewer
+```
+```
+
+
+
+## Adding a new scenario
+
+```cpp
+
 ```
