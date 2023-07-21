@@ -19,23 +19,23 @@ You can use Dynobench as a submodule.
 
 Using `cmake`, import the library with:
 
-```
+```cmake
 add_subdirectory(dynobench EXCLUDE_FROM_ALL) # use EXCLUDE_FROM_ALL to avoid
                                              # building the tests
-...
+...cmake
 target_link_libraries(
-  MY_TARGET
+  my_target
   PRIVATE dynobench::dynobench )
 ```
 
-As an example, you can check the `CMakeLists.txt` and project structure with [dynoplan](https://github.com/quimortiz/dynoplan)
+As an example, you can check the `CMakeLists.txt`  and the project structure in [dynoplan](https://github.com/quimortiz/dynoplan)
 
 
 ### As external Project
 
 First, build dynobench from source and install with:
 
-```
+```bash
 git clone https://github.com/quimortiz/dynobench
 cd dynobench && mkdir build && cd build
 cmake .. -DCMAKE_INSTALL_PREFIX=MY_PATH && make install
@@ -43,21 +43,22 @@ cmake .. -DCMAKE_INSTALL_PREFIX=MY_PATH && make install
 
 Then, add the following lines in `CMakeLists.txt` of your repository:
 
-```
+```cmake
 find_package(dynobench REQUIRED)
 ...
 target_link_libraries(my_target PRIVATE dynobench::dynobench )
 ```
 
 And add the path of the local installation
-```
+```bash
 cmake .. -DCMAKE_PREFIX_PATH=MY_PATH
 ```
 
-A basic example:
+## Hello World with Dynobench
+
 
 main.cpp
-```
+```cpp
 #include <iostream>
 #include "dynobench/robot_models.hpp"
 
@@ -67,10 +68,11 @@ int main() {
 
   std::cout << "Hello World!" << std::endl;
 }
+
 ```
 
-CMakeLists.txt
-```
+CMakeLists.txt (using dynobench as external project)
+```cmake
 cmake_minimum_required(VERSION 3.5)
 project(
   use_dynobench
