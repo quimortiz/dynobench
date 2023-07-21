@@ -56,6 +56,8 @@ cmake .. -DCMAKE_PREFIX_PATH=MY_PATH
 
 ## Hello World with Dynobench
 
+### C++ library
+
 
 main.cpp
 ```cpp
@@ -95,6 +97,32 @@ add_executable(main main.cpp)
 target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 ```
 
+
+### Python Viewer
+
+
+
+
+
+### Python Bindings
+
+We provide python bindings for the dynamical systems
+
+
+main.py
+```python3
+
+```
+
+Run with
+```
+
+```
+
+
+
+
+
 ## Adding a new dynamical system
 
 Let's add a single integrator in 2D. We already have this model implemented `Model_single_integrator_2d`, but
@@ -130,3 +158,11 @@ Add the viewer
 ```cpp
 
 ```
+
+## Roadmap
+
+Dynobench is still in an alpha stage.
+
+- [ ] Use Pinocchio to define the models
+- [ ] Add a second viewer (e.g. build on top of viewers provided by Pinocchio)
+- [ ] Interface to Mujoco for simulating problems with contacts.
