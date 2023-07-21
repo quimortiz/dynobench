@@ -17,8 +17,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 add_executable(check_trajectory ./src/check_trajectory.cpp)
 
-add_library(dynobench ./src/robot_models.cpp ./src/robot_models_base.cpp
-                      ./src/motions.cpp)
+add_library(
+  dynobench
+  ./src/robot_models.cpp
+  ./src/robot_models_base.cpp
+  ./src/motions.cpp
+  ./src/car.cpp
+  ./src/acrobot.cpp
+  ./src/quadrotor.cpp
+  ./src/unicycle1.cpp
+  ./src/unicycle2.cpp
+  ./src/planar_rotor.cpp
+  ./src/planar_rotor_pole.cpp
+  ./src/car2.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
 

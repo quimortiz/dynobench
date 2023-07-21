@@ -20,6 +20,47 @@
 #include <type_traits>
 #include <yaml-cpp/node/node.h>
 
+#include <boost/archive/binary_iarchive.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+
+BOOST_SERIALIZATION_SPLIT_FREE(Eigen::VectorXd)
+
+template <class Archive>
+void naive_eigen_vector_save(Archive &ar, const Eigen::VectorXd &v) {
+  std::vector<double> vv(v.data(), v.data() + v.size());
+  ar &vv;
+}
+
+template <class Archive>
+void naive_eigen_vector_load(Archive &ar, Eigen::VectorXd &v) {
+  std::vector<double> vv;
+  ar &vv;
+  v = Eigen::VectorXd::Map(vv.data(), vv.size());
+}
+
+namespace boost {
+namespace serialization {
+
+template <class Archive>
+inline void load(Archive &ar, Eigen::VectorXd &v,
+                 const unsigned int file_version) {
+
+  (void)file_version;
+  naive_eigen_vector_load(ar, v);
+}
+
+template <class Archive>
+inline void save(Archive &ar, const Eigen::VectorXd &v,
+                 const unsigned int file_version) {
+
+  (void)file_version;
+  naive_eigen_vector_save(ar, v);
+}
+} // namespace serialization
+} // namespace boost
+
+namespace dynobench {
+
 double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out,
                       std::shared_ptr<Model_robot> model, bool verbose);
 
@@ -70,40 +111,8 @@ double check_cols(std::shared_ptr<Model_robot> model_robot,
 
 // namespace selection
 
-BOOST_SERIALIZATION_SPLIT_FREE(Eigen::VectorXd)
-
-template <class Archive>
-void naive_eigen_vector_save(Archive &ar, const Eigen::VectorXd &v) {
-  std::vector<double> vv(v.data(), v.data() + v.size());
-  ar &vv;
-}
-
-template <class Archive>
-void naive_eigen_vector_load(Archive &ar, Eigen::VectorXd &v) {
-  std::vector<double> vv;
-  ar &vv;
-  v = Eigen::VectorXd::Map(vv.data(), vv.size());
-}
-
-namespace boost {
-namespace serialization {
-template <class Archive>
-inline void load(Archive &ar, Eigen::VectorXd &v,
-                 const unsigned int file_version) {
-
-  (void)file_version;
-  naive_eigen_vector_load(ar, v);
-}
-
-template <class Archive>
-inline void save(Archive &ar, const Eigen::VectorXd &v,
-                 const unsigned int file_version) {
-
-  (void)file_version;
-  naive_eigen_vector_save(ar, v);
-}
-} // namespace serialization
-} // namespace boost
+// } // namespace serialization
+// } // namespace boost
 
 struct Feasibility_thresholds {
   double traj_tol = 1e-2;
@@ -286,7 +295,6 @@ struct Trajectory {
 
   void load_file_boost(const char *file);
 };
-BOOST_CLASS_VERSION(Trajectory, 1);
 
 struct Trajectories {
 
@@ -390,3 +398,9 @@ Trajectories cut_trajectory(const Trajectory &traj, size_t number_of_cuts,
 void make_trajs_canonical(Model_robot &robot,
                           const std::vector<Trajectory> &trajs,
                           std::vector<Trajectory> &trajs_canonical);
+
+} // namespace dynobench
+//
+//
+//
+BOOST_CLASS_VERSION(dynobench::Trajectory, 1);

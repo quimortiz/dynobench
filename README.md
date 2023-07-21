@@ -171,6 +171,9 @@ That's all!
 
 Dynobench is still in an alpha stage.
 
+Next steps are:
+
+- [ ] Gym interface for RL. Train PPO for unicycle park.
 - [ ] Use Pinocchio to define the models
 - [ ] Add a second viewer (e.g. build on top of viewers provided by Pinocchio)
 - [ ] Interface to Mujoco for simulating problems with contacts.

@@ -3,6 +3,8 @@
 #include "dynobench/robot_models.hpp"
 // #include "robots.h"
 
+using namespace dynobench;
+
 int main(int argc, char *argv[]) {
 
   std::string models_base_path;

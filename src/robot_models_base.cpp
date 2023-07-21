@@ -36,6 +36,8 @@ using V4d = Eigen::Vector4d;
 using Vxd = Eigen::VectorXd;
 using V1d = Eigen::Matrix<double, 1, 1>;
 
+namespace dynobench {
+
 double low__ = -std::sqrt(std::numeric_limits<double>::max());
 double max__ = std::sqrt(std::numeric_limits<double>::max());
 
@@ -719,3 +721,4 @@ void linearInterpolation(const Eigen::VectorXd &times,
 
   Jx = J2 * diff / (times(index) - times(index - 1));
 }
+} // namespace dynobench

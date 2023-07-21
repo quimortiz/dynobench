@@ -32,6 +32,11 @@
 #include "dynobench/motions.hpp"
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
+#include <boost/histogram.hpp>
+
+using ::boost::archive::binary_iarchive;
+using ::boost::archive::binary_oarchive;
+namespace dynobench {
 
 using vstr = std::vector<std::string>;
 using V2d = Eigen::Vector2d;
@@ -565,7 +570,7 @@ void Trajectory::save_file_boost(const char *file) const {
   std::cout << "Traj: save file boost to: " << file << std::endl;
   std::ofstream out(file, std::ios::binary);
   CHECK(out.is_open(), AT);
-  boost::archive::binary_oarchive oa(out);
+  binary_oarchive oa(out);
   oa << *this;
 }
 
@@ -573,7 +578,7 @@ void Trajectory::load_file_boost(const char *file) {
   std::cout << "Traj: load file boost from: " << file << std::endl;
   std::ifstream in(file, std::ios::binary);
   CHECK(in.is_open(), AT);
-  boost::archive::binary_iarchive oi(in);
+  binary_iarchive oi(in);
   oi >> *this;
 }
 
@@ -586,7 +591,8 @@ void Trajectories::save_file_boost(const char *file) const {
   }
   std::ofstream out(file, std::ios::binary);
   CHECK(out.is_open(), AT);
-  boost::archive::binary_oarchive oa(out);
+  // ::boost::archive::
+  binary_oarchive oa(out);
   oa << *this;
 }
 
@@ -595,7 +601,7 @@ void Trajectories::load_file_boost(const char *file) {
 
   std::ifstream in(file, std::ios::binary);
   CHECK(in.is_open(), AT);
-  boost::archive::binary_iarchive oi(in);
+  ::boost::archive::binary_iarchive oi(in);
   oi >> *this;
   std::cout << "Trajs: load file boost from: " << file << " -- DONE"
             << std::endl;
@@ -686,8 +692,6 @@ Trajectory from_quim_to_welf(const Trajectory &traj_raw, double u_nominal) {
   return traj;
 }
 
-#include <boost/histogram.hpp>
-
 struct Bin {
 
   int index;
@@ -728,15 +732,16 @@ make_componentwise_histogram(const std::vector<Eigen::VectorXd> &states) {
     max_ += .1 * std::max(diff, .1);
     min_ -= .1 * std::max(diff, .1);
 
-    auto h = boost::histogram::make_histogram(boost::histogram::axis::regular<>(
-        num_bins, min_, max_, "x" + std::to_string(i)));
+    auto h =
+        ::boost::histogram::make_histogram(::boost::histogram::axis::regular<>(
+            num_bins, min_, max_, "x" + std::to_string(i)));
 
     // CSTR_(h.size());
     std::for_each(xi.begin(), xi.end(), std::ref(h));
     // CSTR_(h.size());
 
     std::vector<Bin> bins;
-    for (auto &&x : indexed(h, boost::histogram::coverage::all)) {
+    for (auto &&x : indexed(h, ::boost::histogram::coverage::all)) {
       Bin bin{.index = x.index(),
               .min = x.bin().lower(),
               .max = x.bin().upper(),
@@ -888,3 +893,5 @@ void make_trajs_canonical(Model_robot &robot,
     trajs_canonical.push_back(traj_out);
   }
 }
+
+} // namespace dynobench

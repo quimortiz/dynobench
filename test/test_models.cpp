@@ -37,7 +37,18 @@
 #include <Eigen/Dense>
 #include <iostream>
 
+#include "dynobench/car.hpp"
+#include "dynobench/car2.hpp"
+#include "dynobench/unicycle1.hpp"
+#include "dynobench/unicycle2.hpp"
+
+#include "dynobench/acrobot.hpp"
+#include "dynobench/planar_rotor.hpp"
+#include "dynobench/planar_rotor_pole.hpp"
+#include "dynobench/quadrotor.hpp"
+
 using namespace std;
+using namespace dynobench;
 
 Eigen::VectorXd default_vector;
 

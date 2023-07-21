@@ -20,6 +20,8 @@
 #include <type_traits>
 #include <yaml-cpp/node/node.h>
 
+namespace dynobench {
+
 struct Obstacle {
   std::string type;
   Eigen::VectorXd size;
@@ -583,3 +585,4 @@ struct Interpolator {
     linearInterpolation(times, x, t_query, *state, out, J);
   }
 };
+} // namespace dynobench
