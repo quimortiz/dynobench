@@ -100,30 +100,38 @@ target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 Let's add a single integrator in 2D. We already have this model implemented `Model_single_integrator_2d`, but
 let's create the same model step by step with a different name `Model_single_integrator_2d_fancy`.
 
-Add the dynamics
+State: $\mathbf{x} = [x,y]$
 
-```tex
-\mathbf{x} = [x,y]
-\mathbf{u} = [v_x , v_y]
-\dot{ \mathbf{x} } =  \mathbf{u}
-\mathbf{x}_{k+1} = \mathbf{x} + \mathbf{u} \delta_t
-```
+Control:  $\mathbf{u} = [v_x , v_y]$
 
+Dynamics: $\dot{ \mathbf{x} } =  \mathbf{u}$
+
+Step function $\mathbf{x}_{k+1} = \mathbf{x} + \mathbf{u} \delta_t$
+
+Control Bounds:  $|v_x| \leq 1$,  $|v_y| \leq 1$
+
+State Bounds: $|x| \leq 1$,  $|y| \leq 1$
 
 ```cpp
-
+...
 ```
 
 Add the robot in the factory
 ```
+...
 ```
 
 
 Add the viewer
 ```
+...
 ```
 
-
+Add a test
+```
+...
+```
+That's all!
 
 ## Adding a new scenario
 
