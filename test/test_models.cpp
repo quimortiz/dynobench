@@ -172,7 +172,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
     BOOST_TEST(std::abs(original_energy - last_energy) < 1e-2);
   }
 
-  // std::cout << "final state" << xs.back().format(FMT) << std::endl;
+  // std::cout << "final state" << xs.back().format(FMT) <<
+  // std::endl;
 
   // dyn->max_torque =
 }
