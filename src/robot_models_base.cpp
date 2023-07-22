@@ -561,6 +561,10 @@ void Model_robot::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
                            const Eigen::Ref<const Eigen::VectorXd> &u,
                            double dt) {
 
+  assert(static_cast<size_t>(Fx.rows()) == nx &&
+         static_cast<size_t>(Fx.cols()) == nx);
+  assert(static_cast<size_t>(Fu.rows()) == nx &&
+         static_cast<size_t>(Fu.cols()) == nu);
   calcDiffV(__Jv_x, __Jv_u, x, u);
   // euler_diff(Fx, Fu, dt, __Jv_x, __Jv_u);
 

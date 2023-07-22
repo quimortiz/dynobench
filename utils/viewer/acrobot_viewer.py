@@ -1,8 +1,9 @@
 import sys
 from pathlib import Path
 
-sys.path.append(Path(__file__).parent)
+sys.path.append(str(Path(__file__).parent))
 
+import viewer_utils
 
 import argparse
 import numpy as np
@@ -14,7 +15,6 @@ from matplotlib import animation
 import matplotlib.animation as manimation
 import os
 import sys
-import viewer_utils
 from robot_viewer import RobotViewer
 
 

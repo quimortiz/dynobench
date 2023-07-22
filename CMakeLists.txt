@@ -11,6 +11,10 @@ project(
 find_package(Boost REQUIRED COMPONENTS program_options serialization)
 find_package(fcl REQUIRED)
 find_package(yaml-cpp REQUIRED)
+find_package(Eigen3 REQUIRED)
+# find_package(pybind11 REQUIRED)
+
+add_subdirectory(deps/pybind11)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
@@ -33,6 +37,11 @@ add_library(
 
 add_library(dynobench::dynobench ALIAS dynobench)
 
+pybind11_add_module(robot_python src/model_robot_python_bindings.cpp)
+
+set_property(TARGET robot_python PROPERTY POSITION_INDEPENDENT_CODE ON)
+set_property(TARGET dynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
+
 target_include_directories(
   dynobench
   PUBLIC $<INSTALL_INTERFACE:include>
@@ -51,6 +60,8 @@ target_link_libraries(
   PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
 
 # Installation instructions
+
+target_link_libraries(robot_python PUBLIC Eigen3::Eigen dynobench fcl)
 
 include(GNUInstallDirs)
 set(INSTALL_CONFIGDIR ${CMAKE_INSTALL_LIBDIR}/cmake/dynobench)

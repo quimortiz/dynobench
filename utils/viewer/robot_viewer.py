@@ -42,13 +42,14 @@ class RobotViewer:
             axs, result, self.labels_x, self.labels_u, **kwargs
         )
 
-    def make_video(self, env, result, filename_video: str = ""):
+    def make_video(self, env, result, filename_video: str = "", interactive=False):
         viewer_utils.make_video_default(
             env,
             result,
             lambda ax, env: self.view_problem(ax, env),
             self.RobotDrawerClass,
             filename_video,
+            interactive,
         )
 
     def is_3d(self) -> bool:
@@ -260,4 +261,4 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
             # print("copy from /tmp/dbastar/tmp.mp4 to", name_out)
             # shutil.copy("/tmp/dbastar/tmp.mp4", name_out)
 
-        viewer.make_video(env, result, filename_video)
+        viewer.make_video(env, result, filename_video, interactive=args.interactive)

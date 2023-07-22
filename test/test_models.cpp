@@ -558,7 +558,7 @@ BOOST_AUTO_TEST_CASE(tcol_unicycle) {
   problem.read_from_yaml(env.c_str());
 
   auto unicycle = Model_unicycle1();
-  load_env_quim(unicycle, problem);
+  load_env(unicycle, problem);
 
   Eigen::Vector3d x(.7, .8, 0);
 
@@ -590,7 +590,7 @@ BOOST_AUTO_TEST_CASE(col_car_with_trailer) {
   Problem problem;
   problem.read_from_yaml(env.c_str());
 
-  load_env_quim(car, problem);
+  load_env(car, problem);
 
   Eigen::Vector4d x(3.4, 3, 3.14, 3.14);
   CollisionOut col;
@@ -619,24 +619,32 @@ BOOST_AUTO_TEST_CASE(tcol_quad3d) {
 
   Eigen::VectorXd x(13);
   auto quad3d = Model_quad3d();
-  load_env_quim(quad3d, problem);
+  load_env(quad3d, problem);
   CollisionOut col;
 
   x << 1., 1., 1., 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
   quad3d.collision_distance(x, col);
   col.write(std::cout);
 
-  BOOST_TEST(std::fabs(col.distance - 0.30713) < 1e-5);
+  BOOST_TEST(std::fabs(col.distance - 0.824745) < 1e-5);
+  BOOST_TEST(std::fabs(col.distance - (col.p1 - col.p2).norm() < 1e-5));
 
   x << 1.2, 1.5, 2., 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
   quad3d.collision_distance(x, col);
   col.write(std::cout);
 
   BOOST_TEST(std::fabs(col.distance - (-0.0999999)) < 1e-5);
+
   x << 5., 5., 1., 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
   quad3d.collision_distance(x, col);
   col.write(std::cout);
-  BOOST_TEST(std::fabs(col.distance - (0.307206)) < 1e-5);
+  BOOST_TEST(std::fabs(col.distance - 0.824745) < 1e-5);
+
+  x << 3., 1., 3., 0, 0, 0, 1, 0, 0, 0, 0, 0, 0;
+
+  quad3d.collision_distance(x, col);
+  col.write(std::cout);
+  BOOST_TEST(std::fabs(col.distance - (.1)) < 5 * 1e-5);
 }
 
 BOOST_AUTO_TEST_CASE(col_acrobot) {
@@ -645,18 +653,19 @@ BOOST_AUTO_TEST_CASE(col_acrobot) {
   auto env = std::string(base_path) + "envs/acrobot_v0/swing_up_obs.yaml";
 
   problem.read_from_yaml(env.c_str());
+  const double tol = 1e-4;
 
   Eigen::Vector4d x;
   auto acrobot = Model_acrobot();
-  load_env_quim(acrobot, problem);
+  load_env(acrobot, problem);
 
   CollisionOut col;
   x << 0, 0, 0, 0;
   acrobot.collision_distance(x, col);
   col.write(std::cout);
-  double tol = 1e-5;
 
   BOOST_TEST(std::fabs(col.distance - 1.59138) < tol);
+  BOOST_TEST(std::fabs(col.distance - (col.p1 - col.p2).norm() < 1e-5));
 
   x << 3.14159, 0, 0, 0;
   acrobot.collision_distance(x, col);
@@ -666,7 +675,12 @@ BOOST_AUTO_TEST_CASE(col_acrobot) {
   x << M_PI / 2., M_PI / 2., 0, 0;
   acrobot.collision_distance(x, col);
   col.write(std::cout);
-  BOOST_TEST(std::fabs(col.distance - 0.180278) < tol);
+  BOOST_TEST(std::fabs(col.distance - 1.59138) < tol);
+
+  x << 2.37, 1.4, 0, 0;
+  acrobot.collision_distance(x, col);
+  col.write(std::cout);
+  BOOST_TEST(std::fabs(col.distance - 1.21897) < tol);
 }
 
 // BOOST_AUTO_TEST_CASE(col_quad3d_v2) {
@@ -675,7 +689,7 @@ BOOST_AUTO_TEST_CASE(col_acrobot) {
 //
 //   std::shared_ptr<Model_robot> robot =
 //       robot_factory(robot_type_to_path(problem.robotType).c_str());
-//   load_env_quim(*robot, problem);
+//   load_env(*robot, problem);
 //
 //   Eigen::VectorXd x(13);
 //   x.setZero();

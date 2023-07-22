@@ -386,7 +386,11 @@ struct Info_out {
   void virtual print_trajs(const char *path);
 };
 
-void load_env_quim(Model_robot &robot, const Problem &problem);
+void load_env(Model_robot &robot, const Problem &problem);
+
+// std:
+//
+//   kModel_robot &robot, const Problem &problem) {
 
 Trajectory from_welf_to_quim(const Trajectory &traj_raw, double u_nominal);
 

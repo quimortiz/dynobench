@@ -607,7 +607,7 @@ void Trajectories::load_file_boost(const char *file) {
             << std::endl;
 }
 
-void load_env_quim(Model_robot &robot, const Problem &problem) {
+void load_env(Model_robot &robot, const Problem &problem) {
   std::vector<fcl::CollisionObjectd *> obstacles;
   double ref_pos = 0;
   double ref_size = 1.;

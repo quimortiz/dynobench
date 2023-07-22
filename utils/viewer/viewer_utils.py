@@ -265,7 +265,9 @@ def draw_traj_default(ax, result, Robot, draw_basic_every=-1, draw_normal_every=
     # r.draw(ax, states[30], alpha=.5, color='blue')
 
 
-def make_video_default(env, result, plot_env_func, Robot, filename_video: str = ""):
+def make_video_default(
+    env, result, plot_env_func, Robot, filename_video: str = "", interactive=False
+):
     fig = plt.figure()  # frameon=False, figsize=(4 * aspect, 4))
     ax = fig.add_subplot(111, aspect="equal")
     plot_env_func(ax, env)
@@ -286,7 +288,7 @@ def make_video_default(env, result, plot_env_func, Robot, filename_video: str = 
         speed = 10
         print(f"saving video: {filename_video}")
         anim.save(filename_video, "ffmpeg", fps=10 * speed, dpi=100)
-    else:
+    elif interactive:
         plt.show()
 
 

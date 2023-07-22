@@ -17,23 +17,19 @@ import sys
 
 
 def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
+    viewer: robot_viewer.RobotViewer
     if robot == "quad3d":
         viewer = quad3d_viewer.Quad3dViewer()
     elif robot == "unicycle1":
         viewer = unicycle1_viewer.Unicycle1Viewer()
-
     elif robot == "unicycle2":
         viewer = unicycle2_viewer.Unicycle2Viewer()
-
     elif robot == "quad2d":
         viewer = quad2d_viewer.Quad2dViewer()
-
     elif robot == "quad2dpole":
         viewer = quad2dpole_viewer.Quad2dpoleViewer()
-
     elif robot == "acrobot":
         viewer = acrobot_viewer.AcrobotViewer()
-
     elif robot == "car":
         viewer = car_with_trailer_viewer.CarWithTrailerViewer()
     else:
@@ -57,4 +53,4 @@ if __name__ == "__main__":
     # viewer, ["--env", args.env, "--result", args.result, "--result2",
     # args.result2])
 
-    robot_viewer.check_viewer(viewer, args)
+    robot_viewer.check_viewer(viewer, unk)

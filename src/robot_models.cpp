@@ -22,6 +22,7 @@
 
 #include "dynobench/general_utils.hpp"
 #include "dynobench/math_utils.hpp"
+#include "dynobench/motions.hpp"
 #include "dynobench/robot_models.hpp"
 
 #include "dynobench/acrobot.hpp"
@@ -66,4 +67,15 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     ERROR_WITH_INFO("dynamics not implemented");
   }
 }
+
+std::unique_ptr<Model_robot>
+robot_factory_with_env(const std::string &robot_name,
+                       const std::string &problem_name) {
+
+  auto robot = robot_factory(robot_name.c_str());
+  Problem problem(problem_name);
+  load_env(*robot, problem);
+  return robot;
+}
+
 } // namespace dynobench

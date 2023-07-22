@@ -47,7 +47,7 @@ int main(int argc, char *argv[]) {
 
   std::shared_ptr<Model_robot> robot = robot_factory(
       (problem.models_base_path + problem.robotType + ".yaml").c_str());
-  load_env_quim(*robot, problem);
+  load_env(*robot, problem);
 
   Trajectory traj;
   traj.read_from_yaml(result_file.c_str());

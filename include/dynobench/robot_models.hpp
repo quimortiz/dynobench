@@ -32,4 +32,9 @@ inline std::string robot_type_to_path(const std::string &robot_type) {
   const std::string suffix = ".yaml";
   return base_path + robot_type + suffix;
 }
+
+std::unique_ptr<Model_robot>
+robot_factory_with_env(const std::string &robot_name,
+                       const std::string &problem_name);
+
 } // namespace dynobench

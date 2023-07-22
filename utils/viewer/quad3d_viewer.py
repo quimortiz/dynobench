@@ -1,14 +1,21 @@
 import numpy as np
-import viewer_utils
 import yaml
 import matplotlib.pyplot as plt
 from matplotlib import animation
-from robot_viewer import RobotViewer
+
 
 from pathlib import Path
+
 import sys
 
 sys.path.append(str(Path(__file__).parent))
+
+
+from robot_viewer import RobotViewer
+import viewer_utils
+
+import sys
+
 from pyplot3d2.uav import Uav
 from pyplot3d2.utils import ypr_to_R
 
@@ -337,7 +344,9 @@ class Quad3dViewer(RobotViewer):
             ax, result, self.RobotDrawerClass, draw_basic_every=1000
         )
 
-    def make_video(self, env, result, filename_video: str = ""):
+    def make_video(
+        self, env, result, filename_video: str = "", interactive: bool = False
+    ):
         # fig = plt.figure()
         fig = plt.figure(figsize=(16, 10))
         ax = plt.axes(projection="3d")
@@ -380,7 +389,7 @@ class Quad3dViewer(RobotViewer):
             anim.save(filename_video, "ffmpeg", fps=10 * speed, dpi=100)
             print(f"saving video: {filename_video} -- DONE")
 
-        else:
+        elif interactive:
             plt.show()
 
 
