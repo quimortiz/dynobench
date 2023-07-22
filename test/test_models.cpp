@@ -54,6 +54,107 @@ Eigen::VectorXd default_vector;
 
 #define base_path "../../"
 
+struct Fake_opt {
+
+  std::string filename = "tmp.yaml";
+  int max_it = 10;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Fake_opt, filename, max_it);
+};
+
+// for string delimiter
+std::vector<std::string> split(std::string s, std::string delimiter) {
+  size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+  std::string token;
+  std::vector<std::string> res;
+
+  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+    token = s.substr(pos_start, pos_end - pos_start);
+    pos_start = pos_end + delim_len;
+    if (token.size())
+      res.push_back(token);
+  }
+
+  if (s.substr(pos_start).size())
+    res.push_back(s.substr(pos_start));
+  for (auto &r : res) {
+    std::cout << "- " << r << std::endl;
+  }
+  return res;
+}
+
+void tokenize(std::string const &str, const char delim,
+              std::vector<std::string> &out) {
+  // construct a stream from the string
+  std::stringstream ss(str);
+
+  std::string s;
+  while (std::getline(ss, s, delim)) {
+    if (s.size())
+      out.push_back(s);
+  }
+}
+
+Fake_opt fakeCLIParser(const std::string &argv) {
+
+  auto outs = split(argv, "--");
+
+  std::ofstream o(base_path "fake_cli.json");
+  o << "{\n";
+
+  for (size_t i = 0; i < outs.size(); i++) {
+    auto out = outs[i];
+
+    std::vector<std::string> _out;
+    tokenize(out, ' ', _out);
+    CHECK_EQ(_out.size(), 2, "");
+    // if (i < outs.size() - 1)
+    o << "  \"" << _out[0] << "\": ";
+
+    try {
+      double d = std::stod(_out[1]);
+      o << _out[1];
+    } catch (const std::exception &e) {
+      o << "\"" << _out[1] << "\"";
+    }
+
+    if (i < outs.size() - 1) {
+      o << ",\n";
+    } else {
+      o << "\n";
+    }
+  }
+
+  o << "}\n";
+  o.close();
+
+  std::ifstream ii(base_path "fake_cli.json");
+  json j = json::parse(ii); //
+
+  Fake_opt opt = j;
+  return opt;
+}
+
+BOOST_AUTO_TEST_CASE(t_jsonX) {}
+
+BOOST_AUTO_TEST_CASE(t_fakeCLIParser) {
+  Fake_opt opt =
+      fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it   100");
+  std::cout << opt.max_it << " " << opt.filename << std::endl;
+
+  {
+    Fake_opt opt =
+        fakeCLIParser("--filename ../models/quad2d_v0.yaml     --max_it   100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+
+  {
+    Fake_opt opt =
+        fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it 100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+}
+
 BOOST_AUTO_TEST_CASE(yaml_json) {
 
   YAML::Node node = YAML::LoadFile(base_path "tets_yaml_json.yaml");
