@@ -5,7 +5,10 @@
 #include "croco_macros.hpp"
 #include <Eigen/Geometry>
 
-const Eigen::IOFormat FMT(6, Eigen::DontAlignCols, ",", ",", "", "", "[", "]");
+namespace dynobench {
+
+const Eigen::IOFormat FMT(6, Eigen::DontAlignCols, ",", ",", "", "",
+                                     "[", "]");
 
 bool inline check_bounds(const Eigen::VectorXd &v, const Eigen::VectorXd &v_lb,
                          const Eigen::VectorXd &v_ub, double tol = 1e-10) {
@@ -557,3 +560,5 @@ void inline element_wise(double *y, const double *r, size_t n) {
     y[i] *= r[i];
   }
 }
+
+} // namespace dynobench
