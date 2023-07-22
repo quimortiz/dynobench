@@ -55,11 +55,12 @@ Eigen::VectorXd default_vector;
 #define base_path "../../"
 
 struct Fake_opt {
-
+  Fake_opt() = default;
   std::string filename = "tmp.yaml";
   int max_it = 10;
 
-  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Fake_opt, filename, max_it);
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(Fake_opt, filename, max_it);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Fake_opt, filename, max_it);
 };
 
 // for string delimiter
@@ -151,6 +152,11 @@ BOOST_AUTO_TEST_CASE(t_fakeCLIParser) {
   {
     Fake_opt opt =
         fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it 100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+
+  {
+    Fake_opt opt = fakeCLIParser("--max_it 100");
     std::cout << opt.max_it << " " << opt.filename << std::endl;
   }
 }
