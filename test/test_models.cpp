@@ -54,6 +54,33 @@ Eigen::VectorXd default_vector;
 
 #define base_path "../../"
 
+BOOST_AUTO_TEST_CASE(yaml_json) {
+
+  YAML::Node node = YAML::LoadFile(base_path "tets_yaml_json.yaml");
+
+  json j = tojson::detail::yaml2json(node);
+  std::cout << j.dump() << std::endl;
+
+  std::cout << tojson::emitters::toyaml(j) << std::endl;
+  std::ofstream o(base_path "tmp.yaml");
+  std::ofstream o2(base_path "tmp2.yaml");
+  o << tojson::emitters::toyaml(j) << std::endl;
+
+  YAML::Emitter ee;
+  ee << node;
+  o2 << ee.c_str() << std::endl;
+  // how to test that they are the same?
+}
+
+BOOST_AUTO_TEST_CASE(t_load_json) {
+  Unicycle1_paramsJ aa;
+
+  aa.read_from_yaml(
+      (std::string(base_path) + "models/unicycle1_v0.yaml").c_str());
+
+  aa.write_yaml(std::cout);
+}
+
 BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
 
   std::shared_ptr<Model_robot> robot = std::make_shared<Model_quad2d>(
@@ -72,7 +99,8 @@ BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
 //   std::shared_ptr<Model_robot> robot =
 //       std::make_shared<Model_quad2d>("../models/quad2d_v0.yaml");
 //
-//   std::vector<Trajectory> primitives = traj.find_discontinuities(robot);
+//   std::vector<Trajectory> primitives =
+//   traj.find_discontinuities(robot);
 //
 //   // lets write the trajectories
 //   std::ofstream out("fileout_primitives.yaml");
@@ -172,8 +200,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
     BOOST_TEST(std::abs(original_energy - last_energy) < 1e-2);
   }
 
-  // std::cout << "final state" << xs.back().format(FMT) <<
-  // std::endl;
+  // std::cout << "final state" << xs.back().format(FMT)
+  // << std::endl;
 
   // dyn->max_torque =
 }
@@ -686,7 +714,8 @@ BOOST_AUTO_TEST_CASE(col_acrobot) {
 
 // BOOST_AUTO_TEST_CASE(col_quad3d_v2) {
 //
-//   Problem problem("../benchmark/quadrotor_0/obstacle_flight.yaml");
+//   Problem
+//   problem("../benchmark/quadrotor_0/obstacle_flight.yaml");
 //
 //   std::shared_ptr<Model_robot> robot =
 //       robot_factory(robot_type_to_path(problem.robotType).c_str());
