@@ -134,11 +134,11 @@ Control:  $\mathbf{u} = [v_x , v_y]$
 
 Dynamics: $\dot{ \mathbf{x} } =  \mathbf{u}$
 
-Step function $\mathbf{x}_{k+1} = \mathbf{x} + \mathbf{u} \delta_t$
+Step function $\mathbf{x}_{k+1} = \mathbf{x} + \mathbf{u} \Delta_t$
 
 Control Bounds:  $|v_x| \leq 1$,  $|v_y| \leq 1$
 
-State Bounds: $|x| \leq 1$,  $|y| \leq 1$
+State Bounds: $|x| \leq 2$,  $|y| \leq 2$
 
 ```cpp
 ...
