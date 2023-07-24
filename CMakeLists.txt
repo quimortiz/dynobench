@@ -112,6 +112,11 @@ export(
 # Register package in the User Package Registry
 export(PACKAGE dynobench)
 
+
+
 # Add test
-enable_testing()
-add_subdirectory(test)
+
+if (NOT DEFINED DISABLE_DYNOBENCH_TESTS)
+  enable_testing()
+  add_subdirectory(test)
+endif()
