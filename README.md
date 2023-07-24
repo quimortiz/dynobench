@@ -136,24 +136,21 @@ Control:  $\mathbf{u} = [\ddot{x} , \ddot{y}]$
 
 Dynamics: $\ddot{ \mathbf{x} } =  \mathbf{u}$
 
-Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} \Delta_t$
+Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
 
 with: 
 
 ```math
 A =
-begin{bmatrix}
+\begin{bmatrix}
 1 & 0 & \Delta t  & 0 \\
-0 & 1 & \Delta t  & 0 \\
+0 & 1 & 0  &  \Delta t  \\
 0 & 0 & 0 & 0 \\
 0 & 0 & 0 & 0 
-\end{bmatrix}
-```
-And 
+\end{bmatrix} ,
 
-```math
 B =
-begin{bmatrix}
+\begin{bmatrix}
 0 & 0 \\
 0 & 0 \\
 \Delta t & 0 \\
@@ -161,30 +158,28 @@ begin{bmatrix}
 \end{bmatrix}
 ```
 
+Control Bounds:  $|u_x| \leq 1$,  $|u_y| \leq 1$
 
-
-Control Bounds:  $|v_x| \leq 1$,  $|v_y| \leq 1$
-
-State Bounds: $|x| \leq 2$,  $|y| \leq 2$
+State Bounds: $|x| \leq 2$,  $|y| \leq 2$ , $|\cdot{x}| \leq 1 $,  $|\cdot{y}| \leq 1 $
 
 ```cpp
-...
+
 ```
 
 Add the robot in the factory
 ```
-...
+
 ```
 
 
 Add the viewer
 ```
-...
+
 ```
 
 Add a test
 ```
-...
+
 ```
 That's all!
 
