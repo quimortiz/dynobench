@@ -159,7 +159,7 @@ B =
 
 Control Bounds:  $|u_x| \leq 1$,  $|u_y| \leq 1$
 
-State Bounds: $|x| \leq 2$,  $|y| \leq 2$ , $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $
+State Bounds: $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $
 
 First, we have implemented a new class in `src/integrator2_2d.cpp` and `include/dynobench/integrator2_2d.hpp`. We store all parameters in a separate class, `Integrator2_2d_params`.
 A robot model implements 4 big functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision . Check the code!
