@@ -12,6 +12,7 @@ import acrobot_viewer
 import unicycle1_viewer
 import unicycle2_viewer
 import car_with_trailer_viewer
+import integrator2_2d_viewer
 import robot_viewer
 import sys
 
@@ -32,6 +33,9 @@ def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
         viewer = acrobot_viewer.AcrobotViewer()
     elif robot == "car":
         viewer = car_with_trailer_viewer.CarWithTrailerViewer()
+    elif robot == "integrator2_2d":
+        viewer = integrator2_2d_viewer.DoubleIntegrator2dViewer()
+
     else:
         raise NotImplementedError("unknown model " + robot)
     return viewer

@@ -38,10 +38,6 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
   nx_pr = 3;
   translation_invariance = 2;
 
-  u_ref << 0, 0;
-
-  u_0 << 0, 0;
-
   distance_weights = params.distance_weights;
   name = "unicycle1";
 

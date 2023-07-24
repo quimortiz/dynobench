@@ -33,7 +33,8 @@ add_library(
   ./src/unicycle2.cpp
   ./src/planar_rotor.cpp
   ./src/planar_rotor_pole.cpp
-  ./src/car2.cpp)
+  ./src/car2.cpp
+  ./src/integrator2_2d.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
 

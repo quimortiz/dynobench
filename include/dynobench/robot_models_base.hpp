@@ -22,6 +22,9 @@
 
 namespace dynobench {
 
+static double low__ = -std::sqrt(std::numeric_limits<double>::max());
+static double max__ = std::sqrt(std::numeric_limits<double>::max());
+
 struct Obstacle {
   std::string type;
   Eigen::VectorXd size;

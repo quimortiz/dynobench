@@ -52,9 +52,6 @@ struct Model_car_with_trailers : Model_robot {
 
   Car_params params;
 
-  // Model_car_with_trailers(const char *file)
-  //     : Model_car_with_trailers(Car_params(file)) {}
-
   Model_car_with_trailers(const Car_params &params = Car_params(),
                           const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                           const Eigen::VectorXd &p_ub = Eigen::VectorXd());

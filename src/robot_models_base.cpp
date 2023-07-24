@@ -38,9 +38,6 @@ using V1d = Eigen::Matrix<double, 1, 1>;
 
 namespace dynobench {
 
-double low__ = -std::sqrt(std::numeric_limits<double>::max());
-double max__ = std::sqrt(std::numeric_limits<double>::max());
-
 // using namespace pinocchio;
 // using namespace crocoddyl;
 
@@ -281,8 +278,8 @@ Model_robot::Model_robot(std::shared_ptr<StateQ> state, size_t nu)
 void Model_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  CHECK_GEQ(x.size(), 3, AT);
-  CHECK_EQ(ts.size(), 1, AT);
+  CHECK_GEQ(x.size(), 3, "");
+  CHECK_EQ(ts.size(), 1, "");
 
   fcl::Transform3d result;
   result = Eigen::Translation<double, 3>(fcl::Vector3d(x(0), x(1), 0));

@@ -7,8 +7,7 @@
 
 namespace dynobench {
 
-const Eigen::IOFormat FMT(6, Eigen::DontAlignCols, ",", ",", "", "",
-                                     "[", "]");
+const Eigen::IOFormat FMT(6, Eigen::DontAlignCols, ",", ",", "", "", "[", "]");
 
 bool inline check_bounds(const Eigen::VectorXd &v, const Eigen::VectorXd &v_lb,
                          const Eigen::VectorXd &v_ub, double tol = 1e-10) {
@@ -559,6 +558,17 @@ void inline element_wise(double *y, const double *r, size_t n) {
   for (size_t i = 0; i < n; i++) {
     y[i] *= r[i];
   }
+}
+
+Eigen::VectorXd inline mk_eigen_x(std::initializer_list<double> l) {
+
+  Eigen::VectorXd x(l.size());
+  size_t i = 0;
+  for (auto v : l) {
+    x(i++) = v;
+  }
+
+  return x;
 }
 
 } // namespace dynobench
