@@ -255,6 +255,17 @@ def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
 
 ```
 
+
+Now, you can view the robot with (e.g. from build directory):
+
+```bash
+python3 ../utils/viewer/viewer_cli.py --robot integrator2_2d --env ../envs/integrator2_2d_v0/park.yaml -i
+```
+
+
+
+
+
 That' s all!
 
 Now we can use  [Dynoplan](https://github.com/quimortiz/dynoplan) to solve the problem!
