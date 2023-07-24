@@ -134,7 +134,7 @@ State: $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$
 
 Control:  $\mathbf{u} = [\ddot{x} , \ddot{y}]$
 
-Dynamics: $\ddot{ \mathbf{x} } =  \mathbf{u}$
+Second order dynamics: $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$
 
 Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
 
@@ -145,8 +145,8 @@ A =
 \begin{bmatrix}
 1 & 0 & \Delta t  & 0 \\
 0 & 1 & 0  &  \Delta t  \\
-0 & 0 & 0 & 0 \\
-0 & 0 & 0 & 0 
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 1 
 \end{bmatrix} ,
 
 B =
@@ -160,7 +160,7 @@ B =
 
 Control Bounds:  $|u_x| \leq 1$,  $|u_y| \leq 1$
 
-State Bounds: $|x| \leq 2$,  $|y| \leq 2$ , $|\cdot{x}| \leq 1 $,  $|\cdot{y}| \leq 1 $
+State Bounds: $|x| \leq 2$,  $|y| \leq 2$ , $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $
 
 ```cpp
 
