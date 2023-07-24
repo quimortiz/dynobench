@@ -130,13 +130,38 @@ from the `build` directory.
 Let's add a single integrator in 2D. We already have this model implemented `Model_single_integrator_2d`, but
 let's create the same model step by step with a different name `Model_single_integrator_2d_fancy`.
 
-State: $\mathbf{x} = [x,y]$
+State: $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$
 
-Control:  $\mathbf{u} = [v_x , v_y]$
+Control:  $\mathbf{u} = [\ddot{x} , \ddot{y}]$
 
-Dynamics: $\dot{ \mathbf{x} } =  \mathbf{u}$
+Dynamics: $\ddot{ \mathbf{x} } =  \mathbf{u}$
 
-Step function $\mathbf{x}_{k+1} = \mathbf{x} + \mathbf{u} \Delta_t$
+Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} \Delta_t$
+
+with: 
+
+```math
+A =
+begin{bmatrix}
+1 & 0 & \Delta t  & 0 \\
+0 & 1 & \Delta t  & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 
+\end{bmatrix}
+```
+And 
+
+```math
+B =
+begin{bmatrix}
+0 & 0 \\
+0 & 0 \\
+\Delta t & 0 \\
+0 & \Delta t 
+\end{bmatrix}
+```
+
+
 
 Control Bounds:  $|v_x| \leq 1$,  $|v_y| \leq 1$
 
