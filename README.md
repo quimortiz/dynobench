@@ -100,7 +100,15 @@ target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 
 ### Python Viewer
 
+Check the viewers with: 
+```
+ python3 ../utils/viewer/viewer_test.py
+```
+and 
 
+```
+VISUALIZE=1 python3 ../utils/viewer/viewer_test.py
+```
 
 
 
@@ -108,20 +116,14 @@ target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 
 We provide python bindings for the dynamical systems
 
+Check the example with, 
 
-main.py
-```python3
+
 
 ```
-
-Run with
+python ../example/test_robot.py
 ```
-
-```
-
-
-
-
+from the `build` directory.
 
 ## Adding a new dynamical system
 
