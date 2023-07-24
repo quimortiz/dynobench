@@ -45,7 +45,7 @@ class Robot:
         return [self.o1, self.o2]
 
 
-class DoubleIntegrator2dViewer(RobotViewer):
+class Integrator2_2dViewer(RobotViewer):
     def __init__(self):
         super().__init__(Robot)
         self.labels_x = ["x", "y", "vx", "vy"]

@@ -1,0 +1,15 @@
+name: Integrator2_2d_v0-park
+environment:
+  min: [0.0, -0.5]
+  max: [3.5, 2.5]
+  obstacles:
+    - type: box
+      center: [0.7, 0.2]
+      size: [0.5, 0.25]
+    - type: box
+      center: [2.7, 0.2]
+      size: [0.5, 0.25]
+robots:
+  - type: Integrator2_2d_v0
+    start: [0.7, 0.6, 0, 0] # x,y,theta0,theta1
+    goal: [1.9, 0.2, 0, 0] # x,y,theta0,theta1

@@ -34,7 +34,7 @@ def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
     elif robot == "car":
         viewer = car_with_trailer_viewer.CarWithTrailerViewer()
     elif robot == "integrator2_2d":
-        viewer = integrator2_2d_viewer.DoubleIntegrator2dViewer()
+        viewer = integrator2_2d_viewer.Integrator2_2dViewer()
 
     else:
         raise NotImplementedError("unknown model " + robot)

@@ -742,8 +742,8 @@ BOOST_AUTO_TEST_CASE(t_serialization) {
   BOOST_TEST(trajs_A.data.at(1).distance(trajs_B.data.at(1)) < 1e-10);
 }
 
-BOOST_AUTO_TEST_CASE(t_integrator2_2d) {
-  auto model = mk<integrator2_2d>();
+BOOST_AUTO_TEST_CASE(t_Integrator2_2d) {
+  auto model = mk<Integrator2_2d>();
 
   Eigen::VectorXd x0(4), u0(2);
   x0 << .1, .2, .3, .4;

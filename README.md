@@ -100,11 +100,11 @@ target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 
 ### Python Viewer
 
-Check the viewers with: 
+Check the viewers with:
 ```
  python3 ../utils/viewer/viewer_test.py
 ```
-and 
+and
 
 ```
 VISUALIZE=1 python3 ../utils/viewer/viewer_test.py
@@ -116,7 +116,7 @@ VISUALIZE=1 python3 ../utils/viewer/viewer_test.py
 
 We provide python bindings for the dynamical systems
 
-Check the example with, 
+Check the example with,
 
 
 
@@ -127,18 +127,17 @@ from the `build` directory.
 
 ## Adding a new dynamical system
 
-Let's add a single integrator in 2D. Actually, we already have this model implemented `Model_single_integrator_2d`. Now we will summarize the steps to add this model. 
 
+In this short tutorial, we summarize the steps we followed to add the model
+`Integrator2_2d`.
+
+`Integrator2_2d` is a double integrator in 2d:
 
 State: $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$
-
 Control:  $\mathbf{u} = [\ddot{x} , \ddot{y}]$
-
 Second order dynamics: $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$
-
 Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
-
-with: 
+with:
 
 ```math
 A =
@@ -146,7 +145,7 @@ A =
 1 & 0 & \Delta t  & 0 \\
 0 & 1 & 0  &  \Delta t  \\
 0 & 0 & 1 & 0 \\
-0 & 0 & 0 & 1 
+0 & 0 & 0 & 1
 \end{bmatrix} ,
 
 B =
@@ -154,7 +153,7 @@ B =
 0 & 0 \\
 0 & 0 \\
 \Delta t & 0 \\
-0 & \Delta t 
+0 & \Delta t
 \end{bmatrix}
 ```
 
@@ -162,22 +161,22 @@ Control Bounds:  $|u_x| \leq 1$,  $|u_y| \leq 1$
 
 State Bounds: $|x| \leq 2$,  $|y| \leq 2$ , $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $
 
-First, we have implemented a new class in `src/double_integrator_2d.hpp` and `include/dynobench/double_integrator_2d.hpp`. We store all parameters in a separate class, Double_integrator_2d_params.
-A model implements 4 big functionalities: distance/cost bounds between states, dynamics function, bounds on state and control and collision computations. Check the code! 
+First, we have implemented a new class in `src/integrator2_2d.cpp` and `include/dynobench/integrator2_2d.hpp`. We store all parameters in a separate class, `Integrator2_2d_params`.
+A robot model implements 4 big functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision . Check the code!
 
 ```cpp
 // dynobench/double_integrator_2d.hpp and src/double_integrator_2d.hpp
 
-struct Double_integrator_2d_params { ... } ;
+struct Integrator2_2d_params { ... } ;
 
-struct Double_integrator_2d : public Model_robot { ... };
+struct Integrator2_2d : public Model_robot { ... };
 ```
 
-The base class `Model_robot` already provies default implementation of some methods. 
+The base class `Model_robot` already provides default implementation of some methods.
 
-For example, you only have to implement the dyamics in continuous time $\dot{x} = f(x,u)$ and the derivatives, while the euler step is computed in the base class. 
+For example, we only have to implement the dynamics in continuous time $\dot{x} = f(x,u)$ and the derivatives, while the Euler step is computed in the base class.
 
-Add the new model to the factory: 
+Once the model is ready, we add it to the factory:
 
 ```cpp
 // src/robot_models.cpp
@@ -185,16 +184,16 @@ Add the new model to the factory:
 #include "dynobnech/double_integrator_2d.hpp"
 
 ...
-std::unique_ptr<Model_robot> robot_factory( 
+std::unique_ptr<Model_robot> robot_factory(
 ...
 
  else if (dynamics == "double_intergrator_2d") {
     return std::make_unique<Double_integrator_2d>(file, p_lb, p_ub);
   }
- 
+
 
 ```
-It is recommend to check the Jabocians using finite differences. We add the test `t_double_integrator_2d` in  test in `test/test_models.cpp`. 
+It is recommend to check the Jacobians using finite differences. We add the test `t_integrator2_2d` in  test in `test/test_models.cpp`.
 
 ```cpp
 // test/test_models.cpp
@@ -217,34 +216,32 @@ It is recommend to check the Jabocians using finite differences. We add the test
 
 ```
 
-
-
-
-Now we add the c++ file to the library: 
+Now we add the c++ file to the library:
 
 ```cmake
 add_library(
   dynobench
   ./src/robot_models.cpp
 ...
-  ./src/double_integartor_2d.cpp)
+  ./src/integrator2_2d.cpp)
 ```
 
-We define `double_integrator_2d_v0` with a configuration file `envs/integrator2_2d_v0/double_integrator_2d_v0.yaml`. 
-Lets add one scenario to the benchmark using this model `envs/integrator2_2d_v0/park.yaml`
+We define `double_integrator_2d_v0` with a configuration file `models/integrator2_2d_v0.yaml`, and one scenario with `envs/integrator2_2d_v0/park.yaml`
 
-Let's add a viewer in python 
+Let's add a viewer in python. We need a new class:
 
 ```
 //utils/viewer/integrator2_2d_viewer.py
 
-class Robot
+class Robot :
 
-class DoubleIntegratorViewer
+class Integrator2_2dViewer (RobotViewer):
+
 
 ```
+`RobotViewer` is a base class that provides default functionality. `Robot` is the class that draws the robot (e.g. using a rectangle )
 
-and add the viewer
+
 
 ```
 // utils/viewer/viewer_cli.py
@@ -253,11 +250,12 @@ and add the viewer
 def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
 ...
     elif robot == "integrator2_2d":
-        viewer = double_integrator_2d_viewer.DoubleIntegrator2dViewer()
+        viewer = double_integrator_2d_viewer.Integrator2_2dViewer()
 
 
 ```
-Thats all!
+
+That' s all!
 
 Now we can use  [Dynoplan](https://github.com/quimortiz/dynoplan) to solve the problem!
 The planners in Dynoplan that depend on OMPL require to implement a small wrapper to interace with OMPL.

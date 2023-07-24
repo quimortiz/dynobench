@@ -23,11 +23,11 @@
 
 namespace dynobench {
 
-struct integrator2_2d_params {
+struct Integrator2_2d_params {
 
-  integrator2_2d_params(const char *file) { read_from_yaml(file); };
+  Integrator2_2d_params(const char *file) { read_from_yaml(file); };
 
-  integrator2_2d_params() = default;
+  Integrator2_2d_params() = default;
 
   // time step for discrete-time dynamics
   double dt = .1;
@@ -54,13 +54,13 @@ struct integrator2_2d_params {
   void write(std::ostream &out);
 };
 
-struct integrator2_2d : public Model_robot {
+struct Integrator2_2d : public Model_robot {
 
-  virtual ~integrator2_2d() = default;
+  virtual ~Integrator2_2d() = default;
 
-  integrator2_2d_params params;
+  Integrator2_2d_params params;
 
-  integrator2_2d(const integrator2_2d_params &params = integrator2_2d_params(),
+  Integrator2_2d(const Integrator2_2d_params &params = Integrator2_2d_params(),
                  const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                  const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
