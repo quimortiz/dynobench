@@ -263,23 +263,12 @@ python3 ../utils/viewer/viewer_cli.py --robot integrator2_2d --env ../envs/integ
 ```
 
 
-
-
-
 That' s all!
 
 Now we can use  [Dynoplan](https://github.com/quimortiz/dynoplan) to solve the problem!
 The planners in Dynoplan that depend on OMPL require to implement a small wrapper to interace with OMPL.
 
 
-
-
-
-## Adding a new scenario
-
-```cpp
-
-```
 
 ## Roadmap
 
