@@ -3,12 +3,13 @@
 
 # Dynobench 🦖
 
-Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop, combine and compare methods of different algorithmic families, from trajectory optimization and sample based motion planning to reinforcement and supervised learning.
+Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop, combine and compare different methods, from trajectory optimization and sample based motion planning to supervised and reinforcement learning.
 
 <p align="center">
 <img src="assets/dynobench.png" width=50% height=50%>
 </p >
 
+You will find multiple planners in [Dynoplan](https://github.com/quimortiz/dynoplan) 🦖
 
 # Using Dynobench
 
