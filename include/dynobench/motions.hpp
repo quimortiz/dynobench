@@ -182,11 +182,15 @@ struct Trajectory {
   double start_distance = -1.;
   double x_bound_distance = -1.;
   double u_bound_distance = -1.;
+  std::string filename = ""; // auto set by read_from_yaml
   std::string info = "";
 
   Trajectory() = default;
 
-  Trajectory(const char *file) { read_from_yaml(file); }
+  Trajectory(const char *file) {
+    filename = file;
+    read_from_yaml(file);
+  }
   Trajectory(const std::string &t_file) : Trajectory(t_file.c_str()){};
 
   Eigen::VectorXd start;

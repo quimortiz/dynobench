@@ -76,6 +76,7 @@ void Trajectory::read_from_yaml(const YAML::Node &node) {
 
 void Trajectory::read_from_yaml(const char *file) {
   std::cout << "Loading file: " << file << std::endl;
+  filename = file;
   read_from_yaml(load_yaml_safe(file));
 }
 
@@ -249,6 +250,11 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   }
 
   robotType = env["robots"][0]["type"].as<std::string>();
+
+  if (startsWith(robotType, "quad3d")) {
+    start.segment<4>(3).normalize();
+    goal.segment<4>(3).normalize();
+  }
 }
 
 void Problem::read_from_yaml(const char *file) {
@@ -400,6 +406,10 @@ double check_cols(std::shared_ptr<Model_robot> model_robot,
         max_c = std::abs(out.distance);
       }
     }
+  }
+  if (accumulated_c > 1e-2) {
+    std::cout << "Warning -- total collision distance: " << accumulated_c
+              << std::endl;
   }
 
   return max_c;

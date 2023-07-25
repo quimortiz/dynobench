@@ -501,12 +501,17 @@ void inline so2_interpolation(double &state, double from, double to, double t) {
   }
 }
 
-double inline so3_distance(Eigen::Vector4d x, Eigen::Vector4d y) {
+inline std::string eigen_to_string(Eigen::Vector4d x) {
+  std::stringstream ss;
+  ss << x.transpose();
+  return ss.str();
+}
+double inline so3_distance(const Eigen::Vector4d &x, const Eigen::Vector4d &y) {
   double max_quaternion_norm_error = 1e-6;
-  // CSTR_V(x);
-  // CSTR_V(y);
-  CHECK_LEQ(std::abs(x.norm() - 1), max_quaternion_norm_error, AT);
-  CHECK_LEQ(std::abs(y.norm() - 1), max_quaternion_norm_error, AT);
+  CHECK_LEQ(std::abs(x.norm() - 1), max_quaternion_norm_error,
+            eigen_to_string(x));
+  CHECK_LEQ(std::abs(y.norm() - 1), max_quaternion_norm_error,
+            eigen_to_string(y));
   double dq = std::fabs(x.dot(y));
   if (dq > 1.0 - max_quaternion_norm_error)
     return 0.0;

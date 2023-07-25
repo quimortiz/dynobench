@@ -309,6 +309,7 @@ void Model_quad3d::step(Eigen::Ref<Eigen::VectorXd> xnext,
 
   Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
   Eigen::Vector4d q = x.segment(3, 4).head<4>().normalized();
+  CHECK_LEQ(std::abs((q.norm() - 1.0)), 1e-6, AT);
   Eigen::Ref<const Eigen::Vector3d> vel = x.segment(7, 3).head<3>();
   Eigen::Ref<const Eigen::Vector3d> w = x.segment(10, 3).head<3>();
 
@@ -324,6 +325,7 @@ void Model_quad3d::step(Eigen::Ref<Eigen::VectorXd> xnext,
   __get_quat_from_ang_vel_time(ff.segment<3>(3) * dt, deltaQ, nullptr);
   quat_product(q, deltaQ, q_next, nullptr, nullptr);
   w_next = w + dt * ff.segment<3>(9);
+  CHECK_LEQ(std::abs((q_next.norm() - 1.0)), 1e-6, AT);
 }
 
 void Model_quad3d::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
