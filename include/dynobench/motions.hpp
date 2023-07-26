@@ -67,6 +67,14 @@ double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out,
 double check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out,
                       std::shared_ptr<Model_robot> model, bool verbose);
 
+void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
+                         std::vector<Eigen::VectorXd> &us_out,
+                         Eigen::VectorXd &times,
+                         const std::vector<Eigen::VectorXd> &xs,
+                         const std::vector<Eigen::VectorXd> &us,
+                         const Eigen::VectorXd &ts, double ref_dt,
+                         const std::shared_ptr<StateDyno> &state);
+
 void get_states_and_actions(const YAML::Node &data,
                             std::vector<Eigen::VectorXd> &states,
                             std::vector<Eigen::VectorXd> &actions);
@@ -214,66 +222,7 @@ struct Trajectory {
   void check(std::shared_ptr<Model_robot> robot, bool verbose = false);
 
   std::vector<Trajectory>
-  find_discontinuities(std::shared_ptr<Model_robot> &robot) {
-
-    Eigen::VectorXd dts;
-    if (!times.size()) {
-      size_t T = actions.size();
-      dts.resize(T);
-      dts.setOnes();
-      dts.array() *= robot->ref_dt;
-    }
-
-    CHECK(states.size(), AT);
-    CHECK(actions.size(), AT);
-    CHECK(robot, AT);
-    CHECK_EQ(states.size(), actions.size() + 1, AT);
-    CHECK_EQ(static_cast<size_t>(dts.size()),
-             static_cast<size_t>(actions.size()), AT);
-
-    size_t N = actions.size();
-
-    double threshold = 1e-2;
-
-    size_t start_primitive = 0;
-    using Vxd = Eigen::VectorXd;
-    std::vector<Trajectory> trajectories;
-    for (size_t i = 0; i < N; i++) {
-      Vxd xnext(robot->nx);
-      auto &x = states.at(i);
-      auto &u = actions.at(i);
-
-      robot->step(xnext, x, u, dts(i));
-
-      double jump = robot->distance(xnext, states.at(i + 1));
-      if (jump > threshold) {
-        std::cout << "jump of " << jump << std::endl;
-        CSTR_(i);
-        CSTR_V(x);
-        CSTR_V(u);
-        CSTR_V(xnext);
-        CSTR_V(states.at(i + 1));
-
-        Trajectory traj;
-        traj.states = {states.begin() + start_primitive,
-                       states.begin() + i + 1};
-        traj.states.push_back(xnext);
-        traj.actions = {actions.begin() + start_primitive,
-                        actions.begin() + i + 1};
-        start_primitive = i + 1;
-        trajectories.push_back(traj);
-      }
-    }
-    // add the last one
-    if (start_primitive < states.size()) {
-      Trajectory traj;
-      traj.states = {states.begin() + start_primitive, states.end()};
-      traj.actions = {actions.begin() + start_primitive, actions.end()};
-      trajectories.push_back(traj);
-    }
-
-    return trajectories;
-  }
+  find_discontinuities(std::shared_ptr<Model_robot> &robot);
 
   void update_feasibility(
       const Feasibility_thresholds &thresholds = Feasibility_thresholds(),
@@ -298,6 +247,8 @@ struct Trajectory {
   void save_file_boost(const char *file) const;
 
   void load_file_boost(const char *file);
+
+  Trajectory resample(std::shared_ptr<Model_robot> &robot);
 };
 
 struct Trajectories {
@@ -360,14 +311,6 @@ struct Trajectories {
 double max_rollout_error(std::shared_ptr<Model_robot> robot,
                          const std::vector<Eigen::VectorXd> &xs,
                          const std::vector<Eigen::VectorXd> &us);
-
-void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
-                         std::vector<Eigen::VectorXd> &us_out,
-                         Eigen::VectorXd &times,
-                         const std::vector<Eigen::VectorXd> &xs,
-                         const std::vector<Eigen::VectorXd> &us,
-                         const Eigen::VectorXd &ts, double ref_dt,
-                         const std::shared_ptr<StateQ> &state);
 
 struct Info_out {
   bool solved = false;

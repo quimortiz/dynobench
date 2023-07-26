@@ -171,8 +171,7 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
   } else {
     size_t T = actions.size();
     dts.resize(T);
-    dts.setOnes();
-    dts.array() *= robot->ref_dt;
+    dts.setConstant(robot->ref_dt);
   }
 
   max_jump = check_trajectory(states, actions, dts, robot, verbose);
@@ -373,6 +372,8 @@ double check_trajectory(const std::vector<Vxd> &xs_out,
 
     model->step(xnext, x, u, dt(i));
 
+    // CSTR_V(xnext);
+    // CSTR_V(xs_out.at(i + 1));
     double jump = model->distance(xnext, xs_out.at(i + 1));
     if (jump > 1e-3 && verbose) {
       std::cout << "jump of " << jump << std::endl;
@@ -445,10 +446,11 @@ void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
                          const std::vector<Eigen::VectorXd> &xs,
                          const std::vector<Eigen::VectorXd> &us,
                          const Eigen::VectorXd &ts, double ref_dt,
-                         const std::shared_ptr<StateQ> &state)
+                         const std::shared_ptr<StateDyno> &state)
 
 {
-
+  CHECK_EQ(xs.size(), us.size() + 1, "");
+  CHECK_EQ(static_cast<size_t>(ts.size()), us.size() + 1, "");
   xs_out.clear();
   us_out.clear();
 
@@ -457,6 +459,11 @@ void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
   ptr<Interpolator> path_u = mk<Interpolator>(ts.head(ts.size() - 1), us);
 
   ptr<Interpolator> path_x = mk<Interpolator>(ts, xs, state);
+  CSTR_V(ts);
+  std::cout << "xs " << std::endl;
+  for (auto &x : xs) {
+    CSTR_V(x);
+  }
 
   size_t num_time_steps = std::ceil(total_time / ref_dt);
 
@@ -479,16 +486,19 @@ void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
   Vxd uout(nu);
   Vxd Juout(nu);
   for (size_t ti = 0; ti < num_time_steps + 1; ti++) {
-    path_x->interpolate(ts__(ti), xout, Jout);
+    path_x->interpolate(std::min(ts__(ti), ts(ts.size() - 1)), xout, Jout);
     new_xs.push_back(xout);
+    std::cout << " ti " << ti << " xout " << xout.format(FMT) << std::endl;
     if (ti < num_time_steps) {
-      path_u->interpolate(ts__(ti), uout, Juout);
+      path_u->interpolate(std::min(ts__(ti), ts(ts.size() - 2)), uout, Juout);
       new_us.push_back(uout);
+      std::cout << " ti " << ti << " uout " << uout.format(FMT) << std::endl;
     }
   }
 
   xs_out = new_xs;
   us_out = new_us;
+  CHECK_EQ(xs_out.size(), us_out.size() + 1, "");
 }
 
 void Info_out::print(std::ostream &out, const std::string &be,
@@ -904,4 +914,84 @@ void make_trajs_canonical(Model_robot &robot,
   }
 }
 
+std::vector<Trajectory>
+Trajectory::find_discontinuities(std::shared_ptr<Model_robot> &robot) {
+
+  Eigen::VectorXd dts;
+  if (!times.size()) {
+    size_t T = actions.size();
+    dts.resize(T);
+    dts.setOnes();
+    dts.array() *= robot->ref_dt;
+  }
+
+  CHECK(states.size(), AT);
+  CHECK(actions.size(), AT);
+  CHECK(robot, AT);
+  CHECK_EQ(states.size(), actions.size() + 1, AT);
+  CHECK_EQ(static_cast<size_t>(dts.size()), static_cast<size_t>(actions.size()),
+           AT);
+
+  size_t N = actions.size();
+
+  double threshold = 1e-2;
+
+  size_t start_primitive = 0;
+  using Vxd = Eigen::VectorXd;
+  std::vector<Trajectory> trajectories;
+  for (size_t i = 0; i < N; i++) {
+    Vxd xnext(robot->nx);
+    auto &x = states.at(i);
+    auto &u = actions.at(i);
+
+    robot->step(xnext, x, u, dts(i));
+
+    double jump = robot->distance(xnext, states.at(i + 1));
+    if (jump > threshold) {
+      std::cout << "jump of " << jump << std::endl;
+      CSTR_(i);
+      CSTR_V(x);
+      CSTR_V(u);
+      CSTR_V(xnext);
+      CSTR_V(states.at(i + 1));
+
+      Trajectory traj;
+      traj.states = {states.begin() + start_primitive, states.begin() + i + 1};
+      traj.states.push_back(xnext);
+      traj.actions = {actions.begin() + start_primitive,
+                      actions.begin() + i + 1};
+      start_primitive = i + 1;
+      trajectories.push_back(traj);
+    }
+  }
+  // add the last one
+  if (start_primitive < states.size()) {
+    Trajectory traj;
+    traj.states = {states.begin() + start_primitive, states.end()};
+    traj.actions = {actions.begin() + start_primitive, actions.end()};
+    trajectories.push_back(traj);
+  }
+
+  return trajectories;
+}
+
+Trajectory Trajectory::resample(std::shared_ptr<Model_robot> &robot) {
+
+  Trajectory out;
+  out.start = start;
+  out.goal = goal;
+
+  Eigen::VectorXd times_out;
+  resample_trajectory(out.states, out.actions, times_out, states, actions,
+                      times, robot->ref_dt, robot->state);
+
+  if (startsWith(robot->name, "quad3d")) {
+    std::cout << "warning "
+              << "normalize_quaternion" << std::endl;
+    for (auto &s : out.states) {
+      s.segment<4>(3).normalize();
+    }
+  }
+  return out;
+}
 } // namespace dynobench

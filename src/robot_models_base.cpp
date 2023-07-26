@@ -41,9 +41,9 @@ namespace dynobench {
 // using namespace pinocchio;
 // using namespace crocoddyl;
 
-CompoundState2::CompoundState2(std::shared_ptr<StateQ> s1,
-                               std::shared_ptr<StateQ> s2)
-    : StateQ(s1->nx + s2->nx, s1->ndx + s2->ndx), s1(s1), s2(s2) {}
+CompoundState2::CompoundState2(std::shared_ptr<StateDyno> s1,
+                               std::shared_ptr<StateDyno> s2)
+    : StateDyno(s1->nx + s2->nx, s1->ndx + s2->ndx), s1(s1), s2(s2) {}
 
 Eigen::VectorXd CompoundState2::zero() const {
 
@@ -224,7 +224,7 @@ void RnSOn::Jdiff(const Eigen::Ref<const Eigen::VectorXd> &x0,
 //   v << c * u[0], s * u[0], u[1];
 // }
 
-Model_robot::Model_robot(std::shared_ptr<StateQ> state, size_t nu)
+Model_robot::Model_robot(std::shared_ptr<StateDyno> state, size_t nu)
     : nx(state->nx), nu(nu), state(state) {
 
   u_ref.resize(nu);
@@ -238,6 +238,9 @@ Model_robot::Model_robot(std::shared_ptr<StateQ> state, size_t nu)
 
   u_ub.setConstant(1e8);
   u_lb.setConstant(-1e8);
+
+  u_weight.resize(nu);
+  u_weight.setConstant(.1);
 
   x_weightb.resize(nx);
   x_weightb.setZero();
@@ -651,7 +654,8 @@ Model_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
 
 void linearInterpolation(const Eigen::VectorXd &times,
                          const std::vector<Eigen::VectorXd> &x, double t_query,
-                         const StateQ &state, Eigen::Ref<Eigen::VectorXd> out,
+                         const StateDyno &state,
+                         Eigen::Ref<Eigen::VectorXd> out,
                          Eigen::Ref<Eigen::VectorXd> Jx) {
 
   CHECK(x.size(), AT);
@@ -705,8 +709,14 @@ void linearInterpolation(const Eigen::VectorXd &times,
   // CSTR_(index);
   // CSTR_(t_query);
 
-  double factor =
-      (t_query - times(index - 1)) / (times(index) - times(index - 1));
+  if (times(index) - times(index - 1) < 1e-6) {
+    std::cout << "WARNING: " << AT << std::endl;
+    std::cout << "times(index) - times(index - 1) < 1e-6" << std::endl;
+    std::cout << times(index) << "  " << times(index - 1) << std::endl;
+  }
+
+  double factor = (t_query - times(index - 1)) /
+                  std::max(times(index) - times(index - 1), 1e-6);
 
   Eigen::VectorXd diff(state.ndx);
   Eigen::VectorXd x0 = x.at(index - 1);

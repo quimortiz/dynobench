@@ -64,10 +64,10 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     return std::make_unique<Model_car2>(file, p_lb, p_ub);
   } else if (dynamics == "quad2dpole") {
     return std::make_unique<Model_quad2dpole>(file, p_lb, p_ub);
-  } else if (dynamics == "double_intergrator_2d") {
+  } else if (dynamics == "integrator2_2d") {
     return std::make_unique<Integrator2_2d>(file, p_lb, p_ub);
   } else {
-    ERROR_WITH_INFO("dynamics not implemented");
+    ERROR_WITH_INFO("dynamics not implemented: " + dynamics);
   }
 }
 

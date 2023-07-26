@@ -51,12 +51,12 @@ static std::vector<Eigen::VectorXd> DEFAULT_V;
 static Eigen::VectorXd DEFAULT_E;
 
 // next: time optimal linear, use so2 space, generate motion primitives
-struct StateQ {
+struct StateDyno {
 
   size_t nx;
   size_t ndx;
 
-  StateQ(size_t nx, size_t ndx) : nx(nx), ndx(ndx) {}
+  StateDyno(size_t nx, size_t ndx) : nx(nx), ndx(ndx) {}
 
   virtual Eigen::VectorXd zero() const { ERROR_WITH_INFO("not implemented"); }
 
@@ -117,12 +117,12 @@ struct StateQ {
   }
 };
 
-struct CompoundState2 : StateQ {
+struct CompoundState2 : StateDyno {
 
-  std::shared_ptr<StateQ> s1;
-  std::shared_ptr<StateQ> s2;
+  std::shared_ptr<StateDyno> s1;
+  std::shared_ptr<StateDyno> s2;
 
-  CompoundState2(std::shared_ptr<StateQ> s1, std::shared_ptr<StateQ> s2);
+  CompoundState2(std::shared_ptr<StateDyno> s1, std::shared_ptr<StateDyno> s2);
   virtual ~CompoundState2(){};
 
   virtual Eigen::VectorXd zero() const override;
@@ -143,13 +143,13 @@ struct CompoundState2 : StateQ {
                      Eigen::Ref<Eigen::MatrixXd> Jsecond) const override;
 };
 
-struct RnSOn : StateQ {
+struct RnSOn : StateDyno {
 
   size_t nR;
   size_t nSO2;
   const std::vector<size_t> so2_indices;
   RnSOn(size_t nR, size_t nSO2, const std::vector<size_t> &so2_indices)
-      : StateQ(nR + nSO2, nR + nSO2), so2_indices(so2_indices) {
+      : StateDyno(nR + nSO2, nR + nSO2), so2_indices(so2_indices) {
     CHECK_EQ(so2_indices.size(), nSO2, AT);
   }
 
@@ -178,10 +178,10 @@ struct RnSOn : StateQ {
                      Eigen::Ref<Eigen::MatrixXd> Jsecond) const override;
 };
 
-struct Rn : StateQ {
+struct Rn : StateDyno {
 
   size_t nR;
-  Rn(size_t nR) : StateQ(nR, nR) {}
+  Rn(size_t nR) : StateDyno(nR, nR) {}
   virtual ~Rn() {}
 
   virtual Eigen::VectorXd zero() const override;
@@ -266,7 +266,7 @@ struct Model_robot {
   }
 
   // State
-  std::shared_ptr<StateQ> state;
+  std::shared_ptr<StateDyno> state;
 
   // crocoddyl::StateAbstractTpl> state;
 
@@ -288,7 +288,7 @@ struct Model_robot {
   //
   //
   Model_robot() = default;
-  Model_robot(std::shared_ptr<StateQ> state, size_t nu);
+  Model_robot(std::shared_ptr<StateDyno> state, size_t nu);
 
   // Returns x_0 for optimization. Can depend on a reference point. Default:
   // return the ref point. Reasoning: in some systems, it is better to set the
@@ -563,14 +563,15 @@ struct Model_robot {
 
 void linearInterpolation(const Eigen::VectorXd &times,
                          const std::vector<Eigen::VectorXd> &x, double t_query,
-                         const StateQ &state, Eigen::Ref<Eigen::VectorXd> out,
+                         const StateDyno &state,
+                         Eigen::Ref<Eigen::VectorXd> out,
                          Eigen::Ref<Eigen::VectorXd> Jx);
 
 struct Interpolator {
 
   Eigen::VectorXd times;
   std::vector<Eigen::VectorXd> x;
-  std::shared_ptr<StateQ> state;
+  std::shared_ptr<StateDyno> state;
 
   Interpolator(const Eigen::VectorXd &times,
                const std::vector<Eigen::VectorXd> &x)
@@ -578,7 +579,7 @@ struct Interpolator {
 
   Interpolator(const Eigen::VectorXd &times,
                const std::vector<Eigen::VectorXd> &x,
-               const std::shared_ptr<StateQ> &state)
+               const std::shared_ptr<StateDyno> &state)
       : times(times), x(x), state(state) {
     CHECK_EQ(static_cast<size_t>(times.size()), x.size(), AT);
   }
