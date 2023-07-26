@@ -16,7 +16,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "Eigen/Core"
-#include "dynobench/croco_macros.hpp"
+#include "dynobench/dyno_macros.hpp"
 
 #include <fcl/fcl.h>
 
@@ -79,6 +79,48 @@ robot_factory_with_env(const std::string &robot_name,
   Problem problem(problem_name);
   load_env(*robot, problem);
   return robot;
+}
+
+bool check_edge_at_resolution(const Eigen::VectorXd &start,
+                              const Eigen::VectorXd &goal,
+                              std::shared_ptr<dynobench::Model_robot> &robot,
+                              double resolution) {
+
+  using Segment = std::pair<Eigen::VectorXd, Eigen::VectorXd>;
+
+  if (!robot->collision_check(start)) {
+    return false;
+  }
+  if (!robot->collision_check(goal)) {
+    return false;
+  }
+
+  std::queue<Segment> queue;
+  queue.push(Segment{start, goal});
+  Eigen::VectorXd x(robot->nx);
+
+  while (!queue.empty()) {
+
+    auto [si, gi] = queue.front();
+    queue.pop();
+
+    if (robot->distance(si, gi) > resolution) {
+      // check mid points
+      robot->interpolate(x, si, gi, 0.5);
+
+      if (robot->collision_check(x)) {
+        // collision free.
+        queue.push({si, x});
+        queue.push({x, gi});
+      } else {
+        // collision!
+        return false;
+      }
+
+      ;
+    }
+  }
+  return true;
 }
 
 } // namespace dynobench

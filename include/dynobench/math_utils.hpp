@@ -2,7 +2,7 @@
 #include <cmath>
 
 #include "Eigen/Core"
-#include "croco_macros.hpp"
+#include "dyno_macros.hpp"
 #include <Eigen/Geometry>
 
 namespace dynobench {

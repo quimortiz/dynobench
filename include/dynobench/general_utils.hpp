@@ -13,7 +13,7 @@
 #include <boost/program_options.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include "croco_macros.hpp"
+#include "dyno_macros.hpp"
 #include "math_utils.hpp"
 #include "yaml-cpp/yaml.h"
 #include <chrono>

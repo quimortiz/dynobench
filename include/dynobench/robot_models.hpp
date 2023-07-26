@@ -1,6 +1,6 @@
 #pragma once
 #include "Eigen/Core"
-#include "croco_macros.hpp"
+#include "dyno_macros.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "for_each_macro.hpp"
 #include "general_utils.hpp"
@@ -36,5 +36,10 @@ inline std::string robot_type_to_path(const std::string &robot_type) {
 std::unique_ptr<Model_robot>
 robot_factory_with_env(const std::string &robot_name,
                        const std::string &problem_name);
+
+bool check_edge_at_resolution(const Eigen::VectorXd &start,
+                              const Eigen::VectorXd &goal,
+                              std::shared_ptr<dynobench::Model_robot> &robot,
+                              double resolution);
 
 } // namespace dynobench

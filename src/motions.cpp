@@ -16,7 +16,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "Eigen/Core"
-#include "dynobench/croco_macros.hpp"
+#include "dynobench/dyno_macros.hpp"
 
 #include <fcl/fcl.h>
 
