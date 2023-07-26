@@ -223,7 +223,7 @@ We define `double_integrator_2d_v0` with a configuration file `models/integrator
 Let's add a viewer in python. We need a new class:
 
 ```python
-//utils/viewer/integrator2_2d_viewer.py
+# utils/viewer/integrator2_2d_viewer.py
 class Robot :
 
 class Integrator2_2dViewer (RobotViewer):
@@ -233,8 +233,7 @@ class Integrator2_2dViewer (RobotViewer):
 
 
 ```python
-// utils/viewer/viewer_cli.py
-
+# utils/viewer/viewer_cli.py
 
 def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
 ...
