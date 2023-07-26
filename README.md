@@ -66,12 +66,9 @@ main.cpp
 #include "dynobench/robot_models.hpp"
 
 int main() {
-
   Model_car_with_trailers car;
-
   std::cout << "Hello World!" << std::endl;
 }
-
 ```
 
 CMakeLists.txt (using Dynobench as an external project)
@@ -167,9 +164,7 @@ A robot model implements 4 big functionalities: distance and cost bounds between
 
 ```cpp
 // dynobench/double_integrator_2d.hpp and src/double_integrator_2d.hpp
-
 struct Integrator2_2d_params { ... } ;
-
 struct Integrator2_2d : public Model_robot { ... };
 ```
 
@@ -181,9 +176,7 @@ Once the model is ready, we add it to the factory:
 
 ```cpp
 // src/robot_models.cpp
-
 #include "dynobnech/double_integrator_2d.hpp"
-
 ...
 std::unique_ptr<Model_robot> robot_factory(
 ...
@@ -191,8 +184,6 @@ std::unique_ptr<Model_robot> robot_factory(
  else if (dynamics == "double_intergrator_2d") {
     return std::make_unique<Double_integrator_2d>(file, p_lb, p_ub);
   }
-
-
 ```
 It is recommend to check the Jacobians using finite differences. We add the test `t_integrator2_2d` in  test in `test/test_models.cpp`.
 
@@ -233,12 +224,9 @@ Let's add a viewer in python. We need a new class:
 
 ```
 //utils/viewer/integrator2_2d_viewer.py
-
 class Robot :
 
 class Integrator2_2dViewer (RobotViewer):
-
-
 ```
 `RobotViewer` is a base class that provides default functionality. `Robot` is the class that draws the robot (e.g. using a rectangle )
 
@@ -252,8 +240,6 @@ def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
 ...
     elif robot == "integrator2_2d":
         viewer = double_integrator_2d_viewer.Integrator2_2dViewer()
-
-
 ```
 
 
