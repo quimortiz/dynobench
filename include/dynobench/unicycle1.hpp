@@ -1,9 +1,111 @@
 
+#include <nlohmann/json.hpp>
 
 #include "dynobench/for_each_macro.hpp"
 #include "dynobench/robot_models_base.hpp"
+#include "dynobench/tojson.hpp"
+
+// #include "eigen_conversions.hpp"
+
+using json = nlohmann::json;
+
+namespace Eigen {
+
+void inline from_json(const json &j, Eigen::VectorXd &vector) {
+  vector.resize(j.size());
+  for (std::size_t row = 0; row < j.size(); ++row) {
+    const auto &jrow = j.at(row);
+    vector(row) = jrow.get<double>();
+  }
+}
+
+void inline to_json(json &j, const Eigen::VectorXd &vector) {
+  for (int i = 0; i < vector.size(); ++i) {
+    j.push_back(vector(i));
+  }
+}
+
+} // namespace Eigen
 
 namespace dynobench {
+//
+// namespace ns {
+// // a simple struct to model a person
+// struct person {
+//   std::string name;
+//   std::string address;
+//   int age;
+// };
+//
+// namespace ns {
+// NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(person, name, address, age)
+// }
+//
+// } // namespace ns
+
+struct Unicycle1_paramsJ {
+  Unicycle1_paramsJ() = default;
+
+  double max_vel = .5;
+  double min_vel = -.5;
+  double max_angular_vel = .5;
+  double min_angular_vel = -.5;
+  std::string shape = "box";
+  double dt = .1;
+  Eigen::VectorXd size;
+  Eigen::VectorXd distance_weights;
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Unicycle1_paramsJ, max_vel, min_vel,
+                                 max_angular_vel, min_angular_vel, shape, dt,
+                                 size, distance_weights);
+
+  void read_from_json(const char *file) {
+    std::ifstream f(file);
+    json data = json::parse(f);
+    *this = data.template get<Unicycle1_paramsJ>();
+  }
+
+  void read_from_yaml(const char *file) {
+    std::cout << "loading file: " << file << std::endl;
+    YAML::Node node = YAML::LoadFile(file);
+
+    {
+      Eigen::VectorXd X(2);
+      X << 1, 2;
+      json j;
+      j = X;
+      std::cout << j.dump() << std::endl;
+
+      // Eigen::VectorXd Y(2);
+
+      // from_json(j, Y);
+      // std::cout << Y << std::endl;
+
+      auto Y = j.template get<Eigen::VectorXd>();
+      // j.from_json(
+      std::cout << Y << std::endl;
+
+      // Y << j;
+      // std::cout << Y << std::endl;
+    }
+
+    YAML::Emitter emitter;
+    emitter << node;
+    std::cout << "Node :" << emitter.c_str() << std::endl;
+    json j = tojson::detail::yaml2json(node);
+    std::cout << j.dump() << std::endl;
+    *this = j.template get<Unicycle1_paramsJ>();
+  }
+
+  void write_yaml(std::ostream &os) const {
+    json j = *this;
+
+    std::cout << j.dump() << std::endl;
+
+    os << tojson::emitters::toyaml(j) << std::endl;
+  }
+};
+
 struct Unicycle1_params {
   Unicycle1_params(const char *file) { read_from_yaml(file); }
   Unicycle1_params() = default;
@@ -16,9 +118,21 @@ struct Unicycle1_params {
   Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
   std::string shape = "box";
   double dt = .1;
+
+  NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Unicycle1_params, max_vel, min_vel,
+                                     max_angular_vel, min_angular_vel);
+  //
+  // void read_from_json(const char *file) {
+  //
+  //   std::ifstream f(file);
+  //   json data = json::parse(f);
+  //   this = data.template get<Unicycle1_params>();
+  // }
+
   void read_from_yaml(YAML::Node &node);
   void read_from_yaml(const char *file);
   std::string filename = "";
+
   void inline write(std::ostream &out) const {
     const std::string be = "";
     const std::string af = ": ";
@@ -34,6 +148,12 @@ struct Unicycle1_params {
     out << be << STR(filename, af) << std::endl;
   }
 };
+
+// void file_to_unicycle1_params(const char *file) {
+//   std::ifstream f(file);
+//   json data = json::parse(f);
+//   auto params = data.template get<Unicycle1_paramsJ>();
+// }
 
 struct Model_unicycle1 : Model_robot {
 
