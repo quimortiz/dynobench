@@ -11,6 +11,10 @@ Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop
 
 ## Robots and Problem Description 
 
+TODO
+
+## Motion Primitives
+
 Kinodynamic motion planning problem are defined in [Dynobench](https://github.com/quimortiz/dynobench)
 
 Acrobot
