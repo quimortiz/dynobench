@@ -107,7 +107,7 @@ struct Model_quad2d : Model_robot {
   }
 
   virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) override {
-    CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
     Eigen::VectorXd out(nx);
     out.setZero();
     out.head(2) = x.head(2);
@@ -179,10 +179,10 @@ struct Model_quad2d : Model_robot {
 
     CHECK((p.size() == 2 || 4), AT);
 
-    CHECK_EQ(us_out.size(), us_in.size(), AT);
-    CHECK_EQ(xs_out.size(), xs_in.size(), AT);
-    CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
-    CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
+    DYNO_CHECK_EQ(us_out.size(), us_in.size(), AT);
+    DYNO_CHECK_EQ(xs_out.size(), xs_in.size(), AT);
+    DYNO_CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
+    DYNO_CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
 
     if (p.size() == 2) {
       Model_robot::transform_primitive(p, xs_in, us_in, xs_out, us_out);

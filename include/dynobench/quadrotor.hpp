@@ -158,7 +158,7 @@ struct Model_quad3d : Model_robot {
 
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) override {
-    CHECK_EQ(p.size(), 6, AT);
+    DYNO_CHECK_EQ(p.size(), 6, AT);
     if (adapt_vel) {
       p.head<3>() = xin.head<3>();
       p.tail<3>() = xin.segment<3>(7);

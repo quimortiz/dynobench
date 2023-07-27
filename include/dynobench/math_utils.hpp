@@ -12,8 +12,8 @@ const Eigen::IOFormat FMT(6, Eigen::DontAlignCols, ",", ",", "", "", "[", "]");
 bool inline check_bounds(const Eigen::VectorXd &v, const Eigen::VectorXd &v_lb,
                          const Eigen::VectorXd &v_ub, double tol = 1e-10) {
 
-  CHECK_EQ(v.size(), v_lb.size(), AT);
-  CHECK_EQ(v.size(), v_lb.size(), AT);
+  DYNO_CHECK_EQ(v.size(), v_lb.size(), AT);
+  DYNO_CHECK_EQ(v.size(), v_lb.size(), AT);
   size_t n = v.size();
   for (size_t i = 0; i < n; i++) {
     if (v(i) > v_ub(i) + tol || v(i) < v_lb(i) - tol) {
@@ -31,8 +31,8 @@ double inline check_bounds_distance(const Eigen::VectorXd &v,
                                     const Eigen::VectorXd &v_lb,
                                     const Eigen::VectorXd &v_ub) {
 
-  CHECK_EQ(v.size(), v_lb.size(), AT);
-  CHECK_EQ(v.size(), v_lb.size(), AT);
+  DYNO_CHECK_EQ(v.size(), v_lb.size(), AT);
+  DYNO_CHECK_EQ(v.size(), v_lb.size(), AT);
   size_t n = v.size();
   double max_distance = 0;
   for (size_t i = 0; i < n; i++) {
@@ -51,15 +51,15 @@ double inline check_bounds_distance(const Eigen::VectorXd &v,
 Eigen::VectorXd inline enforce_bounds(const Eigen::VectorXd &us,
                                       const Eigen::VectorXd &lb,
                                       const Eigen::VectorXd &ub) {
-  CHECK_EQ(us.size(), lb.size(), AT);
-  CHECK_EQ(us.size(), ub.size(), AT);
+  DYNO_CHECK_EQ(us.size(), lb.size(), AT);
+  DYNO_CHECK_EQ(us.size(), ub.size(), AT);
   return us.cwiseMax(lb).cwiseMin(ub);
 }
 
 bool inline check_equal(Eigen::MatrixXd A, Eigen::MatrixXd B, double rtol,
                         double atol) {
-  CHECK_EQ(A.rows(), B.rows(), AT);
-  CHECK_EQ(A.cols(), B.cols(), AT);
+  DYNO_CHECK_EQ(A.rows(), B.rows(), AT);
+  DYNO_CHECK_EQ(A.cols(), B.cols(), AT);
 
   auto dif = (A - B).cwiseAbs();
   auto max_cwise = A.cwiseAbs().cwiseMax(B.cwiseAbs());
@@ -103,7 +103,7 @@ bool inline is_diagonal(const Eigen::Ref<const Eigen::MatrixXd> &mat,
 }
 
 template <class T> T inside_bounds(const T &i, const T &lb, const T &ub) {
-  CHECK_GEQ(ub, lb, AT);
+  DYNO_DYNO_CHECK_GEQ(ub, lb, AT);
 
   if (i < lb)
     return lb;
@@ -508,10 +508,10 @@ inline std::string eigen_to_string(Eigen::Vector4d x) {
 }
 double inline so3_distance(const Eigen::Vector4d &x, const Eigen::Vector4d &y) {
   double max_quaternion_norm_error = 1e-6;
-  CHECK_LEQ(std::abs(x.norm() - 1), max_quaternion_norm_error,
-            eigen_to_string(x));
-  CHECK_LEQ(std::abs(y.norm() - 1), max_quaternion_norm_error,
-            eigen_to_string(y));
+  DYNO_CHECK_LEQ(std::abs(x.norm() - 1), max_quaternion_norm_error,
+                 eigen_to_string(x));
+  DYNO_CHECK_LEQ(std::abs(y.norm() - 1), max_quaternion_norm_error,
+                 eigen_to_string(y));
   double dq = std::fabs(x.dot(y));
   if (dq > 1.0 - max_quaternion_norm_error)
     return 0.0;

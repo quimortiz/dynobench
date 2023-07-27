@@ -104,6 +104,12 @@ struct Problem {
   void read_from_yaml(const char *file);
 
   void write_to_yaml(const char *file);
+
+  void to_yaml(std::ostream &out) {
+
+    NOT_IMPLEMENTED;
+    // TODO
+  }
 };
 
 // next: time optimal linear, use so2 space, generate motion primitives
@@ -349,6 +355,9 @@ Trajectories cut_trajectory(const Trajectory &traj, size_t number_of_cuts,
 void make_trajs_canonical(Model_robot &robot,
                           const std::vector<Trajectory> &trajs,
                           std::vector<Trajectory> &trajs_canonical);
+
+bool is_motion_collision_free(dynobench::Trajectory &traj,
+                              dynobench::Model_robot &robot);
 
 } // namespace dynobench
 //

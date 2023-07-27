@@ -160,8 +160,8 @@ void RnSOn::diff(const Eigen::Ref<const Eigen::VectorXd> &x0,
                  const Eigen::Ref<const Eigen::VectorXd> &x1,
                  Eigen::Ref<Eigen::VectorXd> dxout) const {
 
-  CHECK_EQ(x0.size(), x1.size(), AT);
-  CHECK_EQ(dxout.size(), x1.size(), AT);
+  DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
+  DYNO_CHECK_EQ(dxout.size(), x1.size(), AT);
   dxout = x1 - x0;
 
   for (auto &i : so2_indices) {
@@ -281,8 +281,8 @@ Model_robot::Model_robot(std::shared_ptr<StateDyno> state, size_t nu)
 void Model_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  CHECK_GEQ(x.size(), 3, "");
-  CHECK_EQ(ts.size(), 1, "");
+  DYNO_DYNO_CHECK_GEQ(x.size(), 3, "");
+  DYNO_CHECK_EQ(ts.size(), 1, "");
 
   fcl::Transform3d result;
   result = Eigen::Translation<double, 3>(fcl::Vector3d(x(0), x(1), 0));
@@ -304,9 +304,9 @@ bool Model_robot::collision_check(const Eigen::Ref<const Eigen::VectorXd> &x) {
   fcl::DefaultCollisionData<double> collision_data;
 
   transformation_collision_geometries(x, ts_data);
-  CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
+  DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
   assert(collision_geometries.size() == ts_data.size());
-  CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
+  DYNO_CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
   assert(collision_geometries.size() == col_outs.size());
 
   for (size_t i = 0; i < collision_geometries.size(); i++) {
@@ -336,9 +336,9 @@ void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
     // compute all tansforms
 
     transformation_collision_geometries(x, ts_data);
-    CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
     assert(collision_geometries.size() == ts_data.size());
-    CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
     assert(collision_geometries.size() == col_outs.size());
 
     for (size_t i = 0; i < collision_geometries.size(); i++) {
@@ -588,12 +588,12 @@ void Model_robot::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
 //                              const Eigen::Ref<const Eigen::VectorXd> &x,
 //                              const Eigen::Ref<const Eigen::VectorXd> &u,
 //                              double dt) {
-//   CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
-//   CHECK_EQ(static_cast<size_t>(Fu.cols()), nu + 1, AT);
+//   DYNO_CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
+//   DYNO_CHECK_EQ(static_cast<size_t>(Fu.cols()), nu + 1, AT);
 //   calcDiffV(__Jv_x, __Jv_u, x, u);
 //   euler_diff(Fx, Fu.block(0, 0, nx, nu), dt, __Jv_x, __Jv_u);
 //   calcV(__v, x, u);
@@ -606,12 +606,12 @@ void Model_robot::stepDiff_with_v(Eigen::Ref<Eigen::MatrixXd> Fx,
                                   const Eigen::Ref<const Eigen::VectorXd> &x,
                                   const Eigen::Ref<const Eigen::VectorXd> &u,
                                   double dt) {
-  CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
-  CHECK_EQ(static_cast<size_t>(Fu.cols()), nu, AT);
+  DYNO_CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Fu.cols()), nu, AT);
 
   calcV(__v, x, u);
   calcDiffV(__Jv_x, __Jv_u, x, u);
@@ -659,14 +659,14 @@ void linearInterpolation(const Eigen::VectorXd &times,
                          Eigen::Ref<Eigen::VectorXd> Jx) {
 
   CHECK(x.size(), AT);
-  CHECK_EQ(x.front().size(), out.size(), AT);
+  DYNO_CHECK_EQ(x.front().size(), out.size(), AT);
 
   // double num_tolerance = 1e-8;
-  // CHECK_GEQ(t_query + num_tolerance, times.head(1)(0), AT);
+  // DYNO_DYNO_CHECK_GEQ(t_query + num_tolerance, times.head(1)(0), AT);
   assert(static_cast<size_t>(times.size()) == static_cast<size_t>(x.size()));
 
   if (times.size() == 1) {
-    CHECK_EQ(x.size(), 1, AT);
+    DYNO_CHECK_EQ(x.size(), 1, AT);
     out = x.front();
     return;
   }
@@ -699,7 +699,7 @@ void linearInterpolation(const Eigen::VectorXd &times,
           break;
         }
       }
-      CHECK_EQ(index, index2, AT);
+      DYNO_CHECK_EQ(index, index2, AT);
     }
   }
 

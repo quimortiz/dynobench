@@ -150,7 +150,7 @@ struct RnSOn : StateDyno {
   const std::vector<size_t> so2_indices;
   RnSOn(size_t nR, size_t nSO2, const std::vector<size_t> &so2_indices)
       : StateDyno(nR + nSO2, nR + nSO2), so2_indices(so2_indices) {
-    CHECK_EQ(so2_indices.size(), nSO2, AT);
+    DYNO_CHECK_EQ(so2_indices.size(), nSO2, AT);
   }
 
   virtual ~RnSOn(){};
@@ -296,12 +296,12 @@ struct Model_robot {
   virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) { return x; }
 
   void set_position_ub(const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
-    CHECK_EQ(static_cast<size_t>(p_ub.size()), translation_invariance, AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(p_ub.size()), translation_invariance, AT);
     x_ub.head(translation_invariance) = p_ub;
   }
 
   void set_position_lb(const Eigen::Ref<const Eigen::VectorXd> &p_lb) {
-    CHECK_EQ(static_cast<size_t>(p_lb.size()), translation_invariance, AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(p_lb.size()), translation_invariance, AT);
     x_lb.head(translation_invariance) = p_lb;
   }
 
@@ -328,7 +328,7 @@ struct Model_robot {
   virtual void
   setPositionBounds(const Eigen::Ref<const Eigen::VectorXd> &p_lb,
                     const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
-    CHECK_EQ(p_lb.size(), p_ub.size(), AT);
+    DYNO_CHECK_EQ(p_lb.size(), p_ub.size(), AT);
     CHECK((static_cast<size_t>(p_lb.size()) == 2 ||
            static_cast<size_t>(p_lb.size()) == 3),
           AT);
@@ -419,7 +419,7 @@ struct Model_robot {
   virtual void rollout(const Eigen::Ref<const Eigen::VectorXd> &x0,
                        const std::vector<Eigen::VectorXd> &us,
                        std::vector<Eigen::VectorXd> &xs) {
-    CHECK_EQ(us.size() + 1, xs.size(), AT);
+    DYNO_CHECK_EQ(us.size() + 1, xs.size(), AT);
 
     xs.at(0) = x0;
     for (size_t i = 0; i < us.size(); i++) {
@@ -445,7 +445,7 @@ struct Model_robot {
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) {
 
-    CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, AT);
     p = xin.head(translation_invariance);
   }
 
@@ -458,13 +458,13 @@ struct Model_robot {
                                    std::vector<Eigen::VectorXd> &us_out) {
 
     // basic transformation is translation invariance
-    CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
+    DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
     // TODO: avoid memory allocation inside this function!!
 
-    CHECK_EQ(us_out.size(), us_in.size(), AT);
-    CHECK_EQ(xs_out.size(), xs_in.size(), AT);
-    CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
-    CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
+    DYNO_CHECK_EQ(us_out.size(), us_in.size(), AT);
+    DYNO_CHECK_EQ(xs_out.size(), xs_in.size(), AT);
+    DYNO_CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
+    DYNO_CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
 
     for (size_t i = 0; i < us_in.size(); i++) {
       us_out[i] = us_in[i];
@@ -488,8 +488,8 @@ struct Model_robot {
                           const Eigen::Ref<const Eigen::VectorXd> &x1) {
 
     // lets just use state
-    CHECK_EQ(r_weight.size(), r.size(), AT);
-    CHECK_EQ(x0.size(), x1.size(), AT);
+    DYNO_CHECK_EQ(r_weight.size(), r.size(), AT);
+    DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
     state->diff(x0, x1, r);
     r.array() *= r_weight.array();
   }
@@ -499,9 +499,9 @@ struct Model_robot {
                               const Eigen::Ref<const Eigen::VectorXd> &x0,
                               const Eigen::Ref<const Eigen::VectorXd> &x1) {
 
-    CHECK_EQ(x0.size(), x1.size(), AT);
-    CHECK_EQ(Jx0.cols(), Jx1.cols(), AT);
-    CHECK_EQ(Jx0.rows(), Jx1.rows(), AT);
+    DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
+    DYNO_CHECK_EQ(Jx0.cols(), Jx1.cols(), AT);
+    DYNO_CHECK_EQ(Jx0.rows(), Jx1.rows(), AT);
 
     state->Jdiff(x0, x1, Jx0, Jx1);
     Jx0.diagonal().array() *= r_weight.array();
@@ -581,7 +581,7 @@ struct Interpolator {
                const std::vector<Eigen::VectorXd> &x,
                const std::shared_ptr<StateDyno> &state)
       : times(times), x(x), state(state) {
-    CHECK_EQ(static_cast<size_t>(times.size()), x.size(), AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(times.size()), x.size(), AT);
   }
 
   void inline interpolate(double t_query, Eigen::Ref<Eigen::VectorXd> out,

@@ -175,7 +175,7 @@ Model_quad3d::Model_quad3d(const Quad3d_params &params,
 }
 
 Eigen::VectorXd Model_quad3d::get_x0(const Eigen::VectorXd &x) {
-  CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
   Eigen::VectorXd out(nx);
   out.setZero();
   out.head(3) = x.head(3);
@@ -209,10 +209,10 @@ void Model_quad3d::transform_primitive(
 
   CHECK((p.size() == 3 || 6), AT);
 
-  CHECK_EQ(us_out.size(), us_in.size(), AT);
-  CHECK_EQ(xs_out.size(), xs_in.size(), AT);
-  CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
-  CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
+  DYNO_CHECK_EQ(us_out.size(), us_in.size(), AT);
+  DYNO_CHECK_EQ(xs_out.size(), xs_in.size(), AT);
+  DYNO_CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
+  DYNO_CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
 
   if (p.size() == 3) {
     Model_robot::transform_primitive(p, xs_in, us_in, xs_out, us_out);
@@ -309,7 +309,7 @@ void Model_quad3d::step(Eigen::Ref<Eigen::VectorXd> xnext,
 
   Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
   Eigen::Vector4d q = x.segment(3, 4).head<4>().normalized();
-  CHECK_LEQ(std::abs((q.norm() - 1.0)), 1e-6, AT);
+  DYNO_CHECK_LEQ(std::abs((q.norm() - 1.0)), 1e-6, AT);
   Eigen::Ref<const Eigen::Vector3d> vel = x.segment(7, 3).head<3>();
   Eigen::Ref<const Eigen::Vector3d> w = x.segment(10, 3).head<3>();
 
@@ -325,7 +325,7 @@ void Model_quad3d::step(Eigen::Ref<Eigen::VectorXd> xnext,
   __get_quat_from_ang_vel_time(ff.segment<3>(3) * dt, deltaQ, nullptr);
   quat_product(q, deltaQ, q_next, nullptr, nullptr);
   w_next = w + dt * ff.segment<3>(9);
-  CHECK_LEQ(std::abs((q_next.norm() - 1.0)), 1e-6, AT);
+  DYNO_CHECK_LEQ(std::abs((q_next.norm() - 1.0)), 1e-6, AT);
 }
 
 void Model_quad3d::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,

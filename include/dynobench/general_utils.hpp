@@ -78,6 +78,13 @@ auto timed_fun(Fun fun, Args &&...args) {
       out, std::chrono::duration<double, std::milli>(tac - tic).count());
 }
 
+template <typename Fun> auto timed_fun_void(Fun fun) {
+  auto tic = std::chrono::high_resolution_clock::now();
+  fun();
+  auto tac = std::chrono::high_resolution_clock::now();
+  return std::chrono::duration<double, std::milli>(tac - tic).count();
+}
+
 namespace po = boost::program_options;
 
 template <typename T> bool __in(const std::vector<T> &v, const T &val) {

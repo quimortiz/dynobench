@@ -77,9 +77,9 @@ void Model_quad2d::calcV(Eigen::Ref<Eigen::VectorXd> v,
                          const Eigen::Ref<const Eigen::VectorXd> &x,
                          const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  CHECK_EQ(v.size(), 6, AT);
-  CHECK_EQ(x.size(), 6, AT);
-  CHECK_EQ(u.size(), 2, AT);
+  DYNO_CHECK_EQ(v.size(), 6, AT);
+  DYNO_CHECK_EQ(x.size(), 6, AT);
+  DYNO_CHECK_EQ(u.size(), 2, AT);
 
   const double &f1 = u_nominal * u(0);
   const double &f2 = u_nominal * u(1);

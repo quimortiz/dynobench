@@ -161,9 +161,9 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
   Eigen::VectorXd dts;
 
   if (times.size()) {
-    CHECK_EQ(static_cast<size_t>(times.size()), states.size(), AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(times.size()), states.size(), AT);
     dts.resize(times.size() - 1);
-    CHECK_GE(times.size(), 1, AT);
+    DYNO_CHECK_GE(times.size(), 1, AT);
     for (size_t i = 0; i < static_cast<size_t>(times.size() - 1); i++) {
       dts(i) = times(i + 1) - times(i);
     }
@@ -230,7 +230,7 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   std::vector<double> max_ =
       env["environment"]["max"].as<std::vector<double>>();
 
-  CHECK_EQ(min_.size(), max_.size(), AT);
+  DYNO_CHECK_EQ(min_.size(), max_.size(), AT);
   CHECK((min_.size() <= 3), AT);
   p_lb = Eigen::Map<Eigen::VectorXd>(&min_.at(0), min_.size());
   p_ub = Eigen::Map<Eigen::VectorXd>(&max_.at(0), max_.size());
@@ -357,9 +357,9 @@ double check_trajectory(const std::vector<Vxd> &xs_out,
   CHECK(xs_out.size(), AT);
   CHECK(us_out.size(), AT);
   CHECK(model, AT);
-  CHECK_EQ(xs_out.size(), us_out.size() + 1, AT);
-  CHECK_EQ(static_cast<size_t>(dt.size()), static_cast<size_t>(us_out.size()),
-           AT);
+  DYNO_CHECK_EQ(xs_out.size(), us_out.size() + 1, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(dt.size()),
+                static_cast<size_t>(us_out.size()), AT);
 
   size_t N = us_out.size();
 
@@ -419,7 +419,7 @@ double check_cols(std::shared_ptr<Model_robot> model_robot,
 double max_rollout_error(std::shared_ptr<Model_robot> robot,
                          const std::vector<Vxd> &xs,
                          const std::vector<Vxd> &us) {
-  CHECK_EQ(xs.size(), us.size() + 1, AT);
+  DYNO_CHECK_EQ(xs.size(), us.size() + 1, AT);
 
   size_t N = us.size();
 
@@ -449,8 +449,8 @@ void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
                          const std::shared_ptr<StateDyno> &state)
 
 {
-  CHECK_EQ(xs.size(), us.size() + 1, "");
-  CHECK_EQ(static_cast<size_t>(ts.size()), us.size() + 1, "");
+  DYNO_CHECK_EQ(xs.size(), us.size() + 1, "");
+  DYNO_CHECK_EQ(static_cast<size_t>(ts.size()), us.size() + 1, "");
   xs_out.clear();
   us_out.clear();
 
@@ -498,7 +498,7 @@ void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
 
   xs_out = new_xs;
   us_out = new_us;
-  CHECK_EQ(xs_out.size(), us_out.size() + 1, "");
+  DYNO_CHECK_EQ(xs_out.size(), us_out.size() + 1, "");
 }
 
 void Info_out::print(std::ostream &out, const std::string &be,
@@ -566,21 +566,21 @@ void Info_out::to_yaml(std::ostream &out, const std::string &be,
 
 double Trajectory::distance(const Trajectory &other) const {
 
-  CHECK_EQ(actions.size(), other.actions.size(), AT);
-  CHECK_EQ(states.size(), other.states.size(), AT);
+  DYNO_CHECK_EQ(actions.size(), other.actions.size(), AT);
+  DYNO_CHECK_EQ(states.size(), other.states.size(), AT);
 
   double distance = 0;
 
   for (size_t i = 0; i < states.size(); i++) {
     auto &x = states.at(i);
     auto &y = other.states.at(i);
-    CHECK_EQ(x.size(), y.size(), AT);
+    DYNO_CHECK_EQ(x.size(), y.size(), AT);
     distance += (x - y).norm();
   }
   for (size_t i = 0; i < actions.size(); i++) {
     auto &x = actions.at(i);
     auto &y = other.actions.at(i);
-    CHECK_EQ(x.size(), y.size(), AT);
+    DYNO_CHECK_EQ(x.size(), y.size(), AT);
     distance += (x - y).norm();
   }
   return distance;
@@ -858,9 +858,10 @@ Trajectories cut_trajectory(const Trajectory &traj, size_t number_of_cuts,
         traj.actions.begin() + i * length_each,
         traj.actions.begin() + std::min((i + 1) * length_each, num_actions)};
     Trajectory traj;
-    CHECK_EQ(states.size(), actions.size() + 1, AT);
+    DYNO_CHECK_EQ(states.size(), actions.size() + 1, AT);
     traj.states = states;
     traj.actions = actions;
+    DYNO_WARN_GEQ(traj.states.size(), 2, AT);
     traj.start = states.front();
     traj.goal = states.back();
     traj.cost = robot->ref_dt * traj.actions.size();
@@ -873,7 +874,8 @@ Trajectories cut_trajectory(const Trajectory &traj, size_t number_of_cuts,
   }
   {
     // save trjectories for debugging
-    std::string filename = "/tmp/dbastar/trajs_cuts_" + gen_random(6) + ".yaml";
+    std::string filename =
+        "/tmp/dynoplan/trajs_cuts_" + gen_random(6) + ".yaml";
     std::cout << "saving traj file: " << filename << std::endl;
     new_trajectories.save_file_yaml(filename.c_str());
   }
@@ -928,9 +930,9 @@ Trajectory::find_discontinuities(std::shared_ptr<Model_robot> &robot) {
   CHECK(states.size(), AT);
   CHECK(actions.size(), AT);
   CHECK(robot, AT);
-  CHECK_EQ(states.size(), actions.size() + 1, AT);
-  CHECK_EQ(static_cast<size_t>(dts.size()), static_cast<size_t>(actions.size()),
-           AT);
+  DYNO_CHECK_EQ(states.size(), actions.size() + 1, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(dts.size()),
+                static_cast<size_t>(actions.size()), AT);
 
   size_t N = actions.size();
 
@@ -994,4 +996,93 @@ Trajectory Trajectory::resample(std::shared_ptr<Model_robot> &robot) {
   }
   return out;
 }
+
+// TODO: reimplement this
+#if 0
+        auto out = timed_fun([&] {
+          motion->collision_manager->shift(offset);
+          fcl::DefaultCollisionData<double> collision_data;
+          motion->collision_manager->collide(
+              robot->env.get(), &collision_data,
+              fcl::DefaultCollisionFunction<double>);
+          bool motionValid = !collision_data.result.isCollision();
+          motion->collision_manager->shift(-offset);
+          return motionValid;
+        });
+
+        motionValid = out.first;
+        time_bench.time_collisions += out.second;
+        time_bench.num_col_motions++;
+#endif
+
+bool is_motion_collision_free(dynobench::Trajectory &traj,
+                              dynobench::Model_robot &robot) {
+
+  assert(traj.states.size());
+  if (!robot.collision_check(traj.states.front())) {
+    return false;
+  }
+
+  if (!robot.collision_check(traj.states.back())) {
+    return false;
+  }
+
+  CHECK(traj.states.size(), AT);
+
+  Stopwatch watch;
+
+  size_t index_start = 0;
+  size_t index_last = traj.states.size() - 1;
+
+  // check the first and last state
+
+  size_t nx = robot.nx;
+  Eigen::VectorXd x(nx);
+
+  using Segment = std::pair<size_t, size_t>;
+  std::queue<Segment> queue;
+
+  queue.push(Segment{index_start, index_last});
+
+  size_t index_resolution = 1;
+
+  if (robot.ref_dt < .05) {
+    // TODO: which number to put here?
+    index_resolution = 5;
+  }
+
+  // I could use a spatial resolution also...
+
+  while (!queue.empty()) {
+
+    auto [si, gi] = queue.front();
+    queue.pop();
+
+    if (gi - si > index_resolution) {
+
+      // check if they are very close -> HOW exactly?
+      // auto &gix = traj.states.at(gi);
+      // auto &six = traj.states.at(si);
+
+      size_t ii = int((si + gi) / 2);
+
+      if (ii == si || ii == gi) {
+        continue;
+      }
+      // robot->toEigen(motion->states.at(ii), x);
+      x = traj.states.at(ii);
+      if (robot.collision_check(x)) {
+        if (ii != si)
+          queue.push(Segment{ii, gi});
+        if (ii != gi)
+          queue.push(Segment{si, ii});
+      } else {
+        return false;
+        break;
+      }
+    }
+  }
+  return true;
+};
+
 } // namespace dynobench

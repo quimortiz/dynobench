@@ -80,8 +80,8 @@ Model_acrobot::Model_acrobot(const Acrobot_params &acrobot_params,
   ts_data.resize(2);
   col_outs.resize(2);
 
-  // CHECK_EQ(p_lb.size(), 2, AT);
-  // CHECK_EQ(p_ub.size(), 2, AT);
+  // DYNO_CHECK_EQ(p_lb.size(), 2, AT);
+  // DYNO_CHECK_EQ(p_ub.size(), 2, AT);
 }
 
 void Model_acrobot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
@@ -203,11 +203,11 @@ void Model_acrobot::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                               const Eigen::Ref<const Eigen::VectorXd> &x,
                               const Eigen::Ref<const Eigen::VectorXd> &uu) {
 
-  CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_x.cols()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_x.rows()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_u.rows()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_u.cols()), nu, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_x.cols()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_x.rows()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_u.rows()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_u.cols()), nu, AT);
 
   double q1dotdot_u;
   double q2dotdot_u;
