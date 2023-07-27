@@ -133,10 +133,8 @@ In this short tutorial, we summarize the steps we followed to add the model
 
 `Integrator2_2d` is a double integrator in 2d:
 
-State: $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$
-Control:  $\mathbf{u} = [\ddot{x} , \ddot{y}]$
-Second order dynamics: $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$
-Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
+The state is $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$, control is $\mathbf{u} = [\ddot{x} , \ddot{y}]$.
+Second order dynamics are $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$. Thus, the step function is $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
 with:
 
 ```math
@@ -157,12 +155,10 @@ B =
 \end{bmatrix}
 ```
 
-Control Bounds:  $|u_x| \leq 1$,  $|u_y| \leq 1$
-
-State Bounds: $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $
+Control Bounds are $|u_x| \leq 1$,  $|u_y| \leq 1$, and state bounds on velocity $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $.
 
 First, we have implemented a new class in `src/integrator2_2d.cpp` and `include/dynobench/integrator2_2d.hpp`. We store all parameters in a separate class, `Integrator2_2d_params`.
-A robot model implements 4 big functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision . Check the code!
+A robot model implements 4 main functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision against obstacles. Check the code!
 
 ```cpp
 // dynobench/double_integrator_2d.hpp and src/double_integrator_2d.hpp
