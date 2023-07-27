@@ -9,6 +9,34 @@ Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop
 <img src="assets/dynobench.png" width=50% height=50%>
 </p >
 
+## Robots and Problem Description 
+
+Kinodynamic motion planning problem are defined in [Dynobench](https://github.com/quimortiz/dynobench)
+
+Acrobot
+<p align="center">
+<img src="assets/motions/primitives-acrobot.png" width=50% height=auto>
+</p >
+
+Planar Rotor
+<p align="center">
+<img src="assets/motions/primitives-quad2d.png" width=50% height=auto>
+</p >
+
+Planar Rotor Pole
+<p align="center">
+<img src="assets/motions/primitives-quad2dpole.png" width=50% height=auto>
+</p >
+
+<p align="center">
+<img src="assets/motions/primitives-quad3d.png" width=50% height=auto>
+</p >
+
+Unicycle1
+<p align="center">
+<img src="assets/motions/primitives-unicycle1.png" width=50% height=auto>
+</p >
+
 
 # Using Dynobench
 
