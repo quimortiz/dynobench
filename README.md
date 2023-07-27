@@ -101,12 +101,12 @@ target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 ### Python Viewer
 
 Check the viewers with:
-```
+```bash
  python3 ../utils/viewer/viewer_test.py
 ```
 and
 
-```
+```bash
 VISUALIZE=1 python3 ../utils/viewer/viewer_test.py
 ```
 
@@ -226,28 +226,25 @@ We define `double_integrator_2d_v0` with a configuration file `models/integrator
 
 Let's add a viewer in python. We need a new class:
 
-```
+```python
 //utils/viewer/integrator2_2d_viewer.py
 
 class Robot :
 
 class Integrator2_2dViewer (RobotViewer):
-
-
 ```
+
 `RobotViewer` is a base class that provides default functionality. `Robot` is the class that draws the robot (e.g. using a rectangle )
 
 
 
-```
+```python
 // utils/viewer/viewer_cli.py
-
 
 def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
 ...
     elif robot == "integrator2_2d":
         viewer = double_integrator_2d_viewer.Integrator2_2dViewer()
-
 
 ```
 
@@ -272,7 +269,7 @@ You will find a small set of motion primitives for each system in  [dynobench](h
 
 A large set of primitives for each system can be downloaded from Google Drive. This can be done manually with a web browser or using the command line with [gdown](https://github.com/wkentaro/gdown). For example:
 
-```
+```bash
 gdown --fuzzy "https://drive.google.com/file/d/1r_ecGwdfvWnVWxPsvR4d8Hjcayxg5PsB/view?usp=drive_link"
 ```
 
