@@ -28,6 +28,7 @@ Planar Rotor Pole
 <img src="assets/motions/primitives-quad2dpole.png" width=50% height=auto>
 </p >
 
+Quadrotor
 <p align="center">
 <img src="assets/motions/primitives-quad3d.png" width=50% height=auto>
 </p >
