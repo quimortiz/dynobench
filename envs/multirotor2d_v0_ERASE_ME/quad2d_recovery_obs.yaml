@@ -1,0 +1,17 @@
+name: quad2d_v0-recovery_obstacles
+environment:
+  #original
+  min: [-1, -2.0]
+  max: [2, 3]
+  # #visualization
+  # min: [-1, -2.5]
+  # max: [2.5, 3]
+  obstacles:
+    - type: box
+      center: [0, 1.5]
+      size: [2, .3]
+robots:
+  - type: quad2d_v0
+    # start: [0., 1., 3.14, 0., 0., 0.] # x,y,theta,v,w
+    start: [0., 1., -3.14, 0., 0., 0.] # x,y,theta,v,w
+    goal: [0., 2, 0., 0., 0., 0] # x,y,theta,v,w
