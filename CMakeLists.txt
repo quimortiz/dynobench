@@ -8,7 +8,7 @@ project(
   LANGUAGES CXX)
 
 # find_package(pinocchio REQUIRED)
-find_package(Boost REQUIRED COMPONENTS program_options serialization)
+find_package(Boost REQUIRED COMPONENTS program_options serialization stacktrace_basic)
 find_package(fcl REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -55,7 +55,7 @@ target_compile_options(dynobench PRIVATE -Wall -Wextra)
 
 target_link_libraries(
   dynobench
-  PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization
+  PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization ${CMAKE_DL_LIBS}
   PUBLIC nlohmann_json::nlohmann_json)
 
 target_link_libraries(

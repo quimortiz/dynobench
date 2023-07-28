@@ -76,7 +76,7 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
   x_ub << max__, max__, params.max_vel, params.max_vel;
 
   u_weight << 1., 1.;
-  x_weightb << 0, 0, 0, 0;
+  x_weightb << 100, 100, 100, 100; // TODO: change!!
 
   // add bounds on position if provided
   if (p_lb.size() && p_ub.size()) {

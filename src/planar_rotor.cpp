@@ -49,7 +49,7 @@ Model_quad2d::Model_quad2d(const Quad2d_params &params,
 
   u_weight = V2d(.5, .5);
   x_weightb = 10. * Vxd::Ones(6);
-  x_weightb.head<3>() = V3d::Zero();
+  x_weightb.head<3>() << 10, 10, 0;
 
   if (params.shape == "box") {
     collision_geometries.push_back(

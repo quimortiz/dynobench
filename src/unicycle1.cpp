@@ -63,6 +63,7 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
   u_weight.resize(2);
   u_weight.setConstant(.2);
   x_weightb = V3d::Zero();
+  x_weightb << 100, 100, 0;
 
   std::cout << "in " << __FILE__ << ": " << __LINE__ << std::endl;
   std::cout << STR_V(u_lb) << std::endl;

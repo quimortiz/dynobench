@@ -2,6 +2,7 @@
 #include "dynobench/robot_models.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -110,7 +111,7 @@ Fake_opt fakeCLIParser(const std::string &argv) {
 
     std::vector<std::string> _out;
     tokenize(out, ' ', _out);
-    CHECK_EQ(_out.size(), 2, "");
+    DYNO_CHECK_EQ(_out.size(), 2, "");
     // if (i < outs.size() - 1)
     o << "  \"" << _out[0] << "\": ";
 
@@ -136,6 +137,86 @@ Fake_opt fakeCLIParser(const std::string &argv) {
 
   Fake_opt opt = j;
   return opt;
+}
+
+BOOST_AUTO_TEST_CASE(t_traj_to_json) {
+
+  Trajectory traj;
+
+  traj.states.push_back(Eigen::VectorXd::Zero(3));
+  traj.states.push_back(Eigen::VectorXd::Ones(3));
+  traj.states.push_back(-1 * Eigen::VectorXd::Zero(3));
+
+  traj.actions.push_back(Eigen::VectorXd::Zero(2));
+  traj.actions.push_back(Eigen::VectorXd::Ones(2));
+
+  json j = traj;
+  std::cout << j.dump(2) << std::endl;
+
+  auto filename = "/tmp/dynobench/traj.json";
+  create_dir_if_necessary(filename);
+  std::ofstream out(filename);
+  out << j;
+  out.close();
+
+  std::ifstream in(filename);
+  json j2;
+  in >> j2;
+
+  Trajectory traj2 = j2;
+  BOOST_TEST(traj.states == traj2.states);
+  BOOST_TEST(traj.actions == traj2.actions);
+
+  {
+    Trajectories trajs;
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+
+    auto filename = "/tmp/dynobench/trajs.json";
+    create_dir_if_necessary(filename);
+    std::ofstream out(filename);
+    out << json(trajs);
+    out.close();
+
+    {
+      std::vector<std::uint8_t> v_msgpack = json::to_msgpack(json(trajs));
+
+      ofstream fout("data.dat", ios::out | ios::binary);
+      fout.write((const char *)v_msgpack.data(), v_msgpack.size());
+      fout.close();
+
+      // Open in Python with
+      // >>> import msgpack
+      // >>> with open("data.dat", "rb") as f:
+      // ...     a = msgpack.unpackb(f.read())
+
+      ifstream fin("data.dat", ios::in | ios::binary);
+
+      // std::vector<uint8_t> contents((std::istreambuf_iterator<char>(fin)),
+      //                               std::istreambuf_iterator<char>());
+
+      std::vector<uint8_t> contents;
+      fin.seekg(0, std::ios::end);
+      contents.resize(fin.tellg());
+      fin.seekg(0, std::ios::beg);
+      fin.read((char *)contents.data(), contents.size());
+      in.close();
+
+      json j = json::from_msgpack(contents);
+      std::cout << j.dump(2) << std::endl;
+      Trajectories trajsX = j;
+    }
+
+    // lets load from msgpack
+
+    std::ifstream in(filename);
+    json j;
+    in >> j;
+    Trajectories trajs2 = j;
+  }
 }
 
 BOOST_AUTO_TEST_CASE(t_jsonX) {}

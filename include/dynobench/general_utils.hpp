@@ -19,12 +19,19 @@
 #include <chrono>
 #include <filesystem>
 
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+
+#include <boost/stacktrace.hpp>
+
 template <class T> using ptr = boost::shared_ptr<T>;
 template <class T> using ptrs = std::shared_ptr<T>;
 
 template <typename T, typename... Args> auto mk(Args &&...args) {
   return boost::make_shared<T>(std::forward<Args>(args)...);
 }
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 inline std::string gen_random(const int len) {
   static const char alphanum[] = "0123456789"
@@ -342,3 +349,21 @@ struct Loader {
     }
   }
 };
+
+namespace Eigen {
+
+void inline from_json(const json &j, Eigen::VectorXd &vector) {
+  vector.resize(j.size());
+  for (std::size_t row = 0; row < j.size(); ++row) {
+    const auto &jrow = j.at(row);
+    vector(row) = jrow.get<double>();
+  }
+}
+
+void inline to_json(json &j, const Eigen::VectorXd &vector) {
+  for (int i = 0; i < vector.size(); ++i) {
+    j.push_back(vector(i));
+  }
+}
+
+} // namespace Eigen

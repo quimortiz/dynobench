@@ -157,6 +157,9 @@ void Trajectory::update_feasibility(const Feasibility_thresholds &thresholds,
 
 void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
 
+  CHECK(robot, "");
+  CHECK(states.size(), "");
+
   max_collision = check_cols(robot, states);
   Eigen::VectorXd dts;
 
@@ -174,9 +177,15 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
     dts.setConstant(robot->ref_dt);
   }
 
-  max_jump = check_trajectory(states, actions, dts, robot, verbose);
+  if (actions.size()) {
+    max_jump = check_trajectory(states, actions, dts, robot, verbose);
+    u_bound_distance = check_u_bounds(actions, robot, verbose);
+  } else {
+    // corner case: sometimes a trajectory is a single state
+    max_jump = 0;
+    u_bound_distance = 0;
+  }
   x_bound_distance = check_x_bounds(states, robot, verbose);
-  u_bound_distance = check_u_bounds(actions, robot, verbose);
 
   if (goal.size()) {
     if (verbose) {

@@ -1,4 +1,3 @@
-
 #include <nlohmann/json.hpp>
 
 #include "dynobench/for_each_macro.hpp"
@@ -8,24 +7,6 @@
 // #include "eigen_conversions.hpp"
 
 using json = nlohmann::json;
-
-namespace Eigen {
-
-void inline from_json(const json &j, Eigen::VectorXd &vector) {
-  vector.resize(j.size());
-  for (std::size_t row = 0; row < j.size(); ++row) {
-    const auto &jrow = j.at(row);
-    vector(row) = jrow.get<double>();
-  }
-}
-
-void inline to_json(json &j, const Eigen::VectorXd &vector) {
-  for (int i = 0; i < vector.size(); ++i) {
-    j.push_back(vector(i));
-  }
-}
-
-} // namespace Eigen
 
 namespace dynobench {
 //

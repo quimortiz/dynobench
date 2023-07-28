@@ -255,6 +255,8 @@ struct Trajectory {
   void load_file_boost(const char *file);
 
   Trajectory resample(std::shared_ptr<Model_robot> &robot);
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Trajectory, states, actions);
 };
 
 struct Trajectories {
@@ -309,7 +311,52 @@ struct Trajectories {
     load_file_yaml(load_yaml_safe(file));
   }
 
+  // TODO:
+  // From json to msgpack, and compare speeds!
+
   void compute_stats(const char *filename_out) const;
+
+  void save_file_msgpack(const char *filename) {
+    std::ofstream fout(filename, std::ios::out | std::ios::binary);
+    CHECK(fout.is_open(), "");
+    std::vector<std::uint8_t> v_msgpack = json::to_msgpack(json(*this));
+    fout.write((const char *)v_msgpack.data(), v_msgpack.size());
+    fout.close();
+  }
+
+  void load_file_msgpack(const char *filename) {
+
+    std::cout << "loading file msgpack " << filename << std::endl;
+    std::ifstream fin(filename, std::ios::in | std::ios::binary);
+
+    CHECK(fin.is_open(), "");
+    assert(fin.is_open());
+
+    std::vector<uint8_t> contents;
+    fin.seekg(0, std::ios::end);
+    contents.resize(fin.tellg());
+    fin.seekg(0, std::ios::beg);
+    fin.read((char *)contents.data(), contents.size());
+    fin.close();
+
+    *this = Trajectories(json::from_msgpack(contents));
+  }
+
+  void save_file_json(const char *filename) {
+    std::ofstream out(filename);
+    CHECK(out.is_open(), "");
+    out << json(*this);
+  }
+
+  void load_file_json(const char *filename) {
+    std::ifstream in(filename);
+    CHECK(in.is_open(), "");
+    json j;
+    in >> j;
+    *this = Trajectories(j);
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Trajectories, data);
 
   //
 };
