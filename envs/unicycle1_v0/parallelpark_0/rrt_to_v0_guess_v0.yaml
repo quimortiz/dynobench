@@ -1,0 +1,34 @@
+time_stamp: 1
+cost: 4.18501
+feasible: 0
+traj_feas: 0
+goal_feas: 0
+start_feas: 0
+col_feas: 0
+x_bounds_feas: 0
+u_bounds_feas: 0
+start: [0.7,0.8,0]
+goal: [1.9,0.3,0]
+max_jump: -1
+max_collision: -1
+goal_distance: -1
+start_distance: -1
+x_bound_distance: -1
+u_bound_distance: -1
+num_states: 4
+states:
+  - [0.7,0.8,0]
+  - [1.39754,0.702631,0.512144]
+  - [1.99308,0.427142,0.732028]
+  - [1.9,0.3,0]
+num_actions: 3
+actions:
+  - [0,0]
+  - [0,0]
+  - [0,0]
+num_times: 4
+times:
+  - 0
+  - 1.40861
+  - 2.72095
+  - 4.18501
