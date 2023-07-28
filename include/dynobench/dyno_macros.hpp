@@ -35,7 +35,7 @@
 
 std::string inline add_stacktrace(const std::string &msg) {
 
-  return "MSG: " + msg + "\n" + "STACKTRACE: \n" +
+  return "\nMSG: " + msg + "\n" + "STACKTRACE: \n" +
          boost::stacktrace::to_string(boost::stacktrace::stacktrace()) + "\n";
 }
 
