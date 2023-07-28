@@ -9,6 +9,39 @@ Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop
 <img src="assets/dynobench.png" width=50% height=50%>
 </p >
 
+## Robots and Problem Description 
+
+TODO
+
+## Motion Primitives
+
+Kinodynamic motion planning problem are defined in [Dynobench](https://github.com/quimortiz/dynobench)
+
+Acrobot
+<p align="center">
+<img src="assets/motions/primitives-acrobot.png" width=50% height=auto>
+</p >
+
+Planar Rotor
+<p align="center">
+<img src="assets/motions/primitives-quad2d.png" width=50% height=auto>
+</p >
+
+Planar Rotor Pole
+<p align="center">
+<img src="assets/motions/primitives-quad2dpole.png" width=50% height=auto>
+</p >
+
+Quadrotor
+<p align="center">
+<img src="assets/motions/primitives-quad3d.png" width=50% height=auto>
+</p >
+
+Unicycle1
+<p align="center">
+<img src="assets/motions/primitives-unicycle1.png" width=50% height=auto>
+</p >
+
 
 # Using Dynobench
 
@@ -101,12 +134,12 @@ target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 ### Python Viewer
 
 Check the viewers with:
-```
+```bash
  python3 ../utils/viewer/viewer_test.py
 ```
 and
 
-```
+```bash
 VISUALIZE=1 python3 ../utils/viewer/viewer_test.py
 ```
 
@@ -133,10 +166,8 @@ In this short tutorial, we summarize the steps we followed to add the model
 
 `Integrator2_2d` is a double integrator in 2d:
 
-State: $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$
-Control:  $\mathbf{u} = [\ddot{x} , \ddot{y}]$
-Second order dynamics: $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$
-Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
+The state is $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$, control is $\mathbf{u} = [\ddot{x} , \ddot{y}]$.
+Second order dynamics are $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$. Thus, the step function is $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
 with:
 
 ```math
@@ -157,12 +188,10 @@ B =
 \end{bmatrix}
 ```
 
-Control Bounds:  $|u_x| \leq 1$,  $|u_y| \leq 1$
-
-State Bounds: $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $
+Control Bounds are $|u_x| \leq 1$,  $|u_y| \leq 1$, and state bounds on velocity $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $.
 
 First, we have implemented a new class in `src/integrator2_2d.cpp` and `include/dynobench/integrator2_2d.hpp`. We store all parameters in a separate class, `Integrator2_2d_params`.
-A robot model implements 4 big functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision . Check the code!
+A robot model implements 4 main functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision against obstacles. Check the code!
 
 ```cpp
 // dynobench/double_integrator_2d.hpp and src/double_integrator_2d.hpp
@@ -230,28 +259,25 @@ We define `double_integrator_2d_v0` with a configuration file `models/integrator
 
 Let's add a viewer in python. We need a new class:
 
-```
+```python
 //utils/viewer/integrator2_2d_viewer.py
 
 class Robot :
 
 class Integrator2_2dViewer (RobotViewer):
-
-
 ```
+
 `RobotViewer` is a base class that provides default functionality. `Robot` is the class that draws the robot (e.g. using a rectangle )
 
 
 
-```
+```python
 // utils/viewer/viewer_cli.py
-
 
 def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
 ...
     elif robot == "integrator2_2d":
         viewer = double_integrator_2d_viewer.Integrator2_2dViewer()
-
 
 ```
 
@@ -276,7 +302,7 @@ You will find a small set of motion primitives for each system in  [dynobench](h
 
 A large set of primitives for each system can be downloaded from Google Drive. This can be done manually with a web browser or using the command line with [gdown](https://github.com/wkentaro/gdown). For example:
 
-```
+```bash
 gdown --fuzzy "https://drive.google.com/file/d/1r_ecGwdfvWnVWxPsvR4d8Hjcayxg5PsB/view?usp=drive_link"
 ```
 
