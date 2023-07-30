@@ -42,6 +42,11 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
                                            const Eigen::VectorXd &p_ub) {
 
   std::cout << "Robot Factory: loading file: " << file << std::endl;
+
+  if (!std::filesystem::exists(file)) {
+    ERROR_WITH_INFO((std::string("file: ") + file + " not found: ").c_str());
+  }
+
   YAML::Node node = YAML::LoadFile(file);
 
   assert(node["dynamics"]);

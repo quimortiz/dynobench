@@ -420,11 +420,14 @@ bool Model_robot::is_state_valid(const Eigen::Ref<const Eigen::VectorXd> &x) {
 
   assert(x.size() == x_lb.size());
   assert(x.size() == x_ub.size());
+  const double tol = 1e-8;
 
-  double d = check_bounds_distance(x, x_lb, x_ub);
-  const double tol = 1e-12;
-  assert(d >= 0);
-  return d < tol;
+  for (size_t i = 0; i < x.size(); i++) {
+    if (x[i] < x_lb[i] - tol || x[i] > x_ub[i] + tol) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // void Model_unicycle1_R2SO2::step(Eigen::Ref<Eigen::VectorXd> xnext,

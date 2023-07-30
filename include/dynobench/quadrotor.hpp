@@ -149,12 +149,14 @@ struct Model_quad3d : Model_robot {
     f = B0inv * tm / u_nominal;
   }
 
-  virtual void
-  transform_primitive(const Eigen::Ref<const Eigen::VectorXd> &p,
-                      const std::vector<Eigen::VectorXd> &xs_in,
-                      const std::vector<Eigen::VectorXd> &us_in,
-                      std::vector<Eigen::VectorXd> &xs_out,
-                      std::vector<Eigen::VectorXd> &us_out) override;
+  void virtual transform_primitive(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in,
+      std::vector<Eigen::VectorXd> &xs_out,
+      std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) override;
 
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) override {

@@ -416,69 +416,124 @@ struct Model_robot {
   virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                           const Eigen::Ref<const Eigen::VectorXd> &y);
 
-  virtual void rollout(const Eigen::Ref<const Eigen::VectorXd> &x0,
-                       const std::vector<Eigen::VectorXd> &us,
-                       std::vector<Eigen::VectorXd> &xs) {
-    DYNO_CHECK_EQ(us.size() + 1, xs.size(), AT);
+  virtual void rollout(
+      const Eigen::Ref<const Eigen::VectorXd> &x0,
+      const std::vector<Eigen::VectorXd> &us, std::vector<Eigen::VectorXd> &xs,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
 
+    DYNO_CHECK_EQ(us.size() + 1, xs.size(), AT);
+    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
+    if (num_valid_states) {
+      *num_valid_states = xs.size();
+    }
     xs.at(0) = x0;
     for (size_t i = 0; i < us.size(); i++) {
       step(xs.at(i + 1), xs.at(i), us.at(i), ref_dt);
+      if (is_valid_fun && !(*is_valid_fun)(xs.at(i + 1))) {
+        if (num_valid_states) {
+          *num_valid_states = i + 1;
+        }
+        break;
+      }
     }
   }
 
   virtual void transform_state(const Eigen::Ref<const Eigen::VectorXd> &p,
                                const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) {
-
     xout = xin;
     xout.head(translation_invariance) += p;
   }
 
   virtual void canonical_state(const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) {
-
     xout = xin;
     xout.head(translation_invariance).setZero();
   }
 
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) {
-
     DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, AT);
     p = xin.head(translation_invariance);
   }
 
   virtual size_t get_offset_dim() { return translation_invariance; }
 
-  virtual void transform_primitive(const Eigen::Ref<const Eigen::VectorXd> &p,
-                                   const std::vector<Eigen::VectorXd> &xs_in,
-                                   const std::vector<Eigen::VectorXd> &us_in,
-                                   std::vector<Eigen::VectorXd> &xs_out,
-                                   std::vector<Eigen::VectorXd> &us_out) {
+  virtual void transform_primitive2(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in,
+      std::vector<Eigen::VectorXd> &xs_out,
+      std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    assert(xs_out.size());
+    assert(xs_in.size());
+    assert(xs_out.size() == xs_in.size());
+    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
+
+    xs_out.front() = xs_in.front();
+    assert(is_valid_fun && (*is_valid_fun)(xs_out.front()));
+
+    transform_state(p, xs_in.at(0), xs_out.at(0));
+    rollout(xs_out.front(), us_in, xs_out, is_valid_fun, num_valid_states);
+
+    assert(num_valid_states && *num_valid_states <= xs_out.size());
+    assert(num_valid_states && *num_valid_states - 1 <= us_out.size());
+
+    for (size_t i = 0;
+         i < (num_valid_states ? *num_valid_states - 1 : us_in.size()); i++) {
+      us_out[i] = us_in[i];
+    }
+  }
+
+  virtual void transform_primitive(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in,
+      std::vector<Eigen::VectorXd> &xs_out,
+      std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), "");
 
     // basic transformation is translation invariance
     DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
-    // TODO: avoid memory allocation inside this function!!
 
     DYNO_CHECK_EQ(us_out.size(), us_in.size(), AT);
     DYNO_CHECK_EQ(xs_out.size(), xs_in.size(), AT);
     DYNO_CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
     DYNO_CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
 
-    for (size_t i = 0; i < us_in.size(); i++) {
-      us_out[i] = us_in[i];
+    if (num_valid_states) {
+      *num_valid_states = xs_in.size();
     }
-
     if (translation_invariance) {
       for (size_t i = 0; i < xs_in.size(); i++) {
         xs_out[i] = xs_in[i];
         xs_out[i].head(translation_invariance) += p;
+        if (is_valid_fun && !(*is_valid_fun)(xs_out[i])) {
+          *num_valid_states = i;
+          break;
+        }
       }
     } else {
       for (size_t i = 0; i < xs_in.size(); i++) {
         xs_out[i] = xs_in[i];
       }
+    }
+
+    if (num_valid_states) {
+      assert(*num_valid_states <= xs_in.size());
+      assert(*num_valid_states - 1 <= us_in.size());
+    }
+
+    size_t num_controls =
+        num_valid_states ? *num_valid_states - 1 : us_in.size();
+    for (size_t i = 0; i < num_controls; i++) {
+      us_out[i] = us_in[i];
     }
   }
 
@@ -486,7 +541,6 @@ struct Model_robot {
   virtual void state_diff(Eigen::Ref<Eigen::VectorXd> r,
                           const Eigen::Ref<const Eigen::VectorXd> &x0,
                           const Eigen::Ref<const Eigen::VectorXd> &x1) {
-
     // lets just use state
     DYNO_CHECK_EQ(r_weight.size(), r.size(), AT);
     DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
@@ -498,7 +552,6 @@ struct Model_robot {
                               Eigen::Ref<Eigen::MatrixXd> Jx1,
                               const Eigen::Ref<const Eigen::VectorXd> &x0,
                               const Eigen::Ref<const Eigen::VectorXd> &x1) {
-
     DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
     DYNO_CHECK_EQ(Jx0.cols(), Jx1.cols(), AT);
     DYNO_CHECK_EQ(Jx0.rows(), Jx1.rows(), AT);
@@ -523,7 +576,6 @@ struct Model_robot {
   virtual double
   lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                        const Eigen::Ref<const Eigen::VectorXd> &y) {
-
     (void)x;
     (void)y;
     NOT_IMPLEMENTED;
@@ -532,7 +584,6 @@ struct Model_robot {
   virtual double
   lower_bound_time_pr(const Eigen::Ref<const Eigen::VectorXd> &x,
                       const Eigen::Ref<const Eigen::VectorXd> &y) {
-
     (void)x;
     (void)y;
     NOT_IMPLEMENTED;

@@ -204,28 +204,18 @@ void Model_quad3d::transform_primitive(
     const Eigen::Ref<const Eigen::VectorXd> &p,
     const std::vector<Eigen::VectorXd> &xs_in,
     const std::vector<Eigen::VectorXd> &us_in,
-    std::vector<Eigen::VectorXd> &xs_out,
-    std::vector<Eigen::VectorXd> &us_out) {
+    std::vector<Eigen::VectorXd> &xs_out, std::vector<Eigen::VectorXd> &us_out,
+    std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun,
+    int *num_valid_states) {
 
   CHECK((p.size() == 3 || 6), AT);
 
-  DYNO_CHECK_EQ(us_out.size(), us_in.size(), AT);
-  DYNO_CHECK_EQ(xs_out.size(), xs_in.size(), AT);
-  DYNO_CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
-  DYNO_CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
-
   if (p.size() == 3) {
-    Model_robot::transform_primitive(p, xs_in, us_in, xs_out, us_out);
+    Model_robot::transform_primitive(p, xs_in, us_in, xs_out, us_out,
+                                     is_valid_fun, num_valid_states);
   } else {
-    xs_out = xs_in;
-
-    for (size_t i = 0; i < us_in.size(); i++) {
-      us_out[i] = us_in[i];
-    }
-
-    xs_out.front() = xs_in.front();
-    transform_state(p, xs_in.at(0), xs_out.at(0));
-    rollout(xs_out.at(0), us_in, xs_out);
+    Model_robot::transform_primitive2(p, xs_in, us_in, xs_out, us_out,
+                                      is_valid_fun, num_valid_states);
   }
 }
 

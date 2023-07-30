@@ -44,7 +44,7 @@ Model_acrobot::Model_acrobot(const Acrobot_params &acrobot_params,
   (void)p_ub;
   is_2d = false;
   translation_invariance = 0;
-  invariance_reuse_col_shape = false;
+  invariance_reuse_col_shape = false; // TODO: check if this is correct
 
   name = "acrobot";
 
