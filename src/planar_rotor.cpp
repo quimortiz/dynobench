@@ -13,7 +13,6 @@ Model_quad2d::Model_quad2d(const Quad2d_params &params,
       params(params) {
 
   using V2d = Eigen::Vector2d;
-  using V3d = Eigen::Vector3d;
   using Vxd = Eigen::VectorXd;
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;

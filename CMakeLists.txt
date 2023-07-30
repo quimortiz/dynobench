@@ -55,7 +55,7 @@ target_compile_options(dynobench PRIVATE -Wall -Wextra)
 
 target_link_libraries(
   dynobench
-  PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization ${CMAKE_DL_LIBS}
+  PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization Boost::stacktrace_basic ${CMAKE_DL_LIBS}
   PUBLIC nlohmann_json::nlohmann_json)
 
 target_link_libraries(

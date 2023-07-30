@@ -392,6 +392,38 @@ void load_env(Model_robot &robot, const Problem &problem);
 //
 //   kModel_robot &robot, const Problem &problem) {
 
+inline Trajectory trajWrapper_2_Trajectory(TrajWrapper &traj_wrap) {
+
+  Trajectory out;
+  out.states.resize(traj_wrap.get_size());
+  out.actions.resize(traj_wrap.get_size() - 1);
+
+  for (size_t i = 0; i < traj_wrap.get_size(); i++) {
+    out.states.at(i) = traj_wrap.get_state(i);
+  }
+
+  for (size_t i = 0; i < traj_wrap.get_size() - 1; i++) {
+    out.actions.at(i) = traj_wrap.get_action(i);
+  }
+  return out;
+};
+
+inline TrajWrapper Trajectory_2_trajWrapper(Trajectory &traj) {
+  TrajWrapper traj_wrap;
+
+  traj_wrap.allocate_size(traj.states.size(), traj.states.front().size(),
+                          traj.actions.front().size());
+
+  for (size_t i = 0; i < traj_wrap.get_size(); i++) {
+    traj_wrap.get_state(i) = traj.states.at(i);
+  }
+
+  for (size_t i = 0; i < traj_wrap.get_size() - 1; i++) {
+    traj_wrap.get_action(i) = traj.actions.at(i);
+  }
+  return traj_wrap;
+};
+
 Trajectory from_welf_to_quim(const Trajectory &traj_raw, double u_nominal);
 
 Trajectory from_quim_to_welf(const Trajectory &traj_raw, double u_nominal);
@@ -403,7 +435,7 @@ void make_trajs_canonical(Model_robot &robot,
                           const std::vector<Trajectory> &trajs,
                           std::vector<Trajectory> &trajs_canonical);
 
-bool is_motion_collision_free(dynobench::Trajectory &traj,
+bool is_motion_collision_free(dynobench::TrajWrapper &traj,
                               dynobench::Model_robot &robot);
 
 } // namespace dynobench

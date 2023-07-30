@@ -22,6 +22,79 @@
 
 namespace dynobench {
 
+struct TrajWrapper {
+
+  size_t get_size() const { return size; }
+
+  void set_size(size_t i) {
+    assert(i <= states.cols());
+    size = i;
+  }
+
+  void allocate_size(size_t i, size_t t_nx, size_t t_nu) {
+    nx = t_nx;
+    nu = t_nu;
+    size = i;
+    // std::cout << "i " << i << std::endl;
+    // std::cout << "nx " << nx << std::endl;
+    // std::cout << "nu " << nu << std::endl;
+    states = Eigen::MatrixXd::Zero(nx, i);
+    actions = Eigen::MatrixXd::Zero(nu, i - 1);
+  }
+
+  auto get_state(size_t i) {
+    assert(i < size);
+    assert(i < states.cols());
+    return states.col(i);
+  }
+
+  auto get_action(size_t i) {
+    assert(i < size - 1);
+    assert(i < states.cols());
+    return actions.col(i);
+  }
+
+  std::vector<Eigen::VectorXd> get_states() {
+    std::vector<Eigen::VectorXd> states_vec;
+    states_vec.reserve(get_size());
+    for (size_t i = 0; i < get_size(); i++) {
+      states_vec.push_back(get_state(i));
+    }
+    return states_vec;
+  }
+
+  std::vector<Eigen::VectorXd> get_actions() {
+    std::vector<Eigen::VectorXd> actions_vec;
+    actions_vec.reserve(get_size());
+    for (size_t i = 0; i < get_size() - 1; i++) {
+      actions_vec.push_back(get_action(i));
+    }
+    return actions_vec;
+  }
+
+  // Trajectory get_trajectory() {
+  //   Trajectory traj;
+  //   traj.states.resize(get_size());
+  //   traj.actions.resize(get_size() - 1);
+  //   for (size_t i = 0; i < get_size(); i++) {
+  //     traj.states[i] = states.col(i);
+  //   }
+  //
+  //   for (size_t i = 0; i < get_size() - 1; i++) {
+  //     traj.actions[i] = actions.col(i);
+  //   }
+  //
+  //   return traj;
+  // }
+
+private:
+  size_t size;
+  Eigen::MatrixXd states;
+  Eigen::MatrixXd actions;
+  size_t nx;
+  size_t nu;
+};
+
 static double low__ = -std::sqrt(std::numeric_limits<double>::max());
 static double max__ = std::sqrt(std::numeric_limits<double>::max());
 
@@ -439,6 +512,28 @@ struct Model_robot {
     }
   }
 
+  virtual void rollout(
+      const Eigen::Ref<const Eigen::VectorXd> &x0,
+      const std::vector<Eigen::VectorXd> &us, TrajWrapper &traj,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
+    if (num_valid_states) {
+      *num_valid_states = traj.get_size();
+    }
+    traj.get_state(0) = x0;
+    for (size_t i = 0; i < us.size(); i++) {
+      step(traj.get_state(i + 1), traj.get_state(i), us.at(i), ref_dt);
+      if (is_valid_fun && !(*is_valid_fun)(traj.get_state(i + 1))) {
+        if (num_valid_states) {
+          *num_valid_states = i + 1;
+        }
+        break;
+      }
+    }
+  }
+
   virtual void transform_state(const Eigen::Ref<const Eigen::VectorXd> &p,
                                const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) {
@@ -463,79 +558,20 @@ struct Model_robot {
   virtual void transform_primitive2(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,
-      const std::vector<Eigen::VectorXd> &us_in,
-      std::vector<Eigen::VectorXd> &xs_out,
-      std::vector<Eigen::VectorXd> &us_out,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
       std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
-      int *num_valid_states = nullptr) {
-
-    assert(xs_out.size());
-    assert(xs_in.size());
-    assert(xs_out.size() == xs_in.size());
-    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
-
-    xs_out.front() = xs_in.front();
-    assert(is_valid_fun && (*is_valid_fun)(xs_out.front()));
-
-    transform_state(p, xs_in.at(0), xs_out.at(0));
-    rollout(xs_out.front(), us_in, xs_out, is_valid_fun, num_valid_states);
-
-    assert(num_valid_states && *num_valid_states <= xs_out.size());
-    assert(num_valid_states && *num_valid_states - 1 <= us_out.size());
-
-    for (size_t i = 0;
-         i < (num_valid_states ? *num_valid_states - 1 : us_in.size()); i++) {
-      us_out[i] = us_in[i];
-    }
-  }
+      int *num_valid_states = nullptr);
 
   virtual void transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,
-      const std::vector<Eigen::VectorXd> &us_in,
-      std::vector<Eigen::VectorXd> &xs_out,
-      std::vector<Eigen::VectorXd> &us_out,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
       std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
-      int *num_valid_states = nullptr) {
-    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), "");
-
-    // basic transformation is translation invariance
-    DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
-
-    DYNO_CHECK_EQ(us_out.size(), us_in.size(), AT);
-    DYNO_CHECK_EQ(xs_out.size(), xs_in.size(), AT);
-    DYNO_CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
-    DYNO_CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
-
-    if (num_valid_states) {
-      *num_valid_states = xs_in.size();
-    }
-    if (translation_invariance) {
-      for (size_t i = 0; i < xs_in.size(); i++) {
-        xs_out[i] = xs_in[i];
-        xs_out[i].head(translation_invariance) += p;
-        if (is_valid_fun && !(*is_valid_fun)(xs_out[i])) {
-          *num_valid_states = i;
-          break;
-        }
-      }
-    } else {
-      for (size_t i = 0; i < xs_in.size(); i++) {
-        xs_out[i] = xs_in[i];
-      }
-    }
-
-    if (num_valid_states) {
-      assert(*num_valid_states <= xs_in.size());
-      assert(*num_valid_states - 1 <= us_in.size());
-    }
-
-    size_t num_controls =
-        num_valid_states ? *num_valid_states - 1 : us_in.size();
-    for (size_t i = 0; i < num_controls; i++) {
-      us_out[i] = us_in[i];
-    }
-  }
+      int *num_valid_states = nullptr);
 
   // x1 - x0
   virtual void state_diff(Eigen::Ref<Eigen::VectorXd> r,

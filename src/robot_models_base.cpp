@@ -655,6 +655,88 @@ Model_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
   ERROR_WITH_INFO("not implemented");
 }
 
+void Model_robot::transform_primitive2(
+    const Eigen::Ref<const Eigen::VectorXd> &p,
+    const std::vector<Eigen::VectorXd> &xs_in,
+    const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+    // std::vector<Eigen::VectorXd> &xs_out, std::vector<Eigen::VectorXd>
+    // &us_out,
+    std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun,
+    int *num_valid_states) {
+
+  assert(traj_out.get_size());
+  assert(xs_in.size());
+  assert(traj_out.get_size() == xs_in.size());
+  DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
+
+  transform_state(p, xs_in.at(0), traj_out.get_state(0));
+
+  if (is_valid_fun) {
+    assert((*is_valid_fun)(traj_out.get_state(0)));
+  }
+
+  rollout(traj_out.get_state(0), us_in, traj_out, is_valid_fun,
+          num_valid_states);
+
+  if (num_valid_states) {
+    // std::cout << "num_valid_states: " << *num_valid_states << std::endl;
+    // std::cout << "traj_out.get_size(): " << traj_out.get_size() << std::endl;
+    assert(*num_valid_states <= traj_out.get_size());
+  }
+
+  for (size_t i = 0;
+       i < (num_valid_states ? *num_valid_states - 1 : us_in.size()); i++) {
+    traj_out.get_action(i) = us_in[i];
+  }
+}
+
+void Model_robot::transform_primitive(
+    const Eigen::Ref<const Eigen::VectorXd> &p,
+    const std::vector<Eigen::VectorXd> &xs_in,
+    const std::vector<Eigen::VectorXd> &us_in,
+    // std::vector<Eigen::VectorXd> &xs_out, std::vector<Eigen::VectorXd>
+    // &us_out,
+    TrajWrapper &traj_out,
+    std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun,
+    int *num_valid_states) {
+  DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), "");
+
+  // basic transformation is translation invariance
+  DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
+
+  DYNO_CHECK_EQ(traj_out.get_size(), xs_in.size(), AT);
+  DYNO_CHECK_EQ(traj_out.get_state(0).size(), xs_in.front().size(), AT);
+  DYNO_CHECK_EQ(traj_out.get_action(0).size(), us_in.front().size(), AT);
+
+  if (num_valid_states) {
+    *num_valid_states = xs_in.size();
+  }
+  if (translation_invariance) {
+    for (size_t i = 0; i < xs_in.size(); i++) {
+      traj_out.get_state(i) = xs_in[i];
+      traj_out.get_state(i).head(translation_invariance) += p;
+      if (is_valid_fun && !(*is_valid_fun)(traj_out.get_state(i))) {
+        *num_valid_states = i;
+        break;
+      }
+    }
+  } else {
+    for (size_t i = 0; i < xs_in.size(); i++) {
+      traj_out.get_state(i) = xs_in[i];
+    }
+  }
+
+  if (num_valid_states) {
+    assert(*num_valid_states <= xs_in.size());
+    assert(*num_valid_states - 1 <= us_in.size());
+  }
+
+  size_t num_controls = num_valid_states ? *num_valid_states - 1 : us_in.size();
+  for (size_t i = 0; i < num_controls; i++) {
+    traj_out.get_action(i) = us_in[i];
+  }
+}
+
 void linearInterpolation(const Eigen::VectorXd &times,
                          const std::vector<Eigen::VectorXd> &x, double t_query,
                          const StateDyno &state,
@@ -735,4 +817,5 @@ void linearInterpolation(const Eigen::VectorXd &times,
 
   Jx = J2 * diff / (times(index) - times(index - 1));
 }
+
 } // namespace dynobench

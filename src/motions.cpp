@@ -1024,24 +1024,22 @@ Trajectory Trajectory::resample(std::shared_ptr<Model_robot> &robot) {
         time_bench.num_col_motions++;
 #endif
 
-bool is_motion_collision_free(dynobench::Trajectory &traj,
+bool is_motion_collision_free(dynobench::TrajWrapper &traj,
                               dynobench::Model_robot &robot) {
 
-  assert(traj.states.size());
-  if (!robot.collision_check(traj.states.front())) {
+  assert(traj.get_size());
+  if (!robot.collision_check(traj.get_state(0))) {
     return false;
   }
 
-  if (!robot.collision_check(traj.states.back())) {
+  if (!robot.collision_check(traj.get_state(traj.get_size() - 1))) {
     return false;
   }
-
-  CHECK(traj.states.size(), AT);
 
   Stopwatch watch;
 
   size_t index_start = 0;
-  size_t index_last = traj.states.size() - 1;
+  size_t index_last = traj.get_size() - 1;
 
   // check the first and last state
 
@@ -1063,7 +1061,6 @@ bool is_motion_collision_free(dynobench::Trajectory &traj,
   // I could use a spatial resolution also...
 
   while (!queue.empty()) {
-
     auto [si, gi] = queue.front();
     queue.pop();
 
@@ -1079,8 +1076,7 @@ bool is_motion_collision_free(dynobench::Trajectory &traj,
         continue;
       }
       // robot->toEigen(motion->states.at(ii), x);
-      x = traj.states.at(ii);
-      if (robot.collision_check(x)) {
+      if (robot.collision_check(traj.get_state(ii))) {
         if (ii != si)
           queue.push(Segment{ii, gi});
         if (ii != gi)

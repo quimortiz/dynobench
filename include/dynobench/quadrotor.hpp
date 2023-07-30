@@ -152,9 +152,9 @@ struct Model_quad3d : Model_robot {
   void virtual transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,
-      const std::vector<Eigen::VectorXd> &us_in,
-      std::vector<Eigen::VectorXd> &xs_out,
-      std::vector<Eigen::VectorXd> &us_out,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
       std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
       int *num_valid_states = nullptr) override;
 
@@ -191,6 +191,7 @@ struct Model_quad3d : Model_robot {
     if (p.size() == 3) {
       Model_robot::transform_state(p, xin, xout);
     } else if (p.size() == 6) {
+      xout = xin;
       xout.head<3>() += p.head<3>();
       xout.segment<3>(7) += p.tail<3>();
     }

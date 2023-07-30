@@ -204,17 +204,21 @@ void Model_quad3d::transform_primitive(
     const Eigen::Ref<const Eigen::VectorXd> &p,
     const std::vector<Eigen::VectorXd> &xs_in,
     const std::vector<Eigen::VectorXd> &us_in,
-    std::vector<Eigen::VectorXd> &xs_out, std::vector<Eigen::VectorXd> &us_out,
+    // std::vector<Eigen::VectorXd> &xs_out, std::vector<Eigen::VectorXd>
+    // &us_out,
+    TrajWrapper &traj_out,
     std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun,
     int *num_valid_states) {
 
   CHECK((p.size() == 3 || 6), AT);
 
   if (p.size() == 3) {
-    Model_robot::transform_primitive(p, xs_in, us_in, xs_out, us_out,
+    Model_robot::transform_primitive(p, xs_in, us_in, traj_out,
+                                     // xs_out, us_out,
                                      is_valid_fun, num_valid_states);
   } else {
-    Model_robot::transform_primitive2(p, xs_in, us_in, xs_out, us_out,
+    Model_robot::transform_primitive2(p, xs_in, us_in, traj_out,
+                                      // xs_out, us_out,
                                       is_valid_fun, num_valid_states);
   }
 }

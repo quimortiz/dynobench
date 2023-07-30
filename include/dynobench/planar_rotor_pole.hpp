@@ -183,6 +183,7 @@ struct Model_quad2dpole : Model_robot {
     if (p.size() == 2) {
       Model_robot::transform_state(p, xin, xout);
     } else if (p.size() == 4) {
+      xout = xin;
       xout.head<2>() += p.head<2>();
       xout.segment<2>(4) += p.tail<2>();
     }
@@ -191,19 +192,21 @@ struct Model_quad2dpole : Model_robot {
   void virtual transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,
-      const std::vector<Eigen::VectorXd> &us_in,
-      std::vector<Eigen::VectorXd> &xs_out,
-      std::vector<Eigen::VectorXd> &us_out,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
       std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
       int *num_valid_states = nullptr) override {
 
     CHECK((p.size() == 2 || 4), AT);
 
     if (p.size() == 2) {
-      Model_robot::transform_primitive(p, xs_in, us_in, xs_out, us_out,
+      Model_robot::transform_primitive(p, xs_in, us_in, traj_out,
+                                       // xs_out, us_out,
                                        is_valid_fun, num_valid_states);
     } else {
-      Model_robot::transform_primitive2(p, xs_in, us_in, xs_out, us_out,
+      Model_robot::transform_primitive2(p, xs_in, us_in, traj_out,
+                                        // xs_out, us_out,
                                         is_valid_fun, num_valid_states);
     }
   }
