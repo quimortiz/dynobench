@@ -3,11 +3,14 @@
 
 # Dynobench 🦖
 
-Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop, combine and compare methods of different algorithmic families, from trajectory optimization and sample based motion planning to reinforcement and supervised learning.
+Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop, combine and compare different methods, from trajectory optimization and sample based motion planning to supervised and reinforcement learning.
 
 <p align="center">
 <img src="assets/dynobench.png" width=50% height=50%>
 </p >
+
+
+You will find multiple planners in [Dynoplan](https://github.com/quimortiz/dynoplan) 🦖
 
 ## Robots and Problem Description 
 
@@ -55,7 +58,7 @@ Using `cmake`, import the library with:
 ```cmake
 add_subdirectory(dynobench EXCLUDE_FROM_ALL) # use EXCLUDE_FROM_ALL to avoid
                                              # building the tests
-...cmake
+...
 target_link_libraries(
   my_target
   PRIVATE dynobench::dynobench )
@@ -98,12 +101,9 @@ main.cpp
 #include "dynobench/robot_models.hpp"
 
 int main() {
-
   Model_car_with_trailers car;
-
   std::cout << "Hello World!" << std::endl;
 }
-
 ```
 
 CMakeLists.txt (using Dynobench as an external project)
@@ -195,9 +195,7 @@ A robot model implements 4 main functionalities: distance and cost bounds betwee
 
 ```cpp
 // dynobench/double_integrator_2d.hpp and src/double_integrator_2d.hpp
-
 struct Integrator2_2d_params { ... } ;
-
 struct Integrator2_2d : public Model_robot { ... };
 ```
 
@@ -209,9 +207,7 @@ Once the model is ready, we add it to the factory:
 
 ```cpp
 // src/robot_models.cpp
-
 #include "dynobnech/double_integrator_2d.hpp"
-
 ...
 std::unique_ptr<Model_robot> robot_factory(
 ...
@@ -219,8 +215,6 @@ std::unique_ptr<Model_robot> robot_factory(
  else if (dynamics == "double_intergrator_2d") {
     return std::make_unique<Double_integrator_2d>(file, p_lb, p_ub);
   }
-
-
 ```
 It is recommend to check the Jacobians using finite differences. We add the test `t_integrator2_2d` in  test in `test/test_models.cpp`.
 
@@ -260,8 +254,7 @@ We define `double_integrator_2d_v0` with a configuration file `models/integrator
 Let's add a viewer in python. We need a new class:
 
 ```python
-//utils/viewer/integrator2_2d_viewer.py
-
+# utils/viewer/integrator2_2d_viewer.py
 class Robot :
 
 class Integrator2_2dViewer (RobotViewer):
@@ -272,13 +265,12 @@ class Integrator2_2dViewer (RobotViewer):
 
 
 ```python
-// utils/viewer/viewer_cli.py
+# utils/viewer/viewer_cli.py
 
 def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
 ...
     elif robot == "integrator2_2d":
         viewer = double_integrator_2d_viewer.Integrator2_2dViewer()
-
 ```
 
 
@@ -292,6 +284,32 @@ python3 ../utils/viewer/viewer_cli.py --robot integrator2_2d --env ../envs/integ
 That' s all!
 
 Now we can use  [Dynoplan](https://github.com/quimortiz/dynoplan) to solve the problem!
+
+For example, see `test/optimization/test_optimization_1.cpp` in [Dynoplan](https://github.com/quimortiz/dynoplan)
+
+```cpp
+BOOST_AUTO_TEST_CASE(t_opti_integrator2) {
+
+  Options_trajopt options;
+  Problem problem(dynobench_base "envs/integrator2_2d_v0/park.yaml");
+  problem.models_base_path = dynobench_base "models/";
+
+  Trajectory init_guess, traj_out;
+  init_guess.num_time_steps = 50;
+  Result_opti opti_out;
+  trajectory_optimization(problem, init_guess, options, traj_out, opti_out);
+  BOOST_TEST(opti_out.feasible);
+
+  // write down the generated trajectory
+
+  std::string filename = "/tmp/dynoplan/traj_t_opti_integrator2.yaml";
+  create_dir_if_necessary(filename.c_str());
+  std::ofstream out(filename);
+  traj_out.to_yaml_format(out);
+}
+```
+
+
 The planners in Dynoplan that depend on OMPL require to implement a small wrapper to interace with OMPL.
 
 
