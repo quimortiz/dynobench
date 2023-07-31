@@ -149,6 +149,25 @@ struct Model_quad3d : Model_robot {
     f = B0inv * tm / u_nominal;
   }
 
+  virtual void
+  transform_primitive_last_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                                 const std::vector<Eigen::VectorXd> &xs_in,
+                                 const std::vector<Eigen::VectorXd> &us_in,
+                                 Eigen::Ref<Eigen::VectorXd> x_out) override {
+
+    assert(p.size() == 3 || 6);
+
+    if (p.size() == 3) {
+      Model_robot::transform_primitive_last_state(p, xs_in, us_in, x_out);
+
+    } else {
+      x_out = xs_in.back();
+      x_out.head<3>() +=
+          p.head<3>() + us_in.size() * ref_dt * p.tail<3>(); // velocity
+      x_out.segment<3>(7) += p.tail<3>();                    // velocity
+    }
+  }
+
   void virtual transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,

@@ -22,6 +22,8 @@
 
 namespace dynobench {
 
+// TODO: try to allocate states and controls together, and see if there is
+// speedup due to better data locality
 struct TrajWrapper {
 
   size_t get_size() const { return size; }
@@ -35,9 +37,6 @@ struct TrajWrapper {
     nx = t_nx;
     nu = t_nu;
     size = i;
-    // std::cout << "i " << i << std::endl;
-    // std::cout << "nx " << nx << std::endl;
-    // std::cout << "nu " << nu << std::endl;
     states = Eigen::MatrixXd::Zero(nx, i);
     actions = Eigen::MatrixXd::Zero(nu, i - 1);
   }
@@ -71,21 +70,6 @@ struct TrajWrapper {
     }
     return actions_vec;
   }
-
-  // Trajectory get_trajectory() {
-  //   Trajectory traj;
-  //   traj.states.resize(get_size());
-  //   traj.actions.resize(get_size() - 1);
-  //   for (size_t i = 0; i < get_size(); i++) {
-  //     traj.states[i] = states.col(i);
-  //   }
-  //
-  //   for (size_t i = 0; i < get_size() - 1; i++) {
-  //     traj.actions[i] = actions.col(i);
-  //   }
-  //
-  //   return traj;
-  // }
 
 private:
   size_t size;
@@ -293,6 +277,11 @@ struct Model_robot {
 
   bool invariance_reuse_col_shape = true;
   bool is_2d;
+
+  bool transform_primitive_last_state_available = true;
+  // true means that we can know the last state of the transformed primitive
+  // without doing the full rollout
+
   size_t translation_invariance = 0; // e.g. 1, 2 , 3, ...
   std::vector<std::string> x_desc;
   std::vector<std::string> u_desc;
@@ -554,6 +543,22 @@ struct Model_robot {
   }
 
   virtual size_t get_offset_dim() { return translation_invariance; }
+
+  virtual void
+  transform_primitive_last_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                                 const std::vector<Eigen::VectorXd> &xs_in,
+                                 const std::vector<Eigen::VectorXd> &us_in,
+                                 Eigen::Ref<Eigen::VectorXd> x_out) {
+
+    assert(xs_in.size());
+    assert(us_in.size() == xs_in.size() - 1);
+    if (translation_invariance) {
+      x_out = xs_in.back();
+      x_out.head(translation_invariance) += p;
+    } else {
+      x_out = xs_in.back();
+    }
+  }
 
   virtual void transform_primitive2(
       const Eigen::Ref<const Eigen::VectorXd> &p,

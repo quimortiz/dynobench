@@ -184,6 +184,25 @@ struct Model_quad2d : Model_robot {
     }
   }
 
+  virtual void
+  transform_primitive_last_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                                 const std::vector<Eigen::VectorXd> &xs_in,
+                                 const std::vector<Eigen::VectorXd> &us_in,
+                                 Eigen::Ref<Eigen::VectorXd> x_out) override {
+
+    CHECK((p.size() == 2 || 4), AT);
+
+    if (p.size() == 2) {
+      Model_robot::transform_primitive_last_state(p, xs_in, us_in, x_out);
+
+    } else {
+      x_out = xs_in.back();
+      x_out.head<2>() +=
+          p.head<2>() + us_in.size() * ref_dt * p.tail<2>(); // velocity
+      x_out.segment<2>(3) += p.tail<2>();                    // velocity
+    }
+  }
+
   virtual void transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,
