@@ -23,7 +23,7 @@ Using `cmake`, import the library with:
 ```cmake
 add_subdirectory(dynobench EXCLUDE_FROM_ALL) # use EXCLUDE_FROM_ALL to avoid
                                              # building the tests
-...cmake
+...
 target_link_libraries(
   my_target
   PRIVATE dynobench::dynobench )
