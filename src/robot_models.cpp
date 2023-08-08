@@ -34,6 +34,8 @@
 #include "dynobench/quadrotor.hpp"
 #include "dynobench/unicycle1.hpp"
 #include "dynobench/unicycle2.hpp"
+#include "dynobench/joint_robot.hpp"
+
 
 namespace dynobench {
 
@@ -66,7 +68,8 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     return std::make_unique<Model_quad2dpole>(file, p_lb, p_ub);
   } else if (dynamics == "double_intergrator_2d") {
     return std::make_unique<Integrator2_2d>(file, p_lb, p_ub);
-  } else {
+  } 
+  else {
     ERROR_WITH_INFO("dynamics not implemented");
   }
 }
@@ -80,5 +83,9 @@ robot_factory_with_env(const std::string &robot_name,
   load_env(*robot, problem);
   return robot;
 }
-
+std::unique_ptr<Model_robot> 
+// joint_robot_factory(const std::vector<std::shared_ptr<Model_robot>> &all_robots){
+joint_robot_factory(){
+  return std::make_unique<Joint_robot>();
+}
 } // namespace dynobench

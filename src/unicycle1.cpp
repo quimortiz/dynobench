@@ -92,9 +92,9 @@ void Model_unicycle1::calcV(Eigen::Ref<Eigen::VectorXd> v,
                             const Eigen::Ref<const Eigen::VectorXd> &x,
                             const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  CHECK_EQ(v.size(), 3, AT);
-  CHECK_EQ(x.size(), 3, AT);
-  CHECK_EQ(u.size(), 2, AT);
+  // CHECK_EQ(v.size(), 3, AT);
+  // CHECK_EQ(x.size(), 3, AT);
+  // CHECK_EQ(u.size(), 2, AT);
 
   const double c = cos(x[2]);
   const double s = sin(x[2]);

@@ -34,7 +34,8 @@ add_library(
   ./src/planar_rotor.cpp
   ./src/planar_rotor_pole.cpp
   ./src/car2.cpp
-  ./src/integrator2_2d.cpp)
+  ./src/integrator2_2d.cpp
+  ./src/joint_robot.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
 

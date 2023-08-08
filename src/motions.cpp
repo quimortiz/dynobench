@@ -212,17 +212,25 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   if (auto nn = env["name"]; nn)
     name = nn.as<std::string>();
 
-  for (const auto &e : env["robots"][0]["start"]) {
-    _start.push_back(e.as<double>());
-  }
+  // for (const auto &e : env["robots"][0]["start"]) {
+  //   _start.push_back(e.as<double>());
+  // }
 
-  for (const auto &e : env["robots"][0]["goal"]) {
-    _goal.push_back(e.as<double>());
+  // for (const auto &e : env["robots"][0]["goal"]) {
+  //   _goal.push_back(e.as<double>());
+  // }
+  for (const auto &robot_node : env["robots"]) {
+    for (const auto& v : robot_node["start"]) {
+      _start.push_back(v.as<double>());
+    }
+    for (const auto& v : robot_node["goal"]) {
+      _goal.push_back(v.as<double>());
+    }
   }
 
   start = Vxd::Map(_start.data(), _start.size());
   goal = Vxd::Map(_goal.data(), _goal.size());
-
+  std::cout << goal.size() << std::endl;
   // const auto &env_min = env["environment"]["min"];
   // const auto &env_max = env["environment"]["max"];
 
