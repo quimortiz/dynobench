@@ -15,7 +15,7 @@ Joint_robot::Joint_robot()
         double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
         using V3d = Eigen::Vector3d;
         col_mng_robots_ = std::make_shared<fcl::DynamicAABBTreeCollisionManagerd>(); 
-
+        col_mng_robots_->setup();
           // description of state and control
         x_desc = {"x1[m]", "y1[m]", "yaw1[rad]", "x2[m]", "y2[m]", "yaw2[rad]"};
         u_desc = {"v1[m/s]", "w1[rad/s]","v2[m/s]", "w2[rad/s]"};
@@ -196,9 +196,10 @@ void Joint_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
     CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
     assert(collision_geometries.size() == col_outs.size());
     robot_objs_.clear();
+    col_mng_robots_->clear();
     for (size_t i = 0; i < ts_data.size(); i++){
       fcl::Transform3d &transform = ts_data[i]; 
-      std::cout << transform.translation() << std::endl;
+      // std::cout << transform.translation() << std::endl;
       auto robot_co = part_objs_[i];
       robot_co->setTranslation(transform.translation());
       robot_co->setRotation(transform.rotation());
@@ -218,6 +219,9 @@ void Joint_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
       col_mng_robots_->registerObjects(robot_objs_);
       fcl::DefaultDistanceData<double> inter_robot_distance_data;
       inter_robot_distance_data.request.enable_signed_distance = true;
+
+      fcl::DefaultCollisionData<double> collision_data;
+      col_mng_robots_->collide(&collision_data, fcl::DefaultCollisionFunction<double>);
       col_mng_robots_->distance(&inter_robot_distance_data, fcl::DefaultDistanceFunction<double>);
       min_dist = std::min(min_dist, inter_robot_distance_data.result.min_distance);
     }
