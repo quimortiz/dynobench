@@ -25,8 +25,7 @@ class Robot:
     def draw(self, ax, X, **kwargs):
         self.ax = ax
         center = X[:2]
-        # angle = X[2]
-        angle = 0
+        angle = 0 
         self.o1 = viewer_utils.draw_box_patch(ax, center, self.size, angle, **kwargs)
         self.o2 = viewer_utils.draw_box_patch_front(
             ax, center, self.size, angle, color="black"
@@ -46,8 +45,8 @@ class Robot:
         return [self.o1, self.o2]
 
 
-class Integrator2_2dViewer(RobotViewer):
+class Integrator1_2dViewer(RobotViewer):
     def __init__(self):
         super().__init__(Robot)
-        self.labels_x = ["x", "y", "vx", "vy"]
-        self.labels_u = ["ax", "ay"]
+        self.labels_x = ["x", "y"]
+        self.labels_u = ["vx", "vy"]
