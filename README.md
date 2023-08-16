@@ -18,7 +18,6 @@ TODO
 
 ## Motion Primitives
 
-Kinodynamic motion planning problem are defined in [Dynobench](https://github.com/quimortiz/dynobench)
 
 Acrobot
 <p align="center">
