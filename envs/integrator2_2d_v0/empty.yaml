@@ -1,4 +1,4 @@
-name: Integrator2_2d_v0-park
+name: Integrator2_2d_v0-empty
 environment:
   min: [0.0, -0.5]
   max: [3.5, 2.5]

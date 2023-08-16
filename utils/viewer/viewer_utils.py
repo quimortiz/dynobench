@@ -189,18 +189,20 @@ def draw_problem_2d(ax, env, Robot):
     if isinstance(env, str):
         with open(env) as f:
             env = yaml.safe_load(f)
+            
 
-    for obstacle in env["environment"]["obstacles"]:
-        if obstacle["type"] == "box":
-            draw_box_patch(
-                ax,
-                obstacle["center"],
-                obstacle["size"],
-                facecolor="gray",
-                edgecolor="black",
-            )
-        else:
-            print("ERROR: unknown obstacle type")
+    if "obstacles" in env["environment"] :
+        for obstacle in env["environment"]["obstacles"]:
+            if obstacle["type"] == "box":
+                draw_box_patch(
+                    ax,
+                    obstacle["center"],
+                    obstacle["size"],
+                    facecolor="gray",
+                    edgecolor="black",
+                )
+            else:
+                print("ERROR: unknown obstacle type")
 
     for robot in env["robots"]:
         # if robot["type"] in ["unicycle_first_order_0"]:
