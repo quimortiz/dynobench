@@ -220,6 +220,7 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   //   _goal.push_back(e.as<double>());
   // }
   for (const auto &robot_node : env["robots"]) {
+    robotTypes.push_back(robot_node["type"].as<std::string>());
     for (const auto& v : robot_node["start"]) {
       _start.push_back(v.as<double>());
     }

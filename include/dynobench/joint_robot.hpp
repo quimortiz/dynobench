@@ -4,22 +4,37 @@
 #include <fcl/fcl.h>
 
 namespace dynobench {
+
 struct Joint_robot_params{
     Joint_robot_params() = default;
-    double max_vel = .5;
-    double min_vel = -.5;
-    double max_angular_vel = .5;
-    double min_angular_vel = -.5;
-    Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
-    Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5); // ? 
+    double double_integrator_max_vel = 1;
+    double double_integrator_min_vel = -1;
+    double double_integrator_max_acc = 1;
+    double double_integrator_min_acc = -1;
+    double single_integrator_max_vel = 0.5;
+    double single_integrator_min_vel = -0.5;
+    double unicycle_max_vel = 0.5;
+    double unicycle_min_vel = -0.5;
+    double unicycle_max_angular_vel = 0.5;
+    double unicycle_min_angular_vel = -0.5;
+   
+    Eigen::Vector2d size = Eigen::Vector2d(.5, .25); 
+    Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5); 
+    double radius = 0.1;
     std::string shape = "box";
     double dt = .1;
+
+    double max_vel = 0.5;
+    double min_vel = -0.5;
+    double max_angular_vel = 0.5;
+    double min_angular_vel = -0.5;
 };
 
 struct Joint_robot : Model_robot {
 
   virtual ~Joint_robot() = default;
-  Joint_robot();
+  Joint_robot(const std::vector<std::string> &robotTypes, 
+            const std::vector<int> &v_state, const std::vector<int> &v_action);
   Joint_robot_params params;
   std::vector<fcl::CollisionObjectd*> part_objs_; // *
   std::vector<fcl::CollisionObjectd*> robot_objs_; // *
@@ -52,5 +67,16 @@ struct Joint_robot : Model_robot {
 
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts);
+
+  void get_u_lb(const std::vector<std::string> &robot_types, Eigen::VectorXd &lb);
+  void get_u_ub(const std::vector<std::string> &robot_types, Eigen::VectorXd &ub);
+  void get_x_lb(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_lb);
+  void get_x_ub(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_ub);
+  void get_collision_geometries(const std::vector<std::string> &robot_types,
+            std::vector<std::shared_ptr<fcl::CollisionGeometryd>> &col_geom);
+  std::vector<size_t> so2_indices;
+  std::vector<int> v_states;
+  std::vector<int> v_actions;
+  std::vector<std::string> v_robot_types;
 };
 }

@@ -38,8 +38,8 @@ robot_factory_with_env(const std::string &robot_name,
                        const std::string &problem_name);
 
 std::unique_ptr<Model_robot> 
-// joint_robot_factory(const std::vector<std::shared_ptr<Model_robot>> &robots);
-joint_robot_factory();
+joint_robot_factory(const std::vector<std::shared_ptr<Model_robot>> &v_r, const std::vector<int> &v_s,
+                    const std::vector<int> &v_u, const std::vector<std::string> &robot_types);
 
 
 } // namespace dynobench

@@ -84,8 +84,11 @@ robot_factory_with_env(const std::string &robot_name,
   return robot;
 }
 std::unique_ptr<Model_robot> 
-// joint_robot_factory(const std::vector<std::shared_ptr<Model_robot>> &all_robots){
-joint_robot_factory(){
-  return std::make_unique<Joint_robot>();
+joint_robot_factory(const std::vector<std::shared_ptr<Model_robot>> &v_r, const std::vector<int> &v_s,
+                    const std::vector<int> &v_u, const std::vector<std::string> &robot_types){
+  return std::make_unique<Joint_robot>(robot_types,v_s,v_u);
 }
+// joint_robot_factory(){
+//   return std::make_unique<Joint_robot>();
+// }
 } // namespace dynobench

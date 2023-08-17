@@ -90,7 +90,7 @@ struct Problem {
 
   std::vector<Obstacle> obstacles;
   std::string robotType;
-
+  std::vector<std::string> robotTypes;
   void read_from_yaml(const YAML::Node &env);
 
   void read_from_yaml(const char *file);
