@@ -45,6 +45,7 @@
 
 #include "dynobench/acrobot.hpp"
 #include "dynobench/integrator2_2d.hpp"
+#include "dynobench/integrator1_2d.hpp"
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
@@ -772,3 +773,36 @@ BOOST_AUTO_TEST_CASE(t_Integrator2_2d) {
   BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
+
+BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
+  auto model = mk<Integrator1_2d>();
+
+  Eigen::VectorXd x0(2), u0(2);
+  x0 << .1, .2 ;
+  u0 << -.1, .2;
+
+  Eigen::MatrixXd Jx_diff(2, 2), Ju_diff(2, 2), Jx(2, 2), Ju(2, 2);
+  Jx.setZero();
+  Ju.setZero();
+  Jx_diff.setZero();
+  Ju_diff.setZero();
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x, u0);
+      },
+      x0, 2, Jx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x0, u);
+      },
+      u0, 2, Ju_diff);
+
+  BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
+  BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
+}
+
+

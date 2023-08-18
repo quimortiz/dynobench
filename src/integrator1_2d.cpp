@@ -1,4 +1,4 @@
-#include "dynobench/integrator2_2d.hpp"
+#include "dynobench/integrator1_2d.hpp"
 
 #include "Eigen/Core"
 #include "dynobench/robot_models_base.hpp"
@@ -18,17 +18,13 @@
 
 namespace dynobench {
 
-void
-
-Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
+void Integrator1_2d_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(shape));
   set_from_yaml(node, VAR_WITH_NAME(dt));
   set_from_yaml(node, VAR_WITH_NAME(max_vel));
-  set_from_yaml(node, VAR_WITH_NAME(max_acc));
-  set_from_yaml(node, VAR_WITH_NAME(distance_weights));
 }
 
-void Integrator2_2d_params::write(std::ostream &out) {
+void Integrator1_2d_params::write(std::ostream &out) {
 
   const std::string be = "";
   const std::string af = ": ";
@@ -36,12 +32,10 @@ void Integrator2_2d_params::write(std::ostream &out) {
   out << be << STR(shape, af) << std::endl;
   out << be << STR(dt, af) << std::endl;
   out << be << STR(max_vel, af) << std::endl;
-  out << be << STR(max_acc, af) << std::endl;
-  out << be << STR(distance_weights, af) << std::endl;
   out << be << STR(filename, af) << std::endl;
 }
 
-void Integrator2_2d_params::read_from_yaml(const char *file) {
+void Integrator1_2d_params::read_from_yaml(const char *file) {
   std::cout << "loading file: " << file << std::endl;
   filename = file;
   YAML::Node node = YAML::LoadFile(file);
@@ -50,32 +44,34 @@ void Integrator2_2d_params::read_from_yaml(const char *file) {
 
 // Model_robot takes as input a state space and the size of the control space
 // In this case, the state space is R^4 and the control space is R^2
-Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
+Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
                                const Eigen::VectorXd &p_lb,
                                const Eigen::VectorXd &p_ub)
-    : Model_robot(std::make_shared<Rn>(4), 2), params(params) {
+    : Model_robot(std::make_shared<Rn>(2), 2), params(params) {
 
   // description of state and control
-  x_desc = {"x[m]", "y[m]", "vx[m]", "vy[m]"};
-  u_desc = {"ax[m/s]", "ay[m/s]"};
+  x_desc = {"x[m]", "y[m]"};
+  u_desc = {"vx[m/s]", "vy[m/s]"};
 
   is_2d = true; // 2d robot
   nx_col = 2;   // collision depends only on first two components of state
   nx_pr = 2;    //  position is defined by first two components of state
   translation_invariance = 2; // 2d robot is translation invariant
 
-  distance_weights = params.distance_weights; // necessary for ompl wrapper
-  name = "Integrator2_2d";
+  name = "Integrator1_2d";
 
   // dt for time-discretization
   ref_dt = params.dt;
 
   // bound on state and control
-  u_lb << -params.max_acc, -params.max_acc;
-  u_ub << params.max_acc, params.max_acc;
+  u_lb << -params.max_vel, -params.max_vel;
+  u_ub << params.max_vel, params.max_vel;
 
-  x_lb << low__, low__, -params.max_vel, -params.max_vel;
-  x_ub << max__, max__, params.max_vel, params.max_vel;
+  x_lb << low__, low__;
+  x_ub << max__, max__;
+
+  u_weight << 1., 1.;
+  x_weightb << 100, 100 ; // TODO: change!!
 
   // add bounds on position if provided
   if (p_lb.size() && p_ub.size()) {
@@ -95,78 +91,72 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
 // DISTANCE AND TIME (cost) - BOUNDS
 
 double
-Integrator2_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
+Integrator1_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
   std::array<double, 2> maxs = {
-      (x.head<2>() - y.head<2>()).norm() / params.max_vel,
-      (x.tail<2>() - y.tail<2>()).norm() / params.max_acc};
+    std::abs( x(0) - y(0) ) / params.max_vel,
+    std::abs( x(1) - y(1) ) / params.max_vel };
 
   return *std::max_element(maxs.begin(), maxs.end());
 }
 
-void Integrator2_2d::set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) {
-  x.tail<2>().setZero();
-}
 
-double Integrator2_2d::lower_bound_time_vel(
-    const Eigen::Ref<const Eigen::VectorXd> &x,
-    const Eigen::Ref<const Eigen::VectorXd> &y) {
-  return (x.tail<2>() - y.tail<2>()).norm() / params.max_acc;
-}
+// double Integrator1_2d::lower_bound_time_vel(
+//     const Eigen::Ref<const Eigen::VectorXd> &x,
+//     const Eigen::Ref<const Eigen::VectorXd> &y) {
+//   return (x.tail<2>() - y.tail<2>()).norm() / params.max_acc;
+// }
 
-double Integrator2_2d::lower_bound_time_pr(
+double Integrator1_2d::lower_bound_time_pr(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  return (x.head<2>() - y.head<2>()).norm() / params.max_acc;
+
+  std::array<double, 2> maxs = {
+    std::abs( x(0) - y(0) ) / params.max_vel,
+    std::abs( x(1) - y(1) ) / params.max_vel };
+
+  return *std::max_element(maxs.begin(), maxs.end());
 }
 
-double Integrator2_2d::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+double Integrator1_2d::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &y) {
-
-  assert(distance_weights.size() == 2);
-  return params.distance_weights(0) * (x.head<2>() - y.head<2>()).norm() +
-         params.distance_weights(1) * (x.tail<2>() - y.tail<2>()).norm();
+  return  (x.head<2>() - y.head<2>()).norm();
 };
 
-void Integrator2_2d::calcV(Eigen::Ref<Eigen::VectorXd> v,
+void Integrator1_2d::calcV(Eigen::Ref<Eigen::VectorXd> v,
                            const Eigen::Ref<const Eigen::VectorXd> &x,
                            const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  v(0) = x(2);
-  v(1) = x(3);
-  v(2) = u(0);
-  v(3) = u(1);
+  v(0) = u(0);
+  v(1) = u(1);
 }
 
 // DYNAMICS
-void Integrator2_2d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
+void Integrator1_2d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                                Eigen::Ref<Eigen::MatrixXd> Jv_u,
                                const Eigen::Ref<const Eigen::VectorXd> &x,
                                const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   (void)x;
   (void)u;
-  assert(x.size() == 4);
+  assert(x.size() == 2);
   assert(u.size() == 2);
-  assert(Jv_x.rows() == 4);
-  assert(Jv_x.cols() == 4);
-  assert(Jv_u.rows() == 4);
+  assert(Jv_x.rows() == 2);
+  assert(Jv_x.cols() == 2);
+  assert(Jv_u.rows() == 2);
   assert(Jv_u.cols() == 2);
 
-  Jv_x(0, 2) = 1;
-  Jv_x(1, 3) = 1;
-
-  Jv_u(2, 0) = 1;
-  Jv_u(3, 1) = 1;
+  Jv_u(0, 0) = 1.;
+  Jv_u(1, 1) = 1.;
 }
 
 // Collisions
-void Integrator2_2d::transformation_collision_geometries(
+void Integrator1_2d::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  assert(x.size() == 4);
+  assert(x.size() == 2);
   assert(ts.size() == 1); // only one collision body
 
   fcl::Transform3d result;
