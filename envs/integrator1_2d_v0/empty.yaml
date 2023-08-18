@@ -1,0 +1,8 @@
+name: Integrator1_2d_v0-empty
+environment:
+  min: [0.0, 0.0]
+  max: [1.0, 1.0]
+robots:
+  - type: integrator1_2d_v0
+    start: [0.2, 0.2] # x,y
+    goal: [0.3, 0.9] # x,y
