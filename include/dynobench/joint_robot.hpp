@@ -11,23 +11,31 @@ struct Joint_robot_params{
     double double_integrator_min_vel = -1;
     double double_integrator_max_acc = 1;
     double double_integrator_min_acc = -1;
+
     double single_integrator_max_vel = 0.5;
     double single_integrator_min_vel = -0.5;
+
     double unicycle_max_vel = 0.5;
     double unicycle_min_vel = -0.5;
     double unicycle_max_angular_vel = 0.5;
     double unicycle_min_angular_vel = -0.5;
-   
+
+    double car_with_trailer_l = .25;
+    double car_with_trailer_max_vel = .5;
+    double car_with_trailer_min_vel = -.1;
+    double car_with_trailer_max_steering_abs = M_PI / 3.;
+    double car_with_trailer_max_angular_vel = 10;
+    double car_with_trailer_diff_max_abs = M_PI / 4;
+    size_t num_trailers = 1;
+    Eigen::Vector2d size_trailer = Eigen::Vector2d(.3, .25);
+    Eigen::VectorXd hitch_lengths = Eigen::Matrix<double, 1, 1>(.5);
+
+
     Eigen::Vector2d size = Eigen::Vector2d(.5, .25); 
     Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5); 
     double radius = 0.1;
     std::string shape = "box";
     double dt = .1;
-
-    double max_vel = 0.5;
-    double min_vel = -0.5;
-    double max_angular_vel = 0.5;
-    double min_angular_vel = -0.5;
 };
 
 struct Joint_robot : Model_robot {
@@ -80,6 +88,8 @@ struct Joint_robot : Model_robot {
   void get_x_ub(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_ub);
   void get_collision_geometries(const std::vector<std::string> &robot_types,
             std::vector<std::shared_ptr<fcl::CollisionGeometryd>> &col_geom);
+  int get_nx_col(const std::vector<std::string> &robot_types);
+  int get_robot_num(const std::vector<std::string> &robot_types);
   std::vector<size_t> so2_indices;
   std::vector<int> v_states;
   std::vector<int> v_actions;
