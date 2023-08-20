@@ -2,7 +2,7 @@ import sympy as sp
 from sympy_quad3d import *
 
 def test_f(f, params_dict, state_dict, action_dict):
-        print("\nf_sym = \n",sp.ccode(f))
+        # print("\nf_sym = \n",sp.ccode(f))
         f_comp = f.subs({**params_dict, **action_dict, **state_dict})
         print("\nf = \n", sp.ccode(f_comp))
 
@@ -10,10 +10,6 @@ def test_f(f, params_dict, state_dict, action_dict):
 def test_J(f, Jx, Ju, params_dict, state_dict_0, state_dict_1, action_dict, subsdt):
         Jx_comp = Jx.subs({**params_dict, **action_dict, **state_dict_0, **subsdt})
         Ju_comp = Ju.subs({**params_dict, **action_dict, **state_dict_0, **subsdt})
-        print("\nJx_sym = \n",sp.ccode(Jx))
-        print("\nJx = \n",sp.ccode(Jx_comp))
-        print("\nJu_sym = \n",sp.ccode(Ju))
-        print("\nJu = \n",sp.ccode(Ju_comp))
 
         eps = 1e-6
         Jx_diff = sp.zeros(Jx.rows, Jx.cols)
@@ -26,8 +22,10 @@ def test_J(f, Jx, Ju, params_dict, state_dict_0, state_dict_1, action_dict, subs
                 f_comp_eps = f.subs({**params_dict, **action_dict, **x_eps})        
                 Jx_diff[:,state_num] = (f_comp_eps - f_comp) /eps
                 state_num+=1
+        print("\nJx = \n",sp.ccode(Jx_comp))
+        print("\nJx_diff = \n",sp.ccode(Jx_diff))
+        print("\nJu = \n",sp.ccode(Ju_comp))
         assert np.allclose(np.array(Jx_diff, dtype=np.float64), np.array(Jx_comp, dtype=np.float64), atol=1e-5)
-
 
 
 def test_F(stepSym, Fx, Fu, params_dict, state_dict_0, state_dict_1, action_dict, subsdt):
@@ -59,17 +57,16 @@ def test(f, stepSym, Jx, Ju, Fx, Fu, state, action, params):
         eta1 = action[1]
         eta2 = action[2]
         eta3 = action[3]
-        m, m_inv, J, J_inv, dt = params
+        m, m_inv, J, J_inv, B0, dt = params
         Ixx = J[0,0]
         Iyy = J[1,1]
         Izz = J[2,2]
-
         # substitute values
-        params_dict = {m: 0.034, m_inv: 1/0.034, Ixx: 16.571710e-6, Iyy: 16.655602e-6, Izz: 29.261652e-6}
+        params_dict = {m: 0.034, m_inv: 1/0.034, Ixx: 16.571710e-6, Iyy: 16.655602e-6, Izz: 29.261652e-6, 'params.t2t': 0.006, 'params.arm_length': 0.046}
         subsdt         = {dt : 0.01}
         state_dict_0 = {
-                state[0]:  5,
-                state[1]:  5,
+                state[0]:  1,
+                state[1]:  1,
                 state[2]:  3,
                 state[3]:  0,
                 state[4]:  0,
@@ -99,12 +96,13 @@ def test(f, stepSym, Jx, Ju, Fx, Fu, state, action, params):
                 state[12]: 0
         }
 
-        u_nominal = 0.034*9.81
+        eta = B0*sp.Matrix(action)
+        
         action_dict = {
-                eta0: u_nominal,
-                eta1: 0,
-                eta2: 0,
-                eta3: 0
+                eta0: 1,
+                eta1: 1,
+                eta2: 1,
+                eta3: 1
         }
         # test functions
         test_f(f, params_dict, state_dict_0, action_dict)

@@ -3,7 +3,7 @@ from helper import *
 from sympy import latex
 ###############################################################################################################
 def computeWritestepDiff(f, transition_func, state, action, params):
-        m, m_inv, J, J_inv, dt = params
+        m, m_inv, J, J_inv, B0, dt = params
         pos = state[0:3]
         q   = state[3:7]
         vel = state[7:10]
@@ -46,7 +46,7 @@ def computeWritestepDiff(f, transition_func, state, action, params):
         return stepDiff, Fx, Fu
 
 def computeJacobians(f, state, action, params):
-        m, m_inv, J, J_inv, dt = params
+        m, m_inv, J, J_inv, B0, dt = params
 
         # Calculate Jacobians: Jx, Ju:
         Jx = f.jacobian(state)
@@ -85,7 +85,7 @@ def computeJacobians(f, state, action, params):
 
 def computeandWriteStepFunc(f, state, action, params):
         # Step Function: 
-        m, m_inv, J, J_inv, dt = params
+        m, m_inv, J, J_inv, B0, dt = params
         pos = state[0:3]
         q   = state[3:7]
         vel = state[7:10]
@@ -155,20 +155,21 @@ def computeandWriteStepFunc(f, state, action, params):
         return step, stepSym
 
 def computeandWritef(state, action, params):
-        m, m_inv, J, J_inv, dt = params
+        m, m_inv, J, J_inv, B0, dt = params
         pos = state[0:3]
         q   = state[3:7]
         vel = state[7:10]
         w   = state[10:13]
-        
+
         q_dot = quat_diff(q,w)
+        eta = B0*sp.Matrix(action)
 
         # acceleration: 
-        a = sp.Matrix([0,0,-9.81]) + m_inv*sp.Matrix(quat_qvrot(q,[0,0,action[0]]))
+        a = sp.Matrix([0,0,-9.81]) + m_inv*sp.Matrix(quat_qvrot(q,[0,0,eta[0]]))
 
         # compute omega dot
         J_omega =  sp.Matrix(J)*sp.Matrix(w)
-        wdot = J_inv * (sp.Matrix(vcross(J_omega, w)) + sp.Matrix(action[1:4]))
+        wdot = J_inv * (sp.Matrix(vcross(J_omega, w)) + sp.Matrix(eta[1:4]))
 
         f = sp.Matrix(
                 [
@@ -222,18 +223,19 @@ def createSyms():
         dt = sp.symbols('dt')
 
         Ixx, Iyy, Izz = sp.symbols('J_v(0) J_v(1) J_v(2)')
-        state = [x, y, z, qx, qy, qz, qw, vx, vy, vz, wx, wy, wz]
-        eta0 = sp.symbols('eta(0)')
-        eta1 = sp.symbols('eta(1)')
-        eta2 = sp.symbols('eta(2)')
-        eta3 = sp.symbols('eta(3)')
-        action = sp.Matrix([eta0, eta1, eta2, eta3])
-
         J = sp.Matrix([[Ixx, 0, 0], [0, Iyy, 0], [0, 0, Izz]])
         J_inv = J**(-1)
-        omega = sp.Matrix([wx, wy, wz])
-        J_omega = sp.Matrix([J*omega])
-        params = [m, m_inv, J, J_inv ,dt]
+        state = [x, y, z, qx, qy, qz, qw, vx, vy, vz, wx, wy, wz]
+        u1, u2, u3, u4 = sp .symbols('u(0), u(1) u(2) u(3)')
+        u = sp.Matrix([u1,u2,u3,u4])
+        u_nominal = m*9.81/4
+        t2t, arm_length = sp.symbols('params.t2t, params.arm_length')
+        arm = 0.707106781 * arm_length
+        B0 = u_nominal * sp.Matrix([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
+
+        action = sp.Matrix([u1,u2,u3,u4])
+        params = [m, m_inv, J, J_inv, B0 ,dt]
+
         return state, action, params
 
 def writeinFile(calcV, step, calcDiffV, stepDiff):
@@ -247,9 +249,9 @@ def main():
 
         state, action, params = createSyms()
         f, calcV = computeandWritef(*createSyms())
-        step, stepSym = computeandWriteStepFunc(f, state, action, params)
-        calcDiffV, Jx, Ju = computeJacobians(f,state,action,params)
-        stepDiff, Fx, Fu = computeWritestepDiff(f,stepSym,state,action,params)
+        step, stepSym = computeandWriteStepFunc(f, *createSyms())
+        calcDiffV, Jx, Ju = computeJacobians(f,*createSyms())
+        stepDiff, Fx, Fu = computeWritestepDiff(f,stepSym,*createSyms())
 
         writeinFile(calcV, step, calcDiffV, stepDiff)
 
