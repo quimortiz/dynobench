@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+# Calculate the path to the parent directory (where sympy is located)
+parent_dir = Path(__file__).resolve().parent.parent
+sys.path.append(str(parent_dir))
+
 import sympy as sp
 from helper import *
 from sympy import latex
