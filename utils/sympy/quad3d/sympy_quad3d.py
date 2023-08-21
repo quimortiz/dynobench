@@ -8,7 +8,7 @@ import sympy as sp
 from helper import *
 from sympy import latex
 ###############################################################################################################
-def computeWritestepDiff(f, transition_func, state, action, params):
+def computeWritestepDiff(transition_func, state, action, params):
         m, m_inv, J, J_inv, B0, dt = params
         pos = state[0:3]
         q   = state[3:7]
@@ -257,7 +257,7 @@ def main():
         f, calcV = computeandWritef(*createSyms())
         step, stepSym = computeandWriteStepFunc(f, *createSyms())
         calcDiffV, Jx, Ju = computeJacobians(f,*createSyms())
-        stepDiff, Fx, Fu = computeWritestepDiff(f,stepSym,*createSyms())
+        stepDiff, Fx, Fu = computeWritestepDiff(stepSym,*createSyms())
 
         writeinFile(calcV, step, calcDiffV, stepDiff)
 

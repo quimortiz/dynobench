@@ -122,6 +122,6 @@ if __name__ == "__main__":
         f, calcV = computeandWritef(*createSyms())
         step, stepSym = computeandWriteStepFunc(f, state, action, params)
         calcDiffV, Jx, Ju = computeJacobians(f,state,action,params)
-        stepDiff, Fx, Fu = computeWritestepDiff(f,stepSym,state,action,params)
+        stepDiff, Fx, Fu = computeWritestepDiff(stepSym,state,action,params)
 
         test(f,stepSym, Jx, Ju, Fx, Fu, state, action, params)
