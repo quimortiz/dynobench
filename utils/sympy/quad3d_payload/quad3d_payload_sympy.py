@@ -99,7 +99,7 @@ def createSyms():
     # action
     u1, u2, u3, u4 = sp.symbols('u[0] u[1] u[2] u[3]')
     action = sp.Matrix([u1, u2, u3, u4]) 
-    u_nominal = 1
+    u_nominal = (m+mp)*9.81/4
     B0 = u_nominal * sp.Matrix([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
 
     #time step
@@ -121,7 +121,9 @@ def main():
     Jx, Ju = computeJacobians(f, *data)
     Fx, Fu = computestepDiffV(step, *data)
 
-    step_python = sp.pycode(step)
+    step_python = sp.pycode(sp.simplify(step))
     print(step_python)
+
+
 if __name__ == "__main__":
     main()
