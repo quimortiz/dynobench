@@ -24,7 +24,7 @@ def flatten(w_tilde):
     w3 = w_tilde[1,0]
     return np.array([w1,w2,w3])
 
-def step(state, action, dt, params):
+def step(state, action, params):
     m, mp, l, J_v, arm_length, t2t, B0, dt = params
     x  = state[0:3]    
     qc = state[3:6]
@@ -120,8 +120,9 @@ def controller(ref, state, gains, params):
     J_M = np.diag(J_v)
     tau =  - kth @ er - kdth @ ew  + (np.cross(w, (J_M @ w))) \
         - J_M @ (skew(w) @ Rt @ Rd @ des_w)
-    u_nominal = m*9.81/4
-    action = np.linalg.inv(B0) @np.array([thrust, *tau]) 
+
+    u_nominal = (m+mp)*9.81/4
+    action = u_nominal*np.linalg.inv(B0) @np.array([thrust, *tau])
     return action
 
 def reference_traj_circle(t, w, h=1, r=1):
@@ -170,7 +171,6 @@ def vis(states, states_d, l):
 
             cablePos = np.linspace(ppos, uavpos, num=2).T
             vis["cable"].set_object(g.Line(g.PointsGeometry(cablePos), material=cable))
-            time.sleep(0.01)
 
 def main():
     m = 0.034
@@ -180,14 +180,14 @@ def main():
     t2t = 0.006
     arm_length = 0.046
     arm = 0.707106781 * arm_length
-    u_nominal = m*9.81/4
-    B0 = np.array([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
+    u_nominal = (m+mp)*9.81/4
+    B0 = u_nominal*np.array([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
     dt = 0.01
     params =  m, mp, l, J_v, arm_length, t2t, B0, dt
     gains = [(8,6), (12,10), (0.008,0.0013)]
     
     # initial state and setup for reference trajectory
-    h= 0
+    h = 0
     angular_vel = 0.1
     T = 2*np.pi/angular_vel
     r=1
@@ -208,7 +208,7 @@ def main():
     for k, t in enumerate(ts): 
         states_d[k] = [ref for subref in reference_traj_circle(t, angular_vel, h=h, r=r) for ref in subref]
         action = controller(states_d[k], states[k], gains, params)
-        states[k+1] = np.array((step(states[k], action, dt, params))).flatten()
+        states[k+1] = np.array((step(states[k], action, params))).flatten()
     vis(states, states_d, l)
 
 if __name__ == "__main__":
