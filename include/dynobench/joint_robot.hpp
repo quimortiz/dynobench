@@ -41,8 +41,7 @@ struct Joint_robot_params{
 struct Joint_robot : Model_robot {
 
   virtual ~Joint_robot() = default;
-  Joint_robot(const std::vector<std::string> &robotTypes, 
-            const std::vector<int> &v_state, const std::vector<int> &v_action);
+  Joint_robot(const std::vector<std::string> &robotTypes);
   Joint_robot_params params;
 
   std::vector<int> goal_times ; // use this to set the time step on which each robot 
@@ -91,8 +90,6 @@ struct Joint_robot : Model_robot {
   int get_nx_col(const std::vector<std::string> &robot_types);
   int get_robot_num(const std::vector<std::string> &robot_types);
   std::vector<size_t> so2_indices;
-  std::vector<int> v_states;
-  std::vector<int> v_actions;
   std::vector<std::string> v_robot_types;
       
 };

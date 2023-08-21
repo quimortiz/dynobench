@@ -207,7 +207,7 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
 void Problem::read_from_yaml(const YAML::Node &env) {
 
   std::vector<double> _start, _goal;
-  YAML::Node tmp = env["robots"][0]["start"];
+  // YAML::Node tmp = env["robots"][0]["start"];
 
   if (auto nn = env["name"]; nn)
     name = nn.as<std::string>();
