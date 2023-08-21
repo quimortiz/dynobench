@@ -1,0 +1,13 @@
+name: quad3d_payload_empty_0
+environment:
+  # WHAT TO PUT HERE?
+  min: [-1000,1000] 
+  max: [-1000,1000]
+  obstacles:
+robots:
+  - type: quad3dpayload
+    # TODO: khaled: change the start and use a goal that is easy to reach, 
+    # such that the trajectory can be optimized using only as initial guess the initial position, 
+    # without planner
+    start: [0.7, 0.6, 0, 0] # x,y,theta0,theta1
+    goal: [1.9, 0.2, 0, 0] # x,y,theta0,theta1

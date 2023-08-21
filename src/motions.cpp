@@ -251,7 +251,7 @@ void Problem::read_from_yaml(const YAML::Node &env) {
 
   robotType = env["robots"][0]["type"].as<std::string>();
 
-  if (startsWith(robotType, "quad3d")) {
+  if (startsWith(robotType, "quad3d") && !startsWith(robotType, "quad3dpayload")) {
     start.segment<4>(3).normalize();
     goal.segment<4>(3).normalize();
   }
