@@ -141,20 +141,13 @@ def vis(states, states_d, l):
     vis["/Cameras/default/rotated/<object>"].set_transform(
         tf.translation_matrix([2, 0, 2]))
  
-    # Convert the list of points to a numpy array
     reference_traj = states_d[:,0:3].T
+    # color of the reference trajectory
     point_color = np.array([1.0, 1.0, 1.0])
-    # Choose a color (e.g., black)
-    # point_cloud = g.PointCloud(reference_traj, color=point_color, size=0.1)
-    # # Set the geometry for the points object
-    # vis['points'].set_object(point_cloud)
-    verts = np.random.random((3, 100000)).astype(np.float32)
-
     vis['points'].set_object(g.Points(
         g.PointsGeometry(reference_traj, color=point_color),
-        g.PointsMaterial(size=0.05)
+        g.PointsMaterial(size=0.01)
     ))
-
     # uav shape
     uav   = g.StlMeshGeometry.from_file('cf2_assembly.stl')
     vis["uav"].set_object(uav)
@@ -165,7 +158,6 @@ def vis(states, states_d, l):
 
     while True:
         for state in states:
-            
             ppos  = state[0:3]    
             qc = state[3:6] 
             q =  state[12:16]
@@ -178,7 +170,7 @@ def vis(states, states_d, l):
 
             cablePos = np.linspace(ppos, uavpos, num=2).T
             vis["cable"].set_object(g.Line(g.PointsGeometry(cablePos), material=cable))
-            # time.sleep(0.01)
+            time.sleep(0.01)
 
 def main():
     m = 0.034
@@ -190,12 +182,12 @@ def main():
     arm = 0.707106781 * arm_length
     u_nominal = m*9.81/4
     B0 = np.array([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
-    dt = 0.001
+    dt = 0.01
     params =  m, mp, l, J_v, arm_length, t2t, B0, dt
-    gains = [(10,8), (10,8), (0.008,0.0013)]
+    gains = [(8,6), (12,10), (0.008,0.0013)]
     
     # initial state and setup for reference trajectory
-    h=0.0
+    h= 0
     angular_vel = 0.1
     T = 2*np.pi/angular_vel
     r=1
@@ -208,7 +200,7 @@ def main():
     
     initstate = [*x, *qc, *vel, *wc, *q, *w]
     
-    ts = np.arange(0,T,0.001)
+    ts = np.arange(0,T,dt)
     states = np.empty((len(ts)+1, 19))
     states[0] = initstate
     print(initstate)
