@@ -32,6 +32,7 @@
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
+#include "dynobench/quadrotor_payload.hpp"
 #include "dynobench/unicycle1.hpp"
 #include "dynobench/unicycle2.hpp"
 
@@ -66,8 +67,12 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     return std::make_unique<Model_quad2dpole>(file, p_lb, p_ub);
   } else if (dynamics == "double_intergrator_2d") {
     return std::make_unique<Integrator2_2d>(file, p_lb, p_ub);
-  } else {
-    ERROR_WITH_INFO("dynamics not implemented");
+  } else if (dynamics == "quad3dpayload") {
+    return std::make_unique<Model_quad3dpayload>(file, p_lb, p_ub);
+  }
+  else {
+    std::string error = "dynamics: " + dynamics + " not implemented";
+    ERROR_WITH_INFO(error);
   }
 }
 
