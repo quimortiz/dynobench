@@ -205,7 +205,13 @@ void Model_quad3dpayload::transformation_collision_geometries(
 
 void Model_quad3dpayload::collision_distance(
     const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout) {
+
+  if (env && env->size()) {
   NOT_IMPLEMENTED_TODO;
+  }
+  else {
+    cout.distance = max__;
+  }
 }
 
 void Model_quad3dpayload::transform_primitive(

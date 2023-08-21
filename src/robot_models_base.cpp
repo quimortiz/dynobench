@@ -326,7 +326,7 @@ bool Model_robot::collision_check(const Eigen::Ref<const Eigen::VectorXd> &x) {
 void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                      CollisionOut &cout) {
 
-  if (env) {
+  if (env && env->size()) {
 
     fcl::DefaultDistanceData<double> distance_data;
 
