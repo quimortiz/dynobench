@@ -86,7 +86,7 @@ def createSyms():
     arm = 0.707106781 * arm_length
 
     # paylaod states: position, velocity
-    x, y, z, vx, vy, vz = sp.symbols('pos(0), pos(1), pos(2), vel(0), vel(1), vel(2)')
+    x, y, z, vx, vy, vz = sp.symbols('pos(0) pos(1) pos(2) vel(0) vel(1) vel(2)')
     # cable states: cable unit directional vector, angular velocity
     qcx, qcy, qcz, wcx, wcy, wcz = sp.symbols('qc(0) qc(1) qc(2) wc(0) wc(1) wc(2)')
     # uav rotational states: quaternions, angular velocities
@@ -223,7 +223,6 @@ def writeC(f, step, Jx, Ju, Fx, Fu):
         file.write(footer)
 
 
-    return 0
 def main():
     # reference of this model: https://www.sarahtang.net/docs/2015ICRA.pdf
     state, action, params = createSyms()
