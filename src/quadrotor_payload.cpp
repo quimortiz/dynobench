@@ -46,7 +46,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
       params(params) // nx: 19, nu: 4, Khaled: Done
 {
 
-  // TODO: KHALED adapt this (??)
+  // TODO: KHALED adapt this (DONE)
   // I don't know what to change here other than the u_nominal
 
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
@@ -178,7 +178,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
 
   if (p_lb.size() && p_ub.size()) {
     // TODO: Khaled adjust bounds --> maybe infinite it X quadrotor is not part
-    // of the state 
+    // of the state -- I don't know what should change here?
     set_position_lb(p_lb);
     set_position_ub(p_ub);
   }

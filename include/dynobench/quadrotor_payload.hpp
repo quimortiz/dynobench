@@ -20,10 +20,10 @@ struct Quad3dpayload_params {
   double m = 0.034; // kg
   
   double m_payload = 0.0054; // kg
-  double l_payload = 0.5; // m TODO: Khaled CHECK
+  double l_payload = 0.5; // m  Khaled DONE
   
   double g = 9.81;
-  double max_f = 1.3;        // thrust to weight ratio -- TODO: Khaled CHECK
+  double max_f = 1.3;        // thrust to weight ratio -- Khaled DONE
   double arm_length = 0.046; // m
   double t2t = 0.006;        // thrust-to-torque ratio
   double dt = .01;
@@ -74,7 +74,7 @@ struct Quad3dpayload_params {
 
 struct Model_quad3dpayload : Model_robot {
 
-  using Vector19d = Eigen::Matrix<double, 19, 1>; // TODO: Khaled CHECK and adapt
+  using Vector19d = Eigen::Matrix<double, 19, 1>; // TODO: Khaled DONE
   using Matrix34 = Eigen::Matrix<double, 3, 4>;
 
   virtual ~Model_quad3dpayload() = default;
