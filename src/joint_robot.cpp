@@ -660,6 +660,7 @@ void Joint_robot::transformation_collision_geometries(
           Eigen::Translation<double, 3>(pos - delta * params.hitch_lengths[0]);
       result_trailer.rotate(Eigen::AngleAxisd(theta, Eigen::Vector3d::UnitZ()));
       ts.at(i + 1) = result_trailer;
+      k += 4;
       i += 2;
     }
     // ts.at(i) = result;
