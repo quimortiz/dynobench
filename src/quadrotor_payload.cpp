@@ -48,6 +48,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
 
   // TODO: KHALED adapt this (DONE)
   // I don't know what to change here other than the u_nominal
+  // and changing the size of the weisght bounds vector
 
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;
@@ -163,7 +164,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   grav_v = Eigen::Vector3d(0, 0, -params.m * g);
 
   u_weight = V4d(.5, .5, .5, .5);
-  x_weightb = 50. * Vxd::Ones(13);
+  x_weightb = 50. * Vxd::Ones(19);
   x_weightb.head(7) = Eigen::VectorXd::Zero(7);
 
   if (params.shape == "box") {
@@ -286,7 +287,9 @@ void Model_quad3dpayload::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
 double
 Model_quad3dpayload::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                               const Eigen::Ref<const Eigen::VectorXd> &y) {
-  NOT_IMPLEMENTED;
+  // NOT_IMPLEMENTED
+  // TODO QUIM
+  return 0.;
 }
 
 void Model_quad3dpayload::interpolate(
