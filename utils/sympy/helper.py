@@ -5,6 +5,15 @@ import math as mt
 import rowan as rn 
 from itertools import chain
 
+def flatten_symbolic_structure(lst):
+    flattened_list = []
+    for item in lst:
+        if isinstance(item, list):
+            flattened_list.extend(flatten_symbolic_structure(item))
+        else:
+            flattened_list.append(item)
+    return flattened_list
+
 
 def quat_mul(q1, q2):
     q1 = sp.Matrix(q1)
