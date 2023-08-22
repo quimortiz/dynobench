@@ -42,11 +42,12 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
                                          const Eigen::VectorXd &p_lb,
                                          const Eigen::VectorXd &p_ub)
 
-    : Model_robot(std::make_shared<Rn>(13), 4),
-      params(params) // TODO: KHALED adjust to nx and nu that you want to use
+    : Model_robot(std::make_shared<Rn>(19), 4),
+      params(params) // nx: 19, nu: 4, Khaled: Done
 {
 
-  // TODO: KHALED adapt this
+  // TODO: KHALED adapt this (??)
+  // I don't know what to change here other than the u_nominal
 
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;
@@ -75,7 +76,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   distance_weights = params.distance_weights;
 
   arm = 0.707106781 * params.arm_length;
-  u_nominal = params.m * g / 4.;
+  u_nominal = (params.m + params.m_payload) * g / 4.; // now u is between [0,1]
 
   if (params.motor_control) {
     B0 << 1, 1, 1, 1, -arm, -arm, arm, arm, -arm, arm, arm, -arm, -params.t2t,
@@ -92,9 +93,10 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   }
 
   name = "quad3dpayload";
-  x_desc = {"x [m]",      "y [m]",      "z [m]",     "qx []",    "qy []",
-            "qz []",      "qw []",      "vx [m/s]",  "vy [m/s]", "vz [m/s]",
-            "wx [rad/s]", "wy [rad/s]", "wz [rad/s]"}; // TODO: Khaled adjust
+  x_desc = {"xp [m]",      "yp [m]",      "zp [m]",     "qcx []",    "qcy []",
+            "qcz[]",       "vpx [m/s]",   "vpy [m/s]",  "vpz [m/s]", "wcx [rad/s]",
+            "wcy [rad/s]", "wcz [rad/s]", "qx []",      "qy []",      "qz []",     
+            "qw []",       "wx [rad/s]",  "wy [rad/s]", "wz [rad/s]"}; // Khaled: Done
 
   u_desc = {"f1 []", "f2 [], f3 [], f4 []"};
 
@@ -130,18 +132,22 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
     u_ub = params.u_ub;
   }
 
-  // TODO: Khaled ajust bounds in the state space
-  x_lb.segment(0, 7) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__,
-      RM_low__, RM_low__;
-  x_lb.segment(7, 3) << -params.max_vel, -params.max_vel, -params.max_vel;
-  x_lb.segment(10, 3) << -params.max_angular_vel, -params.max_angular_vel,
-      -params.max_angular_vel;
+  // TODO: Khaled: DONE 
+  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
+  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
 
-  x_ub.segment(0, 7) << RM_max__, RM_max__, RM_max__, RM_max__, RM_max__,
-      RM_max__, RM_max__;
-  x_ub.segment(7, 3) << params.max_vel, params.max_vel, params.max_vel;
-  x_ub.segment(10, 3) << params.max_angular_vel, params.max_angular_vel,
-      params.max_angular_vel;
+  x_lb.segment(0, 6) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__, RM_low__;
+  x_lb.segment(6, 3) << -params.max_vel, -params.max_vel, -params.max_vel;
+  x_lb.segment(9, 3) << -params.max_angular_vel, -params.max_angular_vel, -params.max_angular_vel;
+  x_lb.segment(12, 4) << RM_low__, RM_low__, RM_low__, RM_low__;
+  x_lb.segment(16, 3) << -params.max_angular_vel, -params.max_angular_vel, -params.max_angular_vel;
+
+
+  x_ub.segment(0, 6) << RM_max__, RM_max__, RM_max__, RM_max__, RM_max__, RM_max__;
+  x_ub.segment(6, 3) << params.max_vel, params.max_vel, params.max_vel;
+  x_ub.segment(9, 3) << params.max_angular_vel, params.max_angular_vel, params.max_angular_vel;
+  x_ub.segment(12, 4) << RM_max__, RM_max__, RM_max__, RM_max__;
+  x_ub.segment(16, 3) << params.max_angular_vel, params.max_angular_vel, params.max_angular_vel;
 
   // some precomputation
   inverseJ_v = params.J_v.cwiseInverse();
@@ -171,22 +177,32 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   }
 
   if (p_lb.size() && p_ub.size()) {
-    // TODO: Khalded adjust bounds --> maybe infinite it X quadrotor is not part
-    // of the state
+    // TODO: Khaled adjust bounds --> maybe infinite it X quadrotor is not part
+    // of the state 
     set_position_lb(p_lb);
     set_position_ub(p_ub);
   }
 
-  __Jv_x.resize(12, 13); // KHALED ajust
-  __Jv_u.resize(12, 4);  // KHALED ajust
+  // NOT USED ANYMORE
+  // __Jv_x.resize(12, 13); // KHALED Done
+  // __Jv_u.resize(12, 4);  // KHALED Done
 
-  __Jv_x.setZero(); // KHALED adjust
-  __Jv_u.setZero(); // KHALED ajust
+  // __Jv_x.setZero(); // KHALED Done
+  // __Jv_u.setZero(); // KHALED Done
 }
 
 Eigen::VectorXd Model_quad3dpayload::get_x0(const Eigen::VectorXd &x) {
-  // KHALED which is the state space?
-  NOT_IMPLEMENTED_TODO;
+  // KHALED Done
+  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
+  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
+  CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+  Eigen::VectorXd out(nx);
+  out.setZero();
+  out.head(3) = x.head(3);
+  out(5) = -1.;
+  out(15) = 1.;
+  return out;
+  // NOT_IMPLEMENTED_TODO;
 }
 
 void Model_quad3dpayload::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
@@ -228,7 +244,9 @@ void Model_quad3dpayload::calcV(Eigen::Ref<Eigen::VectorXd> ff,
                                 const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   // Call a function in the autogenerated file
-  NOT_IMPLEMENTED_TODO;
+  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  calcFF(ff, data, x, u);
+  // NOT_IMPLEMENTED_TODO;
 }
 
 void Model_quad3dpayload::calcDiffV(
@@ -237,7 +255,9 @@ void Model_quad3dpayload::calcDiffV(
     const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   // Call a function in the autogenerated file
-  NOT_IMPLEMENTED_TODO;
+  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  calcJ(Jv_x, Jv_u, data, x, u);
+  // NOT_IMPLEMENTED_TODO;
 }
 
 void Model_quad3dpayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
@@ -246,7 +266,9 @@ void Model_quad3dpayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
                                double dt) {
 
   // Call a function in the autogenerated file
-  NOT_IMPLEMENTED_TODO;
+  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  calcStep(xnext, data, x, u, dt);
+  // NOT_IMPLEMENTED_TODO;
 }
 
 void Model_quad3dpayload::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
@@ -256,7 +278,9 @@ void Model_quad3dpayload::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
                                    double dt) {
 
   // Call a function in the autogenerated file
-  NOT_IMPLEMENTED_TODO;
+  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  calcF(Fx, Fu, data, x, u, dt);
+  // NOT_IMPLEMENTED_TODO;
 }
 
 double

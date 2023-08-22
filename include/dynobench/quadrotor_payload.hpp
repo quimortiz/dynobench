@@ -19,8 +19,8 @@ struct Quad3dpayload_params {
 
   double m = 0.034; // kg
   
-  double m_payload = 0.01; // kg
-  double l_payload = 0.1; // m TODO: Khaled CHECK
+  double m_payload = 0.0054; // kg
+  double l_payload = 0.5; // m TODO: Khaled CHECK
   
   double g = 9.81;
   double max_f = 1.3;        // thrust to weight ratio -- TODO: Khaled CHECK
@@ -74,7 +74,7 @@ struct Quad3dpayload_params {
 
 struct Model_quad3dpayload : Model_robot {
 
-  using Vector12d = Eigen::Matrix<double, 12, 1>; // TODO: Khaled CHECK and adapt
+  using Vector19d = Eigen::Matrix<double, 19, 1>; // TODO: Khaled CHECK and adapt
   using Matrix34 = Eigen::Matrix<double, 3, 4>;
 
   virtual ~Model_quad3dpayload() = default;
@@ -82,17 +82,22 @@ struct Model_quad3dpayload : Model_robot {
   struct Data {
     Eigen::Vector3d f_u;
     Eigen::Vector3d tau_u;
-    Eigen::Matrix<double, 13, 1> xnext;
+    Eigen::Matrix<double, 19, 1> xnext;
     Matrix34 Jx;
     Eigen::Matrix3d Ja;
   } data;
 
-  Vector12d ff; // TODO: Khaled CHECK and adapt
+  Vector19d ff; // TODO: Khaled CHECK and adapt
   Quad3dpayload_params params;
 
 
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
-    NOT_IMPLEMENTED;
+    // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
+    //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
+    // x.segment<6>(7).setZero();
+    x.segment<6>(6).setZero();
+    x.segment<3>(16).setZero();
+    // NOT_IMPLEMENTED;
   }
 
   double arm;
@@ -135,9 +140,12 @@ struct Model_quad3dpayload : Model_robot {
 
   virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> xout) override {
-    NOT_IMPLEMENTED;
-    // xout = xin;
-    // xout.segment<4>(3).normalize();
+    // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
+    //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
+    xout = xin;
+    xout.segment<4>(12).normalize();
+    xout.segment<3>(3).normalize();
+    // NOT_IMPLEMENTED;
   }
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
@@ -163,22 +171,25 @@ struct Model_quad3dpayload : Model_robot {
 
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) override {
+    // Not sure what to do here
     NOT_IMPLEMENTED;
   }
 
   virtual size_t get_offset_dim() override {
+    // Not sure what to do here
     NOT_IMPLEMENTED; }
 
 
   virtual void canonical_state(const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) override {
+    // Not sure what to do here
     NOT_IMPLEMENTED;
   }
 
   virtual void transform_state(const Eigen::Ref<const Eigen::VectorXd> &p,
                                const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) override {
-
+    // Not sure what to do here
     NOT_IMPLEMENTED;
   }
 
