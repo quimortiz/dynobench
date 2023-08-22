@@ -116,7 +116,7 @@ def writeC(f, step, Jx, Ju, Fx, Fu):
     now = datetime.now()  # current date and time
     date_time = now.strftime("%Y-%m-%d--%H-%M-%S")
     headerf = (
-    r"""void inline calcF(Eigen::Ref<Eigen::VectorXd> ff, const double* data,
+    r"""void inline calcFF(Eigen::Ref<Eigen::VectorXd> ff, const double* data,
                                 const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &u) {"""
             + "\n"
@@ -137,6 +137,7 @@ def writeC(f, step, Jx, Ju, Fx, Fu):
 
         Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> qc  = x.segment(3, 3).head<3>();
+        CHECK_LEQ(std::abs((qc.norm() - 1.0)), 1e-6, AT);
         Eigen::Ref<const Eigen::Vector3d> vel = x.segment(6, 3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> wc  = x.segment(9, 3).head<3>();
         Eigen::Vector4d q = x.segment(12, 4).head<4>().normalized();

@@ -1,7 +1,7 @@
-void inline calcF(Eigen::Ref<Eigen::VectorXd> ff, const double* data,
+void inline calcFF(Eigen::Ref<Eigen::VectorXd> ff, const double* data,
                                 const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &u) {
-// Auto generated 2023-08-21--20-11-27 from sympy 
+// Auto generated 2023-08-22--12-26-30 from sympy 
         const double m          = data[0]; 
         const double mp         = data[1]; 
         const double J_v0       = data[2]; 
@@ -13,6 +13,7 @@ void inline calcF(Eigen::Ref<Eigen::VectorXd> ff, const double* data,
 
         Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> qc  = x.segment(3, 3).head<3>();
+        CHECK_LEQ(std::abs((qc.norm() - 1.0)), 1e-6, AT);
         Eigen::Ref<const Eigen::Vector3d> vel = x.segment(6, 3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> wc  = x.segment(9, 3).head<3>();
         Eigen::Vector4d q = x.segment(12, 4).head<4>().normalized();
@@ -55,6 +56,7 @@ void inline calcJ(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 
         Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> qc  = x.segment(3, 3).head<3>();
+        CHECK_LEQ(std::abs((qc.norm() - 1.0)), 1e-6, AT);
         Eigen::Ref<const Eigen::Vector3d> vel = x.segment(6, 3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> wc  = x.segment(9, 3).head<3>();
         Eigen::Vector4d q = x.segment(12, 4).head<4>().normalized();
@@ -209,6 +211,7 @@ void inline calcF(Eigen::Ref<Eigen::MatrixXd> Fx,
 
         Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> qc  = x.segment(3, 3).head<3>();
+        CHECK_LEQ(std::abs((qc.norm() - 1.0)), 1e-6, AT);
         Eigen::Ref<const Eigen::Vector3d> vel = x.segment(6, 3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> wc  = x.segment(9, 3).head<3>();
         Eigen::Vector4d q = x.segment(12, 4).head<4>().normalized();
@@ -380,6 +383,7 @@ void inline calcStep(Eigen::Ref<Eigen::VectorXd> xnext, const double* data,
 
         Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> qc  = x.segment(3, 3).head<3>();
+        CHECK_LEQ(std::abs((qc.norm() - 1.0)), 1e-6, AT);
         Eigen::Ref<const Eigen::Vector3d> vel = x.segment(6, 3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> wc  = x.segment(9, 3).head<3>();
         Eigen::Vector4d q = x.segment(12, 4).head<4>().normalized();
