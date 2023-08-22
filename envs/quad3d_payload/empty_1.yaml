@@ -9,5 +9,5 @@ robots:
     # TODO: khaled: change the start and use a goal that is easy to reach, 
     # such that the trajectory can be optimized using only as initial guess the initial position, 
     # without planner
-    start: [0.7, 0.6, 0, 0] # x,y,theta0,theta1
-    goal: [1.9, 0.2, 0, 0] # x,y,theta0,theta1
+    start: [0, 0, 0, 0, 0, -1, 0, 0, 0, 0 ,0 ,0, 0, 0, 0, 1, 0, 0, 0] 
+    goal:  [0, 0, 0.5, 0, 0, -1, 0, 0, 0, 0 ,0 ,0, 0, 0, 0, 1, 0, 0, 0] 
