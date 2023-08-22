@@ -24,9 +24,6 @@ def computeStep(f, *data):
     num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt, B = params
     state = flatten_symbolic_structure(state)
     stepFunc = sp.Matrix(state) + f * dt
-    print(sp.ccode(stepFunc[0:3]))
-    print(sp.ccode(stepFunc[6:9]))
-    print(sp.ccode(stepFunc[12:15]))
 
     return stepFunc
 
@@ -159,7 +156,7 @@ def createSyms(num_uavs=2, payloadType='point'):
         print('Wrong payload type! Choose either point or rigid')
 
     # action 
-    action = [list(sp.symbols('u1[{}] u2[{}] u3[{}] u4[{}]'.format(i,i,i,i))) for i in range(num_uavs)]
+    action = [list(sp.symbols('u[{}][0] u[{}][1] u[{}][2] u[{}][3]'.format(i,i,i,i))) for i in range(num_uavs)]
 
     B = []
     B0 = sp.Matrix([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
