@@ -51,6 +51,10 @@ struct Joint_robot : Model_robot {
 
   std::vector<fcl::CollisionObjectd*> part_objs_; // *
   std::vector<fcl::CollisionObjectd*> robot_objs_; // *
+  //
+    
+  std::vector<int> nxs;
+
   std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_; 
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;

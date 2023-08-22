@@ -274,7 +274,30 @@ int get_number_of_us(const std::vector<std::string> &robotTypes) {
   return counter;
 }
 
-Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes) 
+std::vector<int> get_nxs(const std::vector<std::string> &robotTypes) {
+
+  std::vector<int> nxs(robotTypes.size());
+
+  std::transform(robotTypes.begin(), robotTypes.end(), nxs.begin(),
+                 [](const std::string &robot) {
+                   if (robot == "double_integrator_0") {
+                     return 4;
+                   } else if (robot == "unicycle_first_order_0") {
+                     return 3;
+                   } else if (robot == "single_integrator_0") {
+                     return 2;
+                   } else if (robot == "car_first_order_with_1_trailers_0") {
+                     return 4;
+                   } else {
+                     std::string error = "Unknown robot type, not implemented";
+                     ERROR_WITH_INFO(error);
+                   }
+                 });
+
+  return nxs;
+}
+
+Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
     // : Model_robot(std::make_shared<RnSOn>(2*v_s.size(), get_so2(v_s),
     // get_so2_indices(v_s)), get_u(v_u))
     : Model_robot(std::make_shared<RnSOn>(get_number_of_r_dofs(robotTypes),
@@ -286,6 +309,9 @@ Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
   // v_states = v_s;
   v_robot_types = robotTypes;
   int robot_num = get_robot_num(robotTypes);
+
+  nxs = get_nxs(robotTypes);
+
   const Eigen::VectorXd &p_lb = Eigen::VectorXd();
   const Eigen::VectorXd &p_ub = Eigen::VectorXd();
   using V3d = Eigen::Vector3d;
