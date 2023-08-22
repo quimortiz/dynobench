@@ -36,7 +36,8 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
   Eigen::VectorXd xrand(nx), urand(nu);
   xrand.setZero(); // TODO: KHALED set to random values that make sense (e.g.
                    // they have to be normalized etc.... )
-  urand << .1, 1.2, .5, 0;
+  xrand << 3., 3., 1., 0., 0., -1., 0., 0., 0., 0., 0. , 0., 0., 0., 0., 1., 0., 0., 0.;
+  urand << .1, 1., .5, 0;
 
   Eigen::MatrixXd Jx_diff(nx, nx), Ju_diff(nx, nu), Jx(nx, nx), Ju(nx, nu);
   Eigen::MatrixXd Sx_diff(nx, nx), Su_diff(nx, nu), Sx(nx, nx), Su(nx, nu);
