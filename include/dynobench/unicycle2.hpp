@@ -51,11 +51,8 @@ struct Model_unicycle2 : Model_robot {
     x(4) = 0;
   }
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
-
-    xout = xin;
-    xout(2) = wrap_angle(xin(2));
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
+    xout(2) = wrap_angle(xout(2));
   }
 
   virtual void write_params(std::ostream &out) override { params.write(out); }

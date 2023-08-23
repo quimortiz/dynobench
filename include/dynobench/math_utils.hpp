@@ -73,6 +73,7 @@ bool inline check_equal(Eigen::MatrixXd A, Eigen::MatrixXd B, double rtol,
     std::cout << "**\nERROR" << std::endl;
     std::cout << "A\n" << A << std::endl;
     std::cout << "B\n" << B << std::endl;
+    std::cout << "TOTAL ERROR " << (A - B).cwiseAbs().sum() << std::endl;
     std::cout << "A-B\n" << A - B << std::endl;
     std::cout << "**" << std::endl;
   }

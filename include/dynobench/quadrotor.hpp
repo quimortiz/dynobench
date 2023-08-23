@@ -129,9 +129,7 @@ struct Model_quad3d : Model_robot {
                const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
-    xout = xin;
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
     xout.segment<4>(3).normalize();
   }
 

@@ -60,13 +60,11 @@ struct Model_car_with_trailers : Model_robot {
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
 
-    xout = xin;
-    xout(2) = wrap_angle(xin(2));
+    xout(2) = wrap_angle(xout(2));
     if (params.num_trailers) {
-      xout(3) = wrap_angle(xin(3));
+      xout(3) = wrap_angle(xout(3));
     }
   }
 

@@ -80,12 +80,10 @@ struct Model_acrobot : Model_robot {
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
 
-    xout = xin;
-    xout(0) = wrap_angle(xin(0));
-    xout(1) = wrap_angle(xin(1));
+    xout(0) = wrap_angle(xout(0));
+    xout(1) = wrap_angle(xout(1));
   }
 
   double calcEnergy(const Eigen::Ref<const Eigen::VectorXd> &x);

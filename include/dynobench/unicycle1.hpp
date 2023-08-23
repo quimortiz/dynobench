@@ -54,11 +54,8 @@ struct Model_unicycle1 : Model_robot {
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
-
-    xout = xin;
-    xout(2) = wrap_angle(xin(2));
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
+    xout(2) = wrap_angle(xout(2));
   }
 
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,

@@ -100,6 +100,13 @@ struct Model_quad3dpayload : Model_robot {
     // NOT_IMPLEMENTED;
   }
 
+
+
+
+
+
+
+
   double arm;
   double g = 9.81;
 
@@ -138,14 +145,11 @@ struct Model_quad3dpayload : Model_robot {
                const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
     // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
     //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
-    xout = xin;
     xout.segment<4>(12).normalize();
     xout.segment<3>(3).normalize();
-    // NOT_IMPLEMENTED;
   }
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
