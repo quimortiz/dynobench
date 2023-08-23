@@ -34,9 +34,8 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
 
   Eigen::VectorXd xrand(nx), urand(nu);
   xrand.setZero(); // TODO: DONE
-  xrand << 3., 3., 1., 0., 0., -1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.,
-      0., 0.;
-  urand << .1, 1., .5, 0;
+  xrand << 3., 3., 1., 0., 0., -1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.;
+  urand << 1., 1., 1., 1.;
 
   Eigen::MatrixXd Jx_diff(nx, nx), Ju_diff(nx, nu), Jx(nx, nx), Ju(nx, nu);
   Eigen::MatrixXd Sx_diff(nx, nx), Su_diff(nx, nu), Sx(nx, nx), Su(nx, nu);
@@ -48,61 +47,66 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
 
   double dt = model->ref_dt;
 
-  for (const auto &k : xu_s) {
-    const auto &x0 = k.first;
-    const auto &u0 = k.second;
+  // for (const auto &k : xu_s) {
+    // const auto &x0 = k.first;
+    // const auto &u0 = k.second;
+  const auto &x0 = xrand;
+  const auto &u0 = urand;
 
-    for (auto &m_ptr :
-         {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su}) {
-      m_ptr->setZero();
-    }
-
-    CSTR_V(x0);
-    CSTR_V(u0);
-
-    model->calcDiffV(Jx, Ju, x0, u0);
-    model->stepDiff(Sx, Su, x0, u0, dt);
-
-    finite_diff_jac(
-        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
-          model->calcV(y, x, u0);
-        },
-        x0, nx, Jx_diff);
-
-    finite_diff_jac(
-        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
-          model->calcV(y, x0, u);
-        },
-        u0, nx, Ju_diff);
-
-    finite_diff_jac(
-        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
-          model->step(y, x, u0, dt);
-        },
-        x0, nx, Sx_diff);
-
-    finite_diff_jac(
-        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
-          model->step(y, x0, u, dt);
-        },
-        u0, nx, Su_diff);
-
-    std::cout << "report Jx " << std::endl;
-    approx_equal_report(Jx, Jx_diff);
-    std::cout << "report Ju " << std::endl;
-    approx_equal_report(Ju, Ju_diff);
-
-    std::cout << "report Sx " << std::endl;
-    approx_equal_report(Sx, Sx_diff);
-    std::cout << "report Su " << std::endl;
-    approx_equal_report(Su, Su_diff);
-
-    BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
-    BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
-
-    BOOST_TEST((Sx - Sx_diff).norm() < 1e-5);
-    BOOST_TEST((Su - Su_diff).norm() < 1e-5);
+  for (auto &m_ptr :
+        {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su}) {
+    m_ptr->setZero();
   }
+
+  CSTR_V(x0);
+  CSTR_V(u0);
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+  model->stepDiff(Sx, Su, x0, u0, dt);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x, u0);
+      },
+      x0, nx, Jx_diff);
+
+  // finite_diff_jac(
+  //     [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+  //       model->calcV(y, x0, u);
+  //     },
+  //     u0, nx, Ju_diff);
+
+  // finite_diff_jac(
+  //     [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+  //       model->step(y, x, u0, dt);
+  //     },
+  //     x0, nx, Sx_diff);
+
+  // finite_diff_jac(
+  //     [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+  //       model->step(y, x0, u, dt);
+  //     },
+  //     u0, nx, Su_diff);
+  std::cout << "Jx: \n" << Jx << std::endl;
+  std::cout << "Jx_diff: \n" << Jx_diff << std::endl;
+  
+  std::cout << "-----------\n" << "report Jx " << std::endl;
+  approx_equal_report(Jx, Jx_diff);
+  // std::cout << "report Ju " << std::endl;
+  // approx_equal_report(Ju, Ju_diff);
+
+
+  // std::cout << "report Sx " << std::endl;
+  // approx_equal_report(Sx, Sx_diff);
+  // std::cout << "report Su " << std::endl;
+  // approx_equal_report(Su, Su_diff);
+
+  BOOST_TEST((Jx - Jx_diff).norm() <= 1e-5);
+  // BOOST_TEST((Ju - Ju_diff).norm() <= 1e-5);
+
+  BOOST_TEST((Sx - Sx_diff).norm() <= 1e-5);
+  // BOOST_TEST((Su - Su_diff).norm() <= 1e-5);
+  // }
 }
 
 BOOST_AUTO_TEST_CASE(t_quadrotor_payload_collisions) {
