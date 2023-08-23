@@ -1,7 +1,9 @@
 import sys
 from pathlib import Path
 from datetime import datetime
-
+import numpy as np
+# np.set_printoptions(linewidth=np.inf)
+# np.set_printoptions(suppress=True)
 # Calculate the path to the parent directory (where sympy is located)
 parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
@@ -9,13 +11,95 @@ sys.path.append(str(parent_dir))
 import sympy as sp
 from helper import *
 
+def testJ(f, Jx, Ju, *syms):
+    state, action, params = syms
+    m, m_inv, mp, mp_inv, l, J, J_inv, B0 ,dt = params
+
+    params_dict = {
+                    m: 0.034, m_inv: 1/0.034, mp: 0.0054, mp_inv: 1/0.0054, l:0.5,
+                    'J_v0': 16.571710e-6, 'J_v1': 16.655602e-6, 'J_v2': 29.261652e-6
+                    ,'t2t': 0.006, 'arm_length': 0.046}
+
+    subsdt         = {dt : 0.01}
+
+    # payload position, cable directional vector, 
+    # payload velocity, cable angular velocity, 
+    # uav quat, uav angular velocity
+
+    state_dict_0 = {
+        state[0]:   3,
+        state[1]:   3,
+        state[2]:   1,
+        state[3]:   0,
+        state[4]:   0,
+        state[5]:  -1.0,
+        state[6]:   0,
+        state[7]:   0,
+        state[8]:   0,
+        state[9]:   0,
+        state[10]:  0,
+        state[11]:  0,
+        state[12]:  0,
+        state[13]:  0,
+        state[14]:  0,
+        state[15]:  1.0,
+        state[16]:  0,
+        state[17]:  0,
+        state[18]:  0
+    }
+
+    action_dict = {
+        action[0]: 1.,
+        action[1]: 1.,
+        action[2]: 1.,
+        action[3]: 1.
+    }
+
+    Jx_comp = Jx.subs({**params_dict, **action_dict, **state_dict_0, **subsdt})
+    Ju_comp = Ju.subs({**params_dict, **action_dict, **state_dict_0, **subsdt})
+
+    eps = 1e-6
+    Jx_diff = sp.zeros(Jx.rows, Jx.cols)
+    f_comp = f.subs({**params_dict, **action_dict, **state_dict_0})
+    x0 = list(state_dict_0.values())
+    state_num = 0
+    for state in state_dict_0.keys():
+            x_eps = state_dict_0.copy()
+            x_eps[state] += eps
+            f_comp_eps = f.subs({**params_dict, **action_dict, **x_eps})
+            Jx_diff[:,state_num] = (f_comp_eps - f_comp) /eps
+            state_num+=1
+    np.set_printoptions(precision=7) 
+    print("\nJx = \n",np.array(sp.ccode(Jx_comp)))
+    print("\nJx_diff = \n",np.array(sp.ccode(Jx_diff)))
+    print("\nf = \n",np.array(sp.ccode(f_comp)))
+    
+    for i in range(Jx.rows):
+        for j in range(Jx.cols):
+            norm = np.abs(Jx_comp[i,j] - Jx_diff[i,j])
+            try: 
+                if float(norm) >= 0.9e-5:
+                    print()
+                    print('{:.6f}, {:.6f}, {:.6f} {}, {}'.format(float(Jx_comp[i,j]),float(Jx_diff[i,j]), float(norm), i, j))
+                    print()
+                    np.allclose(float(Jx_comp[i,j]), float(Jx_diff[i,j]), atol=1e-5)
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                print(i,j)
+    print("Jx_diff and Jx are the same")
+    print("Generating C code from the symbolic matrices...")
+
+
 def computestepDiffV(step, *syms):
     state, action, params = syms
     return step.jacobian(state), step.jacobian(action)
 
 def computeJacobians(f, *syms): 
     state, action, params = syms
-    return f.jacobian(state), f.jacobian(action)
+    Jx  = f.jacobian(state)
+    Ju  = f.jacobian(action)
+    testJ(f, Jx, Ju, *syms)
+    return Jx, Ju
 
 def computeStep(f, *syms):
     state, action, params = syms
@@ -39,14 +123,15 @@ def computef(*syms):
     fu = sp.Matrix([0,0,eta[0]])
     tau = sp.Matrix([eta[1], eta[2], eta[3]])
     
-    qc = sp.Matrix(state[3:6])
+    qc = sp.Matrix(qvnormalize(sp.Matrix(state[3:6])))
     vl = sp.Matrix(state[6:9])
     wc = sp.Matrix(state[9:12])
-    q = sp.Matrix(state[12:16])
+    q = qnormalize(sp.Matrix(state[12:16]))
     w = sp.Matrix(state[16:19])
 
     qc_dot = sp.Matrix(vcross(wc, qc))
-    al = (1/(m + mp)) * ((vdot(qc ,quat_qvrot(q,fu)) - m*l*vdot(qc_dot, qc_dot)) * qc) - sp.Matrix([0,0, 9.81])
+    # same equation but with wc instead of qc
+    al = 1/(m + mp) * ((qc*qc.T*sp.Matrix(quat_qvrot(q,fu)) - m*l*vdot(wc, wc) * qc)) - sp.Matrix([[0],[0], [9.81]])
     wc_dot = -(1/m) * (sp.Matrix(vcross(qc, quat_qvrot(q, fu))))
 
     # quaternion derivative
@@ -136,7 +221,8 @@ def writeC(f, step, Jx, Ju, Fx, Fu, simplify=False):
         const double arm_length = data[7];
 
         Eigen::Ref<const Eigen::Vector3d> pos = x.head(3).head<3>();
-        Eigen::Ref<const Eigen::Vector3d> qc  = x.segment(3, 3).head<3>();
+        Eigen::Ref<const Eigen::Vector3d> qc  = x.segment(3, 3).head<3>().normalized();
+        CHECK_LEQ(std::abs((qc.norm() - 1.0)), 1e-6, AT);
         Eigen::Ref<const Eigen::Vector3d> vel = x.segment(6, 3).head<3>();
         Eigen::Ref<const Eigen::Vector3d> wc  = x.segment(9, 3).head<3>();
         Eigen::Vector4d q = x.segment(12, 4).head<4>().normalized();
