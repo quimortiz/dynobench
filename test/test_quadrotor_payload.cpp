@@ -24,13 +24,15 @@ BOOST_AUTO_TEST_CASE(t_hello_quadrotor_payload) {
 
 BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
 
+  std::cout << "hello " << std::endl;
   auto model = mk<dynobench::Model_quad3dpayload>();
 
   int nx = model->nx;
   int nu = model->nu;
 
   Eigen::VectorXd x0(nx), u0(nu);
-  model->get_x0(x0);
+  x0.setZero();
+  x0 = model->get_x0(x0);
   u0 = model->u_0;
 
   Eigen::VectorXd xrand(nx), urand(nu);
@@ -42,6 +44,11 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
   Eigen::MatrixXd Sx_diff(nx, nx), Su_diff(nx, nu), Sx(nx, nx), Su(nx, nu);
 
   std::vector<std::pair<Eigen::VectorXd, Eigen::VectorXd>> xu_s;
+
+  xu_s.push_back({x0, u0});
+  xu_s.push_back({xrand, urand});
+
+
   double dt = model->ref_dt;
 
   for (auto &[x, u] : xu_s) {
@@ -77,6 +84,11 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
           model->step(y, x0, u, dt);
         },
         u0, nx, Su_diff);
+
+
+    std::cout << (Jx - Jx_diff).norm() << std::endl;
+    std::cout << (Ju - Ju_diff).norm() << std::endl;
+
 
     BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
     BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
