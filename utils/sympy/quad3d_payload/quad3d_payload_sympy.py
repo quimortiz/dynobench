@@ -105,6 +105,13 @@ def computeStep(f, *syms):
     state, action, params = syms
     m, m_inv, mp, mp_inv, l, J, J_inv, B0 ,dt = params
     stepSym = sp.Matrix(state) + f*dt
+    qc_next = stepSym[3:6]
+
+    qc_next_normalized = sp.Matrix(qvnormalize(qc_next.copy()))
+    stepSym[3] = qc_next_normalized[0]
+    stepSym[4] = qc_next_normalized[1]
+    stepSym[5] = qc_next_normalized[2]
+
     q = state[12:16]
     w = state[16:19]
     q_next = integrate(q,w,dt)
