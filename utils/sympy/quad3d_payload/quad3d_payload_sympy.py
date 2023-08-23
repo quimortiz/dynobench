@@ -227,7 +227,7 @@ def writeC(f, step, Jx, Ju, Fx, Fu, simplify=False):
         Eigen::Vector3d wc  = x.segment(9, 3).head<3>();
         Eigen::Vector4d q = x.segment(12, 4).head<4>().normalized();
         CHECK_LEQ(std::abs((q.norm() - 1.0)), 1e-6, AT);
-        Eigen::Vector3d w = x.segment(16, 3).head<3>();
+        Eigen::Vector3d w = x.segment(16, 3).head<3>();"""
     ) 
     
     ##### f vector #########
