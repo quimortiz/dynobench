@@ -112,7 +112,7 @@ def createSyms():
 
 
 
-def writeC(f, step, Jx, Ju, Fx, Fu):
+def writeC(f, step, Jx, Ju, Fx, Fu, simplify=False):
     now = datetime.now()  # current date and time
     date_time = now.strftime("%Y-%m-%d--%H-%M-%S")
     headerf = (
@@ -147,7 +147,11 @@ def writeC(f, step, Jx, Ju, Fx, Fu):
     ##### f vector #########
     f_code = """\n"""
     for i in range(f.rows):
-        f_code += "        ff({}) = {};\n".format(i, sp.ccode(f[i]))
+        if simplify:
+            f_code += "        ff({}) = {};\n".format(i, sp.ccode(sp.simplify(f[i])))
+        else: 
+            f_code += "        ff({}) = {};\n".format(i, sp.ccode(f[i]))
+
     footer = "\n}\n\n"
 
 ################# JX, JU #################
@@ -162,15 +166,20 @@ def writeC(f, step, Jx, Ju, Fx, Fu):
     for i in range(Jx.rows):
                     for j in range(Jx.cols):
                             if Jx[i,j] != 0:
+                                if simplify:
+                                    Jx_code += "        Jv_x({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Jx[i,j])))
+                                else:
                                     Jx_code += "        Jv_x({},{}) = {};\n".format(i,j, sp.ccode(Jx[i,j]))
 
     Ju_code = """\n"""
     for i in range(Ju.rows):
                     for j in range(Ju.cols):
                             if Ju[i,j] != 0:
+                                if simplify:
+                                    Ju_code += "        Jv_u({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Ju[i,j])))
+                                else:
                                     Ju_code += "        Jv_u({},{}) = {};\n".format(i,j, sp.ccode(Ju[i,j]))
-    
-
+                                    
 ###################### Fx, Fu #######################
     headerFx = (
     r"""void inline calcF(Eigen::Ref<Eigen::MatrixXd> Fx,
@@ -183,12 +192,18 @@ def writeC(f, step, Jx, Ju, Fx, Fu):
     for i in range(Fx.rows):
                     for j in range(Fx.cols):
                             if Fx[i,j] != 0:
+                                if simplify:
+                                    Fx_code += "        Fx({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Fx[i,j])))
+                                else:
                                     Fx_code += "        Fx({},{}) = {};\n".format(i,j, sp.ccode(Fx[i,j]))
-
+                                    
     Fu_code = """\n"""
     for i in range(Fu.rows):
                     for j in range(Fu.cols):
                             if Fu[i,j] != 0:
+                                if simplify:
+                                    Fu_code += "        Fu({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Fu[i,j])))
+                                else:
                                     Fu_code += "        Fu({},{}) = {};\n".format(i,j, sp.ccode(Fu[i,j]))
 
     #################### step #######################
@@ -200,7 +215,10 @@ def writeC(f, step, Jx, Ju, Fx, Fu):
 
     step_code = """\n"""
     for i in range(step.rows):
-        step_code += "        xnext({}) = {};\n".format(i,sp.ccode(step[i]))
+        if simplify:
+            step_code += "        xnext({}) = {};\n".format(i,sp.ccode(sp.simplify(step[i])))
+        else:
+            step_code += "        xnext({}) = {};\n".format(i,sp.ccode(step[i]))
 
     with open("../../../src/quadrotor_payload_dynamics_autogen.hpp", "w") as file:
         file.write(headerf)
@@ -234,7 +252,8 @@ def main():
 
     # step_python = sp.pycode(sp.simplify(step))
     # print(step_python)
-    writeC(f, step, Jx, Ju, Fx, Fu)
+    simplify = False
+    writeC(f, step, Jx, Ju, Fx, Fu, simplify=simplify)
 
 if __name__ == "__main__":
     main()
