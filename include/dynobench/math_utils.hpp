@@ -48,6 +48,29 @@ double inline check_bounds_distance(const Eigen::VectorXd &v,
   return max_distance;
 }
 
+bool inline approx_equal_report(const Eigen::MatrixXd &A,
+                                const Eigen::MatrixXd &B, double tol = 1e-6) {
+
+  bool are_equal = true;
+
+  CHECK_EQ(A.rows(), B.rows(), "");
+  CHECK_EQ(A.cols(), B.cols(), "");
+
+  for (int i = 0; i < A.rows(); i++) {
+    for (int j = 0; j < A.cols(); j++) {
+      if (std::fabs(A(i, j) - B(i, j)) > tol) {
+        std::cout << "Error entry: " << i << " " << j << std::endl;
+        std::cout << "A:" << A(i, j) << std::endl;
+        std::cout << "B:" << B(i, j) << std::endl;
+        std::cout << "d:" << A(i, j) - B(i, j) << std::endl;
+        are_equal = false;
+      }
+    }
+  }
+
+  return are_equal;
+}
+
 Eigen::VectorXd inline enforce_bounds(const Eigen::VectorXd &us,
                                       const Eigen::VectorXd &lb,
                                       const Eigen::VectorXd &ub) {

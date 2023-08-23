@@ -14,12 +14,9 @@ BOOST_AUTO_TEST_CASE(t_hello_quadrotor_payload) {
   std::cout << "Model has been created" << std::endl;
   BOOST_TEST(true);
 
-  Problem problem1(
-    base_path "envs/quad3d_payload/empty_0.yaml");
+  Problem problem1(base_path "envs/quad3d_payload/empty_0.yaml");
 
-  Problem problem2(
-    base_path "envs/quad3d_payload/empty_1.yaml");
-
+  Problem problem2(base_path "envs/quad3d_payload/empty_1.yaml");
 }
 
 BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
@@ -30,14 +27,15 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
   int nx = model->nx;
   int nu = model->nu;
 
-  Eigen::VectorXd x0(nx), u0(nu);
-  x0.setZero();
-  x0 = model->get_x0(x0);
-  u0 = model->u_0;
+  Eigen::VectorXd x_default(nx), u_default(nu);
+  x_default.setZero();
+  x_default = model->get_x0(x_default);
+  u_default = model->u_0;
 
   Eigen::VectorXd xrand(nx), urand(nu);
   xrand.setZero(); // TODO: DONE
-  xrand << 3., 3., 1., 0., 0., -1., 0., 0., 0., 0., 0. , 0., 0., 0., 0., 1., 0., 0., 0.;
+  xrand << 3., 3., 1., 0., 0., -1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0.,
+      0., 0.;
   urand << .1, 1., .5, 0;
 
   Eigen::MatrixXd Jx_diff(nx, nx), Ju_diff(nx, nu), Jx(nx, nx), Ju(nx, nu);
@@ -45,18 +43,22 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
 
   std::vector<std::pair<Eigen::VectorXd, Eigen::VectorXd>> xu_s;
 
-  xu_s.push_back({x0, u0});
+  xu_s.push_back({x_default, u_default});
   xu_s.push_back({xrand, urand});
-
 
   double dt = model->ref_dt;
 
-  for (auto &[x, u] : xu_s) {
+  for (const auto &k : xu_s) {
+    const auto &x0 = k.first;
+    const auto &u0 = k.second;
 
     for (auto &m_ptr :
          {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su}) {
       m_ptr->setZero();
     }
+
+    CSTR_V(x0);
+    CSTR_V(u0);
 
     model->calcDiffV(Jx, Ju, x0, u0);
     model->stepDiff(Sx, Su, x0, u0, dt);
@@ -85,10 +87,15 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
         },
         u0, nx, Su_diff);
 
+    std::cout << "report Jx " << std::endl;
+    approx_equal_report(Jx, Jx_diff);
+    std::cout << "report Ju " << std::endl;
+    approx_equal_report(Ju, Ju_diff);
 
-    std::cout << (Jx - Jx_diff).norm() << std::endl;
-    std::cout << (Ju - Ju_diff).norm() << std::endl;
-
+    std::cout << "report Sx " << std::endl;
+    approx_equal_report(Sx, Sx_diff);
+    std::cout << "report Su " << std::endl;
+    approx_equal_report(Su, Su_diff);
 
     BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
     BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
