@@ -9,6 +9,9 @@ struct Quad3dpayload_params {
   Quad3dpayload_params(const char *file) { read_from_yaml(file); }
   Quad3dpayload_params() = default;
 
+  double col_size_robot = .2;    // radius
+  double col_size_payload = .05; // radius
+
   double max_vel = 4;
   double max_angular_vel = 8;
 
@@ -18,10 +21,10 @@ struct Quad3dpayload_params {
   bool motor_control = true;
 
   double m = 0.034; // kg
-  
+
   double m_payload = 0.0054; // kg
-  double l_payload = 0.5; // m  Khaled DONE
-  
+  double l_payload = 0.5;    // m  Khaled DONE
+
   double g = 9.81;
   double max_f = 1.3;        // thrust to weight ratio -- Khaled DONE
   double arm_length = 0.046; // m
@@ -45,10 +48,11 @@ struct Quad3dpayload_params {
     const std::string be = "";
     const std::string af = ": ";
 
+    out << be << STR(col_size_robot, af) << std::endl;
+    out << be << STR(col_size_payload, af) << std::endl;
 
     out << be << STR(m_payload, af) << std::endl;
     out << be << STR(l_payload, af) << std::endl;
-
 
     out << be << STR(max_vel, af) << std::endl;
     out << be << STR(max_angular_vel, af) << std::endl;
@@ -90,22 +94,89 @@ struct Model_quad3dpayload : Model_robot {
   Vector19d ff; // TODO: Khaled CHECK and adapt
   Quad3dpayload_params params;
 
-
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
-    // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
-    //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
+    // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)
+    // quat(4,)     w_uav(3)]
+    //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11),
+    //         (12,13,14,15), (16, 17, 18)]
     // x.segment<6>(7).setZero();
     x.segment<6>(6).setZero();
     x.segment<3>(16).setZero();
     // NOT_IMPLEMENTED;
   }
 
+  using State_components =
+      std::tuple<Eigen::Vector3d, Eigen::Vector3d, Eigen::Vector3d,
+                 Eigen::Vector3d, Eigen::Vector4d, Eigen::Vector3d>;
 
+  void get_state_components(const Eigen::Ref<const Eigen::VectorXd> &x,
+                            State_components &out) {
+    get_payload_pos(x, std::get<0>(out));
+    get_qc(x, std::get<1>(out));
+    get_vel(x, std::get<2>(out));
+    get_wc(x, std::get<3>(out));
+    get_q(x, std::get<4>(out));
+    get_w(x, std::get<5>(out));
+  }
 
+  void get_payload_pos(const Eigen::Ref<const Eigen::VectorXd> &x,
+                       Eigen::Ref<Eigen::Vector3d> out) {
+    out = x.head<3>();
+  }
 
+  void get_qc(const Eigen::Ref<const Eigen::VectorXd> &x,
+              Eigen::Ref<Eigen::Vector3d> out) {
+    out = x.segment<3>(3);
+  }
 
+  void get_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
+               Eigen::Ref<Eigen::Vector3d> out) {
+    out = x.segment<3>(6);
+  }
 
+  void get_wc(const Eigen::Ref<const Eigen::VectorXd> &x,
+              Eigen::Ref<Eigen::Vector3d> out) {
+    out = x.segment<3>(9);
+  }
 
+  void get_q(const Eigen::Ref<const Eigen::VectorXd> &x,
+             Eigen::Ref<Eigen::Vector4d> out) {
+    out = x.segment<4>(12);
+  }
+
+  void get_w(const Eigen::Ref<const Eigen::VectorXd> &x,
+             Eigen::Ref<Eigen::Vector3d> out) {
+    out = x.segment<3>(16);
+  }
+
+  virtual void get_position_robot(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                  Eigen::Ref<Eigen::Vector3d> out) {
+    Eigen::Vector3d pp, qc;
+    get_payload_pos(x, pp);
+    get_qc(x, qc);
+    out = pp - params.l_payload * qc;
+  }
+
+  virtual void
+  get_position_center_cable(const Eigen::Ref<const Eigen::VectorXd> &x,
+                            Eigen::Ref<Eigen::Vector3d> out) {
+    Eigen::Vector3d pp, qc;
+    get_payload_pos(x, pp);
+    get_qc(x, qc);
+    out = pp - .5 * params.l_payload * qc;
+  }
+
+  // NOTE: there are infinite solutions to this problem
+  // we just take the "smallest" rotation
+  // I just way this to update the capsule orientation
+  virtual void quaternion_cable_(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                 Eigen::Ref<Eigen::Vector4d> out) {
+
+    Eigen::Vector3d from(0., 0., -1.);
+    Eigen::Vector3d to;
+    get_qc(x, to);
+    out = Eigen::Quaternion<double>::FromTwoVectors(from, to).coeffs();
+  }
 
   double arm;
   double g = 9.81;
@@ -137,17 +208,20 @@ struct Model_quad3dpayload : Model_robot {
   Model_quad3dpayload(const Model_quad3dpayload &) = default;
 
   Model_quad3dpayload(const char *file,
-               const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
-               const Eigen::VectorXd &p_ub = Eigen::VectorXd())
+                      const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+                      const Eigen::VectorXd &p_ub = Eigen::VectorXd())
       : Model_quad3dpayload(Quad3dpayload_params(file), p_lb, p_ub) {}
 
-  Model_quad3dpayload(const Quad3dpayload_params &params = Quad3dpayload_params(),
-               const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
-               const Eigen::VectorXd &p_ub = Eigen::VectorXd());
+  Model_quad3dpayload(
+      const Quad3dpayload_params &params = Quad3dpayload_params(),
+      const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+      const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
   virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
-    // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
-    //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
+    // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)
+    // quat(4,)     w_uav(3)]
+    //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11),
+    //         (12,13,14,15), (16, 17, 18)]
     xout.segment<4>(12).normalize();
     xout.segment<3>(3).normalize();
   }
@@ -171,7 +245,7 @@ struct Model_quad3dpayload : Model_robot {
                       const std::vector<Eigen::VectorXd> &xs_in,
                       const std::vector<Eigen::VectorXd> &us_in,
                       std::vector<Eigen::VectorXd> &xs_out,
-                      std::vector<Eigen::VectorXd> &us_out) override ;
+                      std::vector<Eigen::VectorXd> &us_out) override;
 
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) override {
@@ -181,8 +255,8 @@ struct Model_quad3dpayload : Model_robot {
 
   virtual size_t get_offset_dim() override {
     // Not sure what to do here
-    NOT_IMPLEMENTED; }
-
+    NOT_IMPLEMENTED;
+  }
 
   virtual void canonical_state(const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) override {
@@ -240,10 +314,7 @@ struct Model_quad3dpayload : Model_robot {
                       const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
   virtual void collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                  CollisionOut &cout)  override;
-
-
-
+                                  CollisionOut &cout) override;
 
   virtual double
   lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,

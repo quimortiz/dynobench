@@ -618,7 +618,6 @@ void Trajectories::load_file_boost(const char *file) {
 }
 
 void load_env(Model_robot &robot, const Problem &problem) {
-  std::vector<fcl::CollisionObjectd *> obstacles;
   double ref_pos = 0;
   double ref_size = 1.;
   for (const auto &obs : problem.obstacles) {
@@ -634,7 +633,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->setTranslation(fcl::Vector3d(center(0), center(1),
                                        size.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
-      obstacles.push_back(co);
+      robot.obstacles.push_back(co);
     } else if (obs_type == "sphere") {
       std::shared_ptr<fcl::CollisionGeometryd> geom;
       geom.reset(new fcl::Sphered(size(0)));
@@ -642,13 +641,13 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->setTranslation(fcl::Vector3d(
           center(0), center(1), center.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
-      obstacles.push_back(co);
+      robot.obstacles.push_back(co);
     } else {
       throw std::runtime_error("Unknown obstacle type! --" + obs_type);
     }
   }
   robot.env.reset(new fcl::DynamicAABBTreeCollisionManagerd());
-  robot.env->registerObjects(obstacles);
+  robot.env->registerObjects(robot.obstacles);
   robot.env->setup();
 }
 

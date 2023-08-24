@@ -1,11 +1,16 @@
 #include "dynobench/quadrotor_payload.hpp"
 #include "quadrotor_payload_dynamics_autogen.hpp"
 #include <fcl/geometry/shape/box.h>
+#include <fcl/geometry/shape/capsule.h>
 #include <fcl/geometry/shape/sphere.h>
 
 namespace dynobench {
 
 void Quad3dpayload_params::read_from_yaml(YAML::Node &node) {
+
+  set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
+  set_from_yaml(node, VAR_WITH_NAME(col_size_payload));
+  set_from_yaml(node, VAR_WITH_NAME(l_payload));
 
   set_from_yaml(node, VAR_WITH_NAME(m_payload));
   set_from_yaml(node, VAR_WITH_NAME(l_payload));
@@ -94,10 +99,11 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   }
 
   name = "quad3dpayload";
-  x_desc = {"xp [m]",      "yp [m]",      "zp [m]",     "qcx []",    "qcy []",
-            "qcz[]",       "vpx [m/s]",   "vpy [m/s]",  "vpz [m/s]", "wcx [rad/s]",
-            "wcy [rad/s]", "wcz [rad/s]", "qx []",      "qy []",      "qz []",     
-            "qw []",       "wx [rad/s]",  "wy [rad/s]", "wz [rad/s]"}; // Khaled: Done
+  x_desc = {"xp [m]",     "yp [m]",      "zp [m]",      "qcx []",
+            "qcy []",     "qcz[]",       "vpx [m/s]",   "vpy [m/s]",
+            "vpz [m/s]",  "wcx [rad/s]", "wcy [rad/s]", "wcz [rad/s]",
+            "qx []",      "qy []",       "qz []",       "qw []",
+            "wx [rad/s]", "wy [rad/s]",  "wz [rad/s]"}; // Khaled: Done
 
   u_desc = {"f1 []", "f2 [], f3 [], f4 []"};
 
@@ -133,22 +139,29 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
     u_ub = params.u_ub;
   }
 
-  // TODO: Khaled: DONE 
-  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
-  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
+  // TODO: Khaled: DONE
+  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,) quat(4,)
+  // w_uav(3)]
+  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11),
+  //         (12,13,14,15), (16, 17, 18)]
 
-  x_lb.segment(0, 6) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__, RM_low__;
+  x_lb.segment(0, 6) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__,
+      RM_low__;
   x_lb.segment(6, 3) << -params.max_vel, -params.max_vel, -params.max_vel;
-  x_lb.segment(9, 3) << -params.max_angular_vel, -params.max_angular_vel, -params.max_angular_vel;
+  x_lb.segment(9, 3) << -params.max_angular_vel, -params.max_angular_vel,
+      -params.max_angular_vel;
   x_lb.segment(12, 4) << RM_low__, RM_low__, RM_low__, RM_low__;
-  x_lb.segment(16, 3) << -params.max_angular_vel, -params.max_angular_vel, -params.max_angular_vel;
+  x_lb.segment(16, 3) << -params.max_angular_vel, -params.max_angular_vel,
+      -params.max_angular_vel;
 
-
-  x_ub.segment(0, 6) << RM_max__, RM_max__, RM_max__, RM_max__, RM_max__, RM_max__;
+  x_ub.segment(0, 6) << RM_max__, RM_max__, RM_max__, RM_max__, RM_max__,
+      RM_max__;
   x_ub.segment(6, 3) << params.max_vel, params.max_vel, params.max_vel;
-  x_ub.segment(9, 3) << params.max_angular_vel, params.max_angular_vel, params.max_angular_vel;
+  x_ub.segment(9, 3) << params.max_angular_vel, params.max_angular_vel,
+      params.max_angular_vel;
   x_ub.segment(12, 4) << RM_max__, RM_max__, RM_max__, RM_max__;
-  x_ub.segment(16, 3) << params.max_angular_vel, params.max_angular_vel, params.max_angular_vel;
+  x_ub.segment(16, 3) << params.max_angular_vel, params.max_angular_vel,
+      params.max_angular_vel;
 
   // some precomputation
   inverseJ_v = params.J_v.cwiseInverse();
@@ -167,15 +180,21 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   x_weightb = 50. * Vxd::Ones(19);
   x_weightb.head(7) = Eigen::VectorXd::Zero(7);
 
-  if (params.shape == "box") {
-    collision_geometries.emplace_back(std::make_shared<fcl::Boxd>(
-        params.size(0), params.size(1), params.size(2)));
-  } else if (params.shape == "sphere") {
-    collision_geometries.emplace_back(
-        std::make_shared<fcl::Sphered>(params.size(0)));
-  } else {
-    ERROR_WITH_INFO("not implemented");
-  }
+  // COLLISIONS
+
+  collision_geometries.clear();
+
+  collision_geometries.emplace_back(
+      std::make_shared<fcl::Sphered>(params.col_size_robot));
+
+  collision_geometries.emplace_back(
+      std::make_shared<fcl::Sphered>(params.col_size_payload));
+
+  collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
+      params.col_size_payload, params.l_payload));
+
+  ts_data.resize(3);
+  col_outs.resize(3);
 
   if (p_lb.size() && p_ub.size()) {
     // TODO: Khaled adjust bounds --> maybe infinite it X quadrotor is not part
@@ -194,8 +213,10 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
 
 Eigen::VectorXd Model_quad3dpayload::get_x0(const Eigen::VectorXd &x) {
   // KHALED Done
-  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
-  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
+  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,) quat(4,)
+  // w_uav(3)]
+  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11),
+  //         (12,13,14,15), (16, 17, 18)]
   CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
   Eigen::VectorXd out(nx);
   out.setZero();
@@ -217,16 +238,42 @@ void Model_quad3dpayload::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
 
 void Model_quad3dpayload::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
-  NOT_IMPLEMENTED_TODO;
+
+  {
+    Eigen::Vector3d pos_robot;
+    get_position_robot(x, pos_robot);
+    fcl::Transform3d result;
+    result = Eigen::Translation<double, 3>(pos_robot);
+    ts.at(0) = result;
+    // NO ROTATION -> it will only work with spheres
+  }
+  {
+    Eigen::Vector3d pos_payload;
+    get_payload_pos(x, pos_payload);
+    fcl::Transform3d result;
+    result = Eigen::Translation<double, 3>(pos_payload);
+    ts.at(1) = result;
+  }
+  {
+    Eigen::Vector3d pos_cable;
+    Eigen::Vector4d quat_cable;
+    get_position_center_cable(x, pos_cable);
+    // CSTR_V(pos_cable);
+    fcl::Transform3d result;
+    result = Eigen::Translation<double, 3>(pos_cable);
+    quaternion_cable_(x, quat_cable);
+    // CSTR_V(quat_cable);
+    result.rotate(Eigen::Quaterniond(quat_cable));
+    ts.at(2) = result;
+  }
 }
 
 void Model_quad3dpayload::collision_distance(
     const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout) {
 
   if (env && env->size()) {
-  NOT_IMPLEMENTED_TODO;
-  }
-  else {
+    Model_robot::collision_distance(x, cout);
+  } else {
     cout.distance = max__;
   }
 }
@@ -245,7 +292,9 @@ void Model_quad3dpayload::calcV(Eigen::Ref<Eigen::VectorXd> ff,
                                 const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   // Call a function in the autogenerated file
-  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  double data[8] = {params.m,         params.m_payload, params.J_v(0),
+                    params.J_v(1),    params.J_v(2),    params.t2t,
+                    params.l_payload, params.arm_length};
   calcFF(ff, data, x, u);
   // NOT_IMPLEMENTED_TODO;
 }
@@ -256,7 +305,9 @@ void Model_quad3dpayload::calcDiffV(
     const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   // Call a function in the autogenerated file
-  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  double data[8] = {params.m,         params.m_payload, params.J_v(0),
+                    params.J_v(1),    params.J_v(2),    params.t2t,
+                    params.l_payload, params.arm_length};
   calcJ(Jv_x, Jv_u, data, x, u);
   // NOT_IMPLEMENTED_TODO;
 }
@@ -267,7 +318,9 @@ void Model_quad3dpayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
                                double dt) {
 
   // Call a function in the autogenerated file
-  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  double data[8] = {params.m,         params.m_payload, params.J_v(0),
+                    params.J_v(1),    params.J_v(2),    params.t2t,
+                    params.l_payload, params.arm_length};
   calcStep(xnext, data, x, u, dt);
   // NOT_IMPLEMENTED_TODO;
 }
@@ -279,7 +332,9 @@ void Model_quad3dpayload::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
                                    double dt) {
 
   // Call a function in the autogenerated file
-  double data[8] = {params.m, params.m_payload, params.J_v(0), params.J_v(1), params.J_v(2), params.t2t, params.l_payload, params.arm_length};
+  double data[8] = {params.m,         params.m_payload, params.J_v(0),
+                    params.J_v(1),    params.J_v(2),    params.t2t,
+                    params.l_payload, params.arm_length};
   calcF(Fx, Fu, data, x, u, dt);
   // NOT_IMPLEMENTED_TODO;
 }

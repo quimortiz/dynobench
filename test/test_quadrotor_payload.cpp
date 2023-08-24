@@ -117,6 +117,29 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_dynamics) {
 
 BOOST_AUTO_TEST_CASE(t_quadrotor_payload_collisions) {
 
+
+  Problem problem(base_path "envs/quad3d_payload/obs_0.yaml");
+
+
+  auto robot = Model_quad3dpayload();
+  load_env(robot, problem);
+
+
+  CollisionOut col;
+  robot.collision_distance(problem.start, col);
+  std::cout << "start " << std::endl;
+  col.write(std::cout);
+  BOOST_TEST(std::abs(col.distance - .3) < 1e-4);
+
+  std::cout << "goal " << std::endl;
+  robot.collision_distance(problem.goal, col);
+  col.write(std::cout);
+  BOOST_TEST(std::abs(col.distance - .3) < 1e-4);
+
+
   // TODO: quim: create a sensible test case!
-  BOOST_TEST(false);
+  //
+  //
+  //
+  //
 }
