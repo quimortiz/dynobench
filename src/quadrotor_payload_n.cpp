@@ -1,13 +1,17 @@
-#include "dynobench/quadrotor_payload.hpp"
-#include "quadrotor_payload_dynamics_autogen.hpp"
+#include "dynobench/quadrotor_payload_n.hpp"
+#include "quadrotor_payload_dynamics_autogen_n2_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
+#include "quadrotor_payload_dynamics_autogen_n3_b.hpp" // @KHALED TODO (e.g. n=3, rigid body)
 #include <fcl/geometry/shape/box.h>
 #include <fcl/geometry/shape/capsule.h>
 #include <fcl/geometry/shape/sphere.h>
 
 namespace dynobench {
 
-void Quad3dpayload_params::read_from_yaml(YAML::Node &node) {
+void Quad3dpayload_n_params::read_from_yaml(YAML::Node &node) {
 
+  set_from_yaml(node, VAR_WITH_NAME(num_robots));
+  set_from_yaml(node, VAR_WITH_NAME(point_mass));
+  set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_payload));
   set_from_yaml(node, VAR_WITH_NAME(l_payload));
@@ -35,25 +39,20 @@ void Quad3dpayload_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(size));
 }
 
-void Quad3dpayload_params::read_from_yaml(const char *file) {
+void Quad3dpayload_n_params::read_from_yaml(const char *file) {
   std::cout << "loading file: " << file << std::endl;
   filename = file;
   YAML::Node node = YAML::LoadFile(file);
   read_from_yaml(node);
 }
 
-Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
+Model_quad3dpayload_n::Model_quad3dpayload_n(
+    const Quad3dpayload_n_params &params, const Eigen::VectorXd &p_lb,
+    const Eigen::VectorXd &p_ub)
 
-                                         const Eigen::VectorXd &p_lb,
-                                         const Eigen::VectorXd &p_ub)
-
-    : Model_robot(std::make_shared<Rn>(19), 4),
-      params(params) // nx: 19, nu: 4, Khaled: Done
+    : Model_robot(std::make_shared<Rn>(19), 4), params(params) // @KHALED TODO
 {
-
-  // TODO: KHALED adapt this (DONE)
-  // I don't know what to change here other than the u_nominal
-  // and changing the size of the weisght bounds vector
+  NOT_IMPLEMENTED_TODO; // @KHALED TODO
 
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;
@@ -66,12 +65,14 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   this->params.write(std::cout);
   std::cout << "***" << std::endl;
 
+  // TODO: @Khaled:
   if (params.motor_control) {
     u_0.setOnes();
   } else {
     u_0 << 1, 0, 0, 0;
   }
 
+  // @QUIM: fix this values
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
   nx_col = 6; // only first 6 dofs are used for collision
@@ -99,12 +100,14 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   }
 
   name = "quad3dpayload";
+  // @KHALED TODO
   x_desc = {"xp [m]",     "yp [m]",      "zp [m]",      "qcx []",
             "qcy []",     "qcz[]",       "vpx [m/s]",   "vpy [m/s]",
             "vpz [m/s]",  "wcx [rad/s]", "wcy [rad/s]", "wcz [rad/s]",
             "qx []",      "qy []",       "qz []",       "qw []",
             "wx [rad/s]", "wy [rad/s]",  "wz [rad/s]"}; // Khaled: Done
 
+  // @KHaled TODO
   u_desc = {"f1 []", "f2 [], f3 [], f4 []"};
 
   Fu_selection.setZero();
@@ -140,11 +143,6 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   }
 
   // TODO: Khaled: DONE
-  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,) quat(4,)
-  // w_uav(3)]
-  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11),
-  //         (12,13,14,15), (16, 17, 18)]
-
   x_lb.segment(0, 6) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__,
       RM_low__;
   x_lb.segment(6, 3) << -params.max_vel, -params.max_vel, -params.max_vel;
@@ -182,19 +180,20 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
 
   // COLLISIONS
 
+  // @QUIM TODO
   collision_geometries.clear();
 
   collision_geometries.emplace_back(
-      std::make_shared<fcl::Sphered>(params.col_size_robot));
-
-  collision_geometries.emplace_back(
       std::make_shared<fcl::Sphered>(params.col_size_payload));
-
-  collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
-      params.col_size_payload, params.l_payload));
-
-  ts_data.resize(3);
-  col_outs.resize(3);
+  for (size_t i = 0; i < params.num_robots; i++) {
+    collision_geometries.emplace_back(
+        std::make_shared<fcl::Sphered>(params.col_size_robot));
+    // @QUIM TODO - shorter collision body
+    collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
+        params.col_size_payload, params.l_payload));
+  }
+  ts_data.resize(2 * params.num_robots + 1);
+  col_outs.resize(2 * params.num_robots + 1);
 
   if (p_lb.size() && p_ub.size()) {
     // TODO: Khaled adjust bounds --> maybe infinite it X quadrotor is not part
@@ -211,23 +210,12 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   // __Jv_u.setZero(); // KHALED Done
 }
 
-Eigen::VectorXd Model_quad3dpayload::get_x0(const Eigen::VectorXd &x) {
-  // KHALED Done
-  // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,) quat(4,)
-  // w_uav(3)]
-  //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11),
-  //         (12,13,14,15), (16, 17, 18)]
-  CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
-  Eigen::VectorXd out(nx);
-  out.setZero();
-  out.head(3) = x.head(3);
-  out(5) = -1.;
-  out(15) = 1.;
-  return out;
-  // NOT_IMPLEMENTED_TODO;
+Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
+  // @KHALED  TODO
+  NOT_IMPLEMENTED_TODO;
 }
 
-void Model_quad3dpayload::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
+void Model_quad3dpayload_n::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
   NOT_IMPLEMENTED;
   // (void)x;
   // x = x_lb + (x_ub - x_lb)
@@ -236,49 +224,26 @@ void Model_quad3dpayload::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
   // x.segment(3, 4) = Eigen::Quaterniond::UnitRandom().coeffs();
 }
 
-void Model_quad3dpayload::transformation_collision_geometries(
+void Model_quad3dpayload_n::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  {
-    Eigen::Vector3d pos_robot;
-    get_position_robot(x, pos_robot);
-    fcl::Transform3d result;
-    result = Eigen::Translation<double, 3>(pos_robot);
-    ts.at(0) = result;
-    // NO ROTATION -> it will only work with spheres
-  }
-  {
-    Eigen::Vector3d pos_payload;
-    get_payload_pos(x, pos_payload);
-    fcl::Transform3d result;
-    result = Eigen::Translation<double, 3>(pos_payload);
-    ts.at(1) = result;
-  }
-  {
-    Eigen::Vector3d pos_cable;
-    Eigen::Vector4d quat_cable;
-    get_position_center_cable(x, pos_cable);
-    // CSTR_V(pos_cable);
-    fcl::Transform3d result;
-    result = Eigen::Translation<double, 3>(pos_cable);
-    quaternion_cable_(x, quat_cable);
-    // CSTR_V(quat_cable);
-    result.rotate(Eigen::Quaterniond(quat_cable));
-    ts.at(2) = result;
-  }
+  // @QUIM TODO
+  NOT_IMPLEMENTED_TODO;
 }
 
-void Model_quad3dpayload::collision_distance(
+void Model_quad3dpayload_n::collision_distance(
     const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout) {
+  // @QUIM TODO
+  NOT_IMPLEMENTED_TODO;
 
-  if (env && env->size()) {
-    Model_robot::collision_distance(x, cout);
-  } else {
-    cout.distance = max__;
-  }
+  // if (env && env->size()) {
+  //   Model_robot::collision_distance(x, cout);
+  // } else {
+  //   cout.distance = max__;
+  // }
 }
 
-void Model_quad3dpayload::transform_primitive(
+void Model_quad3dpayload_n::transform_primitive(
     const Eigen::Ref<const Eigen::VectorXd> &p,
     const std::vector<Eigen::VectorXd> &xs_in,
     const std::vector<Eigen::VectorXd> &us_in,
@@ -287,19 +252,40 @@ void Model_quad3dpayload::transform_primitive(
   NOT_IMPLEMENTED;
 }
 
-void Model_quad3dpayload::calcV(Eigen::Ref<Eigen::VectorXd> ff,
-                                const Eigen::Ref<const Eigen::VectorXd> &x,
-                                const Eigen::Ref<const Eigen::VectorXd> &u) {
+void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
+                                  const Eigen::Ref<const Eigen::VectorXd> &x,
+                                  const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   // Call a function in the autogenerated file
   double data[8] = {params.m,         params.m_payload, params.J_v(0),
                     params.J_v(1),    params.J_v(2),    params.t2t,
                     params.l_payload, params.arm_length};
-  calcFF(ff, data, x, u);
   // NOT_IMPLEMENTED_TODO;
+
+  if (params.num_robots == 1 && params.point_mass) {
+  // calcFFA(ff, data, x, u);
+
+  } else if (params.num_robots == 2 && params.point_mass) {
+  // calcFFB(ff, data, x, u);
+  } else if (params.num_robots == 3 && params.point_mass) {
+  }
+
+  else if (params.num_robots == 1 && !params.point_mass) {
+
+  }
+
+  else if (params.num_robots == 2 && !params.point_mass) {
+
+  }
+
+
+  else if (params.num_robots == 3 && !params.point_mass) {
+  } else {
+    NOT_IMPLEMENTED;
+  }
 }
 
-void Model_quad3dpayload::calcDiffV(
+void Model_quad3dpayload_n::calcDiffV(
     Eigen::Ref<Eigen::MatrixXd> Jv_x, Eigen::Ref<Eigen::MatrixXd> Jv_u,
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &u) {
@@ -308,47 +294,111 @@ void Model_quad3dpayload::calcDiffV(
   double data[8] = {params.m,         params.m_payload, params.J_v(0),
                     params.J_v(1),    params.J_v(2),    params.t2t,
                     params.l_payload, params.arm_length};
-  calcJ(Jv_x, Jv_u, data, x, u);
-  // NOT_IMPLEMENTED_TODO;
+  NOT_IMPLEMENTED_TODO;
+  if (params.num_robots == 1 && params.point_mass) {
+
+  } else if (params.num_robots == 2 && params.point_mass) {
+  } else if (params.num_robots == 3 && params.point_mass) {
+  }
+
+  else if (params.num_robots == 1 && !params.point_mass) {
+
+  }
+
+  else if (params.num_robots == 2 && !params.point_mass) {
+
+  }
+
+
+  else if (params.num_robots == 3 && !params.point_mass) {
+  } else {
+    NOT_IMPLEMENTED;
+  }
 }
 
-void Model_quad3dpayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
-                               const Eigen::Ref<const Eigen::VectorXd> &x,
-                               const Eigen::Ref<const Eigen::VectorXd> &u,
-                               double dt) {
+
+void Model_quad3dpayload_n::step(Eigen::Ref<Eigen::VectorXd> xnext,
+                                 const Eigen::Ref<const Eigen::VectorXd> &x,
+                                 const Eigen::Ref<const Eigen::VectorXd> &u,
+                                 double dt) {
 
   // Call a function in the autogenerated file
   double data[8] = {params.m,         params.m_payload, params.J_v(0),
                     params.J_v(1),    params.J_v(2),    params.t2t,
                     params.l_payload, params.arm_length};
-  calcStep(xnext, data, x, u, dt);
-  // NOT_IMPLEMENTED_TODO;
+  // calcStep(xnext, data, x, u, dt);
+  NOT_IMPLEMENTED_TODO;
+
+  if (params.num_robots == 1 && params.point_mass) {
+
+  } else if (params.num_robots == 2 && params.point_mass) {
+  } else if (params.num_robots == 3 && params.point_mass) {
+  }
+
+  else if (params.num_robots == 1 && !params.point_mass) {
+
+  }
+
+  else if (params.num_robots == 2 && !params.point_mass) {
+
+  }
+
+
+  else if (params.num_robots == 3 && !params.point_mass) {
+  } else {
+    NOT_IMPLEMENTED;
+  }
+
+
+
 }
 
-void Model_quad3dpayload::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
-                                   Eigen::Ref<Eigen::MatrixXd> Fu,
-                                   const Eigen::Ref<const Eigen::VectorXd> &x,
-                                   const Eigen::Ref<const Eigen::VectorXd> &u,
-                                   double dt) {
+void Model_quad3dpayload_n::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
+                                     Eigen::Ref<Eigen::MatrixXd> Fu,
+                                     const Eigen::Ref<const Eigen::VectorXd> &x,
+                                     const Eigen::Ref<const Eigen::VectorXd> &u,
+                                     double dt) {
 
   // Call a function in the autogenerated file
   double data[8] = {params.m,         params.m_payload, params.J_v(0),
                     params.J_v(1),    params.J_v(2),    params.t2t,
                     params.l_payload, params.arm_length};
-  calcF(Fx, Fu, data, x, u, dt);
+  // calcF(Fx, Fu, data, x, u, dt);
   // NOT_IMPLEMENTED_TODO;
+
+  NOT_IMPLEMENTED_TODO;
+  //
+
+  if (params.num_robots == 1 && params.point_mass) {
+
+  } else if (params.num_robots == 2 && params.point_mass) {
+  } else if (params.num_robots == 3 && params.point_mass) {
+  }
+
+  else if (params.num_robots == 1 && !params.point_mass) {
+
+  }
+
+  else if (params.num_robots == 2 && !params.point_mass) {
+
+  }
+
+
+  else if (params.num_robots == 3 && !params.point_mass) {
+  } else {
+    NOT_IMPLEMENTED;
+  }
 }
 
 double
-Model_quad3dpayload::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                              const Eigen::Ref<const Eigen::VectorXd> &y) {
-  // NOT_IMPLEMENTED
+Model_quad3dpayload_n::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                const Eigen::Ref<const Eigen::VectorXd> &y) {
+  NOT_IMPLEMENTED
   // TODO QUIM
   // return 0.;
-  return (x-y).norm();
 }
 
-void Model_quad3dpayload::interpolate(
+void Model_quad3dpayload_n::interpolate(
     Eigen::Ref<Eigen::VectorXd> xt,
     const Eigen::Ref<const Eigen::VectorXd> &from,
     const Eigen::Ref<const Eigen::VectorXd> &to, double dt) {
@@ -357,30 +407,30 @@ void Model_quad3dpayload::interpolate(
 
 double
 
-Model_quad3dpayload::lower_bound_time(
+Model_quad3dpayload_n::lower_bound_time(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
 
   NOT_IMPLEMENTED;
 }
 
-double Model_quad3dpayload::lower_bound_time_pr(
+double Model_quad3dpayload_n::lower_bound_time_pr(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
 
   NOT_IMPLEMENTED;
 }
 
-double Model_quad3dpayload::lower_bound_time_vel(
+double Model_quad3dpayload_n::lower_bound_time_vel(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
 
   NOT_IMPLEMENTED;
-  std::array<double, 2> maxs = {
-      (x.segment<3>(7) - y.segment<3>(7)).norm() / params.max_acc,
-      (x.segment<3>(10) - y.segment<3>(10)).norm() / params.max_angular_acc};
-
-  return *std::max_element(maxs.cbegin(), maxs.cend());
+  // std::array<double, 2> maxs = {
+  //     (x.segment<3>(7) - y.segment<3>(7)).norm() / params.max_acc,
+  //     (x.segment<3>(10) - y.segment<3>(10)).norm() / params.max_angular_acc};
+  //
+  // return *std::max_element(maxs.cbegin(), maxs.cend());
 }
 
 } // namespace dynobench

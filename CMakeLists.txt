@@ -35,7 +35,8 @@ add_library(
   ./src/planar_rotor_pole.cpp
   ./src/car2.cpp
   ./src/integrator2_2d.cpp
-  ./src/quadrotor_payload.cpp)
+  ./src/quadrotor_payload.cpp
+  ./src/quadrotor_payload_n.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
 

@@ -2,10 +2,37 @@
 
 #include "dynobench/motions.hpp"
 #include "dynobench/quadrotor_payload.hpp"
+#include "dynobench/quadrotor_payload_n.hpp"
 
 #define base_path "../../"
 
 using namespace dynobench;
+
+
+BOOST_AUTO_TEST_CASE(t_hello_quadrotor_payload_n) {
+
+  std::cout << "Hello Khaled" << std::endl;
+dynobench::Quad3dpayload_n_params params;
+  params.point_mass = true;
+  params.num_robots = 2;
+
+  auto model = mk<dynobench::Model_quad3dpayload_n>(params);
+  Eigen::VectorXd x0 = Eigen::VectorXd::Zero(model->nx);
+
+
+  Eigen::MatrixXd Fx(model->nx,model->nx);
+  Eigen::MatrixXd Fu(model->nx,model->nu);
+  Fx.setZero();
+  Fu.setZero();
+
+  Eigen::VectorXd xnext(model->nx);
+  model->step(xnext,x0,model->u_0, model->ref_dt);
+  model->stepDiff( Fx, Fu, x0, model->u_0, model->ref_dt);
+
+
+}
+
+
 
 BOOST_AUTO_TEST_CASE(t_hello_quadrotor_payload) {
 
