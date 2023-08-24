@@ -146,7 +146,7 @@ def createSyms(num_uavs=2, payloadType='point'):
     cableSt = [list(sp.symbols('qc[{}][0] qc[{}][1] qc[{}][2] wc[{}][0] wc[{}][1] wc[{}][2]'.format(i,i,i,i,i,i))) for i in range(num_uavs)]
 
     # uav rotational states: quaternions, angular velocities, dim: 7n
-    uavSt = [list(sp.symbols('q[{}][0] q[{}][1] q[{}][2] q[{}][3] w[{}][0] wy[{}][1] wz[{}][2]'.format(i,i,i,i,i,i,i))) for i in range(num_uavs)]
+    uavSt = [list(sp.symbols('q[{}][0] q[{}][1] q[{}][2] q[{}][3] w[{}][0] w[{}][1] w[{}][2]'.format(i,i,i,i,i,i,i))) for i in range(num_uavs)]
 
     if payloadType == "point":
         state = [x, y, z, vx, vy, vz, *cableSt, *uavSt]
@@ -168,16 +168,42 @@ def createSyms(num_uavs=2, payloadType='point'):
     return state, action, params
 
 
+def writePython(step):
+
+    header = r"""import numpy as np """ + "\n" + "\n" + "def step(state, action, params, dt):" + "\n"
+    params = "   m, mp, l, num_uavs = params\n"
+    state_curr = r"""
+       pos = state[0:3]
+       vel = state[3:6]
+       qc  = state[6:6+num_uavs]
+       wc  = state[]"""
+    step_func = "   step_next = np.empty({},)\n".format(step.rows)
+   
+    for i in range(step.rows):
+        step_func += "   step_next[{}] = {}\n".format(i,sp.pycode(sp.simplify(step[i])))
+    
+    footer = "\n   return step_next.tolist()"
+    with open("step.py", "w") as file:
+        file.write(header)
+        file.write(params)
+        file.write(step_func)
+        file.write(footer)
 
 def main():
 
     state, action, params = createSyms()
     data = (state, action, params)
+
     f = computef(*data)
     Jx, Ju = computeJ(f, *data)
     step = computeStep(f, *data)
     Fx, Fu = computeF(step, *data)
 
-
+    # write python script
+    write_python = False
+    if write_python: 
+        writePython(step)        
+    # write C script (NOT IMPLEMENTED)
+    simplify = False
 if __name__ == "__main__":
     main()
