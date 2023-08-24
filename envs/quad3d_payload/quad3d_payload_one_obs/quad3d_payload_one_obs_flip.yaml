@@ -9,6 +9,8 @@ environment:
       size:   [1., 1., 1.] #[l,w,h]
 robots:
   - type: quad3dpayload
+    l: [0.5] # This must be a list
+    quadsNum: 1 # number of robots  
     # state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)    quat(4,)     w_uav(3)]
     #         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11), (12,13,14,15), (16, 17, 18)]
     start: [0., 0., 0., 0., 0., -1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 1., 0., 0., 0.] 
