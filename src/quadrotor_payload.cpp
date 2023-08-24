@@ -74,7 +74,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
 
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
-  nx_col = 7;
+  nx_col = 6; // only first 6 dofs are used for collision
   nx_pr = 7;
   is_2d = false;
 
