@@ -328,7 +328,6 @@ void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
 
   if (env && env->size()) {
 
-    fcl::DefaultDistanceData<double> distance_data;
 
     // compute all tansforms
 
@@ -339,6 +338,7 @@ void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
     assert(collision_geometries.size() == col_outs.size());
 
     for (size_t i = 0; i < collision_geometries.size(); i++) {
+    fcl::DefaultDistanceData<double> distance_data;
 
       fcl::Transform3d &result = ts_data[i];
       assert(collision_geometries[i]);
