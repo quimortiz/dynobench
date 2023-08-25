@@ -120,8 +120,18 @@ class Visualizer():
         state = self.env["robots"][0]["start"]
         self.QuadPayloadRobot.updateFullState(state)
         self.updateVis(state,"start")
+    def draw_traces(self,result):
+        # trace payload:
+        print(result.shape)
+        payload = np.transpose(result[:,:3])
+        print(payload.shape)
+        self.vis["trace_payload"].set_object(g.Line(g.PointsGeometry(payload), g.LineBasicMaterial()))
 
+        qc = np.transpose(result[:,3:6])
 
+        quad_pos = payload - 0.5 * qc
+
+        self.vis["trace_quad"].set_object(g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
 
 
     def _addQuadsPayload(self, prefix: str = "", color_name: str = ""):
@@ -227,9 +237,16 @@ def quad3dpayload_meshcatViewer():
 
         with open(pathtoresult, 'r') as file:
             path = yaml.safe_load(file)
-        states = path['result']['states']
+
+        if "states" in path:
+            states = path['states']
+        elif "result" in path:
+            states = path['result']['states']
+        else: 
+            raise NotImplementedError("unknown result format")
 
         visualizer._addQuadsPayload()
+        visualizer.draw_traces(np.array(states))
 
         while True:
             for state in states:
