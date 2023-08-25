@@ -85,8 +85,17 @@ class QuadPayloadRobot():
         quad._updateState(quad_state)
         return quad
 
+
+DnametoColor = {
+    "red" : 0xff0000,
+    "green" : 0x00ff00,
+    "blue" : 0x0000ff,
+    "yellow" : 0xffff00,
+    "white" : 0xffffff,
+}
+
 class Visualizer():
-    def __init__(self, QuadPayloadRobot, obstacles):
+    def __init__(self, QuadPayloadRobot, env):
         self.vis = meshcat.Visualizer()
         self.vis["/Cameras/default"].set_transform(
         tf.translation_matrix([0.5, 0, 0]).dot(
@@ -95,15 +104,32 @@ class Visualizer():
             tf.translation_matrix([-2, 0, 2.5]))
   
         self.QuadPayloadRobot = QuadPayloadRobot
-        self._addQuadsPayload()
-        self._setObstacles(obstacles)
+        # self._addQuadsPayload()
+        self._setObstacles(env["environment"]["obstacles"])
+        self.env = env
+        self.__setGoal()
+        self.__setStart()
 
-    def _addQuadsPayload(self):
+    def __setGoal(self):
+        self._addQuadsPayload("goal", "red")
+        state = self.env["robots"][0]["goal"]
+        self.QuadPayloadRobot.updateFullState(state)
+        self.updateVis(state,"goal")
+    def __setStart(self):
+        self._addQuadsPayload("start", "green")
+        state = self.env["robots"][0]["start"]
+        self.QuadPayloadRobot.updateFullState(state)
+        self.updateVis(state,"start")
+
+
+
+
+    def _addQuadsPayload(self, prefix: str = "", color_name: str = ""):
         self.quads = self.QuadPayloadRobot.quads
         self.payload = self.QuadPayloadRobot.payload
         if self.payload.shape == "quad3dpayload":    
-            self.vis[self.payload.shape].set_object(g.Mesh(g.Sphere(0.02), 
-                                    g.MeshLambertMaterial(color=0xff11dd)))
+            self.vis[prefix + self.payload.shape].set_object(g.Mesh(g.Sphere(0.02), 
+                                    g.MeshLambertMaterial(DnametoColor.get(color_name, 0xff11dd))))
         elif self.payload.shape == "point":
             # THIS FOR MULTIPLE UAVs FOR POINTMASS PAYLOAD
             # different state order
@@ -121,8 +147,12 @@ class Visualizer():
             exit()
 
         for name in self.quads.keys():
-            self.vis[name].set_object(g.StlMeshGeometry.from_file('cf2_assembly.stl'))
+            self.vis[prefix + name].set_object(g.StlMeshGeometry.from_file('cf2_assembly.stl'), 
+                    g.MeshLambertMaterial(color= DnametoColor.get(color_name,0xffffff)))
     
+
+
+
     def _setObstacles(self, obstacles):
         for idx, obstacle in enumerate(obstacles): 
             obsMat = g.MeshLambertMaterial(opacity=0.5, color=0x008000)
@@ -137,32 +167,32 @@ class Visualizer():
                 self.vis["obstacle"+str(idx)].set_object(g.Mesh(g.Box(size), material=obsMat))
                 self.vis["obstacle"+str(idx)].set_transform(tf.translation_matrix(center))
     
-    def updateVis(self, state):
+    def updateVis(self, state, prefix: str = ""):
         self.QuadPayloadRobot.updateFullState(state)
         payloadSt = self.payload.state
         # color of the payload trajectory
         point_color = np.array([1.0, 1.0, 1.0])
         full_state = np.array(self.payload.state_ap, dtype=np.float64)[:,0:3].T
-        self.vis['points'].set_object(g.Points(
+        self.vis[prefix + 'points'].set_object(g.Points(
             g.PointsGeometry(full_state, color=point_color),
             g.PointsMaterial(size=0.01)
         ))
         if self.payload.shape == "quad3dpayload" or self.payload.shape == "point":
-            self.vis[self.payload.shape].set_transform(
+            self.vis[prefix + self.payload.shape].set_transform(
                     tf.translation_matrix(payloadSt).dot(
                         tf.quaternion_matrix([1,0,0,0])))
         else:
-            self.vis[self.payload.shape].set_transform(
+            self.vis[prefix + self.payload.shape].set_transform(
                     tf.translation_matrix(payloadSt[0:3]).dot(
                         tf.quaternion_matrix(payloadSt[3:7])))
             
         for name, quad in self.quads.items():
-            self.vis[name].set_transform(
+            self.vis[prefix + name].set_transform(
                     tf.translation_matrix(quad.state[0:3]).dot(
                         tf.quaternion_matrix(quad.state[3:7])))
             cablePos = np.linspace(payloadSt[0:3], quad.state[0:3], num=2).T
             cableMat  = g.LineBasicMaterial(linewidth=1, color=0x000000)
-            self.vis["cable_"+name].set_object(g.Line(g.PointsGeometry(cablePos), material=cableMat))
+            self.vis[prefix + "cable_"+name].set_object(g.Line(g.PointsGeometry(cablePos), material=cableMat))
         
 
 
@@ -175,12 +205,9 @@ def quad3dpayload_meshcatViewer():
     
     args   = parser.parse_args()
     pathtoenv = args.env
-    pathtoresult = args.result
     robotname = args.robot
     with open(pathtoenv, "r") as file:
         env = yaml.safe_load(file)
-    with open(pathtoresult, 'r') as file:
-        path = yaml.safe_load(file)
     
     pType   = robotname 
     quadNum = env["robots"][0]["quadsNum"]
@@ -189,15 +216,29 @@ def quad3dpayload_meshcatViewer():
     goal     = env["robots"][0]["goal"]
     obstacles = env["environment"]["obstacles"]
     quadsPayload = QuadPayloadRobot(quadNum=quadNum, pType=pType)
-    states = path['result']['states']
 
-    visualizer = Visualizer(quadsPayload, obstacles)
+    visualizer = Visualizer(quadsPayload, env)
     if args.interactive == True:     
         visualizer.vis.open()
-    while True: 
-        for state in states:
-            visualizer.updateVis(state)
-            time.sleep(0.01)
+
+    pathtoresult = args.result
+
+    if args.result is not None:
+
+        with open(pathtoresult, 'r') as file:
+            path = yaml.safe_load(file)
+        states = path['result']['states']
+
+        visualizer._addQuadsPayload()
+
+        while True:
+            for state in states:
+                visualizer.updateVis(state)
+                time.sleep(0.01)
+    else: 
+        name = input("press any key on terminal to close: ")
+        print("closing")
+
         
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
