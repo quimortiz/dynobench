@@ -399,7 +399,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
         Eigen::Vector2d J_vx = params.J_vx;
         Eigen::Vector2d J_vy = params.J_vy;
         Eigen::Vector2d J_vz = params.J_vz;
-        double arm_length = params.arms_length;
+        double arm_length = params.arm_length;
         double t2t = params.t2t;""".format(num_uavs, num_uavs, num_uavs, num_uavs, num_uavs)
     )
     ####### fff vector)
