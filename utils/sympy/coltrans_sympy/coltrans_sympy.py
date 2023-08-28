@@ -40,6 +40,9 @@ def computeStep(f, *data):
     num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt, B = params
     state = flatten_symbolic_structure(state)
     stepFunc = sp.Matrix(state) + f * dt
+    for i in range(0,3*num_uavs, 3):
+        qc_norm = sp.simplify(qvnormalize(sp.Matrix(stepFunc[6 + 2*i : 6+ 2*i + 3])))
+        stepFunc[6+2*i : 6 + 2*i+3,:] = qc_norm
     for i in range(0,7*num_uavs, 7):
         qint_norm = qnormalize(sp.Matrix(stepFunc[6+6*num_uavs+i : 6+6*num_uavs+ i + 4]))
         stepFunc[6+6*num_uavs+i : 6+6*num_uavs+ i + 4,:] = qint_norm
@@ -180,7 +183,7 @@ def computef(*data):
             
             uavSti = uavSt[c_idx]
             q = qnormalize(sp.Matrix(uavSti[0:4])) 
-            
+            # exit()
             eta = B[c_idx]*sp.Matrix(action[c_idx])
             fu = sp.Matrix([0,0,eta[0]])
             u_i = sp.Matrix(quat_qvrot(q,fu)) 
@@ -258,7 +261,7 @@ def computef(*data):
 
     return f
 
-def createSyms(num_uavs=1, payloadType='point'):
+def createSyms(num_uavs=1, payloadType='point', writeC=False):
     # uavs parameter symbols
     mi = [sp.symbols("m[{}]".format(i)) for i in range(num_uavs)] # mass of each uav
     Jv = [list(sp.symbols("J_vx[{}] J_vy[{}] J_vz[{}]".format(i,i,i))) for i in range(num_uavs)]
@@ -270,10 +273,10 @@ def createSyms(num_uavs=1, payloadType='point'):
     # paylaod parameter symbols
     mp = sp.symbols('mp')
     if payloadType == "point":
+        Ixx, Iyy, Izz = sp.symbols('np.nan, np.nan, np.nan')    
+    elif payloadType == "rigid": 
         # payload inertia matrix
         Ixx, Iyy, Izz = sp.symbols('Jp[0] Jp[1] Jp[2]')
-    elif payloadType == "rigid": 
-        Ixx, Iyy, Izz = sp.symbols('np.nan, np.nan, np.nan')    
     else: 
         print('Wrong payload type! Choose either point or rigid')
 
@@ -287,23 +290,35 @@ def createSyms(num_uavs=1, payloadType='point'):
     params = [num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt]
     # States: 
     # paylaod states: position, quaternion, velocity, angular velocity dim: 13 (point mass 6)
-    x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('pos[0] pos[1] pos[2]  qp[0] qp[1] qp[2] qw[3]\
-                                                                        vel[0] vel[1] vel[2] wpx  wpy wpz')
-    # cable states: cable unit directional vector, angular velocity, dim: 6n
-    cableSt = [list(sp.symbols('qc[{}][0] qc[{}][1] qc[{}][2] wc[{}][0] wc[{}][1] wc[{}][2]'.format(i,i,i,i,i,i))) for i in range(num_uavs)]
+    if writeC: 
+        if payloadType == "point":
 
-    # uav rotational states: quaternions, angular velocities, dim: 7n
-    uavSt = [list(sp.symbols('q[{}][0] q[{}][1] q[{}][2] q[{}][3] w[{}][0] w[{}][1] w[{}][2]'.format(i,i,i,i,i,i,i))) for i in range(num_uavs)]
-
+            x, y, z, vx, vy, vz = sp.symbols('x(0) x(1) x(2) x(3) x(4) x(5)')
+            cableSt = [list(sp.symbols('x({}) x({}) x({}) x({}) x({}) x({})'.format(i,i+1, i+2, i+3, i+4, i+5))) for i in range(6,6+6*num_uavs, 6)]
+            uavSt   = [list(sp.symbols('x({}) x({}) x({}) x({}) x({}) x({}) x({})'.format(i,i+1, i+2, i+3, i+4, i+5, i+6))) for i in range(6+6*num_uavs, 6+6*num_uavs+7*num_uavs, 7)]
+            action  = [list(sp.symbols('u({}) u({}) u({}) u({})'.format(i,i+1,i+2,i+3))) for i in range(0,4*num_uavs,4)]
+        elif payloadType == "rigid":
+            x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('x(0) x(1) x(2)  x(3) x(4) x(5) x(6)\
+                                                                        x(7) x(8) x(9) x(10) x(11) x(12)')
+    else: #WRITE SYMBOLS FOR PYTHON
+        x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('pos[0] pos[1] pos[2]  qp[0] qp[1] qp[2] qw[3]\
+                                                                            vel[0] vel[1] vel[2] wpx  wpy wpz')
+        # cable states: cable unit directional vector, angular velocity, dim: 6n
+        cableSt = [list(sp.symbols('qc[{}][0] qc[{}][1] qc[{}][2] wc[{}][0] wc[{}][1] wc[{}][2]'.format(i,i,i,i,i,i))) for i in range(num_uavs)]
+        
+        # uav rotational states: quaternions, angular velocities, dim: 7n
+        uavSt = [list(sp.symbols('q[{}][0] q[{}][1] q[{}][2] q[{}][3] w[{}][0] w[{}][1] w[{}][2]'.format(i,i,i,i,i,i,i))) for i in range(num_uavs)]
+        # action
+        action = [list(sp.symbols('u[{}][0] u[{}][1] u[{}][2] u[{}][3]'.format(i,i,i,i))) for i in range(num_uavs)]
+    
     if payloadType == "point":
         state = [x, y, z, vx, vy, vz, *cableSt, *uavSt]
     elif payloadType == "rigid":
         state = [x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz, *cableSt, *uavSt]
     else: 
         print('Wrong payload type! Choose either point or rigid')
-
+        exit()
     # action 
-    action = [list(sp.symbols('u[{}][0] u[{}][1] u[{}][2] u[{}][3]'.format(i,i,i,i))) for i in range(num_uavs)]
 
     B = []
     B0 = sp.Matrix([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
@@ -350,28 +365,176 @@ def writePython(step, num_uavs, payloadType):
     
     footer = "\n    return step_next.tolist()"
     with open("step2.py", "w") as file:
-        print("WRITING")
         file.write(header)
         file.write(stPr)
         file.write(step_func)
         file.write(footer)
 
+
+def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
+    state, action, params = data
+    num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt, B = params
+    # state = flatten_symbolic_structure(state)
+    # action = flatten_symbolic_structure(action)
+    now = datetime.now()  # current date and time
+    date_time = now.strftime("%Y-%m-%d--%H-%M-%S")
+    headerInclude = r"""#include "dynobench/quadrotor_payload_n.hpp" """ + "\n"
+    headerf = (
+    r"""void inline calcFF{}(Eigen::Ref<Eigen::VectorXd> ff, const Quad3dpayload_n_params &params,
+                                const Eigen::Ref<const Eigen::VectorXd> &x,
+                                const Eigen::Ref<const Eigen::VectorXd> &u) {{""".format(chr(num_uavs + ord('A') - 1))
+            + "\n"
+            + r"// Auto generated "
+            + date_time
+            + " from sympy"
+    )
+    assign_data = (
+    r"""
+        double m[{}] = params.m;
+        double mp = params.m_payload;
+        double l[{}] = params.l_payload;
+        double J_vx[{}] = params.J_vx;
+        double J_vy[{}] = params.J_vy;
+        double J_vz[{}] = params.J_vz;
+        double arm_length = params.arms_length;
+        double t2t = params.t2t;""".format(num_uavs, num_uavs, num_uavs, num_uavs, num_uavs)
+    )
+    ####### fff vector)
+    f_code = """\n"""
+    for i in range(f.rows):
+        if simplify: 
+            f_code += "        ff({}) = {};\n".format(i, sp.ccode(sp.simplify(f[i])))
+        else:
+            f_code += "        ff({}) = {};\n".format(i, sp.ccode(f[i]))
+
+    footer = "\n}\n\n" 
+
+    ###### JX, JU ##########3
+    headerJx = (
+    r"""void inline calcJ{}(Eigen::Ref<Eigen::MatrixXd> Jv_x, 
+                                Eigen::Ref<Eigen::MatrixXd> Jv_u, const Quad3dpayload_n_params &params,
+                                const Eigen::Ref<const Eigen::VectorXd> &x,
+                                const Eigen::Ref<const Eigen::VectorXd> &u) {{""".format(chr(num_uavs + ord('A') - 1))
+    )
+    Jx_code = """\n"""
+    for i in range(Jx.rows):
+                    for j in range(Jx.cols):
+                            if Jx[i,j] != 0:
+                                if simplify:
+                                    Jx_code += "        Jv_x({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Jx[i,j])))
+                                else:
+                                    Jx_code += "        Jv_x({},{}) = {};\n".format(i,j, sp.ccode(Jx[i,j]))
+
+    Ju_code = """\n"""
+    for i in range(Ju.rows):
+                    for j in range(Ju.cols):
+                            if Ju[i,j] != 0:
+                                if simplify:
+                                    Ju_code += "        Jv_u({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Ju[i,j])))
+                                else:
+                                    Ju_code += "        Jv_u({},{}) = {};\n".format(i,j, sp.ccode(Ju[i,j]))
+
+    ####################### FX, FU  ##############################
+
+    headerFx = (
+    r"""void inline calcF{}(Eigen::Ref<Eigen::MatrixXd> Fx,
+                                Eigen::Ref<Eigen::MatrixXd> Fu, const Quad3dpayload_n_params &params,
+                                const Eigen::Ref<const Eigen::VectorXd> &x,
+                                const Eigen::Ref<const Eigen::VectorXd> &u,
+                                double dt) {{""".format(chr(num_uavs + ord('A') - 1))
+    )
+
+    Fx_code = """\n"""
+    for i in range(Fx.rows):
+                    for j in range(Fx.cols):
+                            if Fx[i,j] != 0:
+                                if simplify:
+                                    Fx_code += "        Fx({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Fx[i,j])))
+                                else:
+                                    Fx_code += "        Fx({},{}) = {};\n".format(i,j, sp.ccode(Fx[i,j]))
+                                    
+    Fu_code = """\n"""
+    for i in range(Fu.rows):
+                    for j in range(Fu.cols):
+                            if Fu[i,j] != 0:
+                                if simplify:
+                                    Fu_code += "        Fu({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Fu[i,j])))
+                                else:
+                                    Fu_code += "        Fu({},{}) = {};\n".format(i,j, sp.ccode(Fu[i,j]))
+
+    ########################## STEP #######################################
+
+    headerStep = (
+    r"""void inline calcStep{}(Eigen::Ref<Eigen::VectorXd> xnext, const Quad3dpayload_n_params &params,
+                                const Eigen::Ref<const Eigen::VectorXd> &x,
+                                const Eigen::Ref<const Eigen::VectorXd> &u, double dt) {{""".format(chr(num_uavs + ord('A') - 1))
+    )
+    step_code = """\n"""
+
+    for i in range(step.rows):
+        if simplify:
+            step_code += "        xnext({}) = {};\n".format(i,sp.ccode(sp.simplify(step[i])))
+        else:
+            step_code += "        xnext({}) = {};\n".format(i,sp.ccode(step[i]))
+
+
+    ############################################################################################
+    
+    if payloadType == "point":
+        tp = "p"
+    else:
+        tp = "b"
+    with open("../../../src/quadrotor_payload_dynamics_autogen_n{}_{}.hpp".format(num_uavs,tp), "w") as file:
+        file.write(headerInclude)
+        file.write(headerf)
+        file.write(assign_data)
+        file.write(f_code)
+        file.write(footer)
+        file.write(headerJx)
+        file.write(assign_data)
+        file.write(Jx_code) 
+        file.write(Ju_code) 
+        file.write(footer)
+        file.write(headerFx)
+        file.write(assign_data)
+        file.write(Fx_code) 
+        file.write(Fu_code) 
+        file.write(footer)
+        file.write(headerStep)
+        file.write(assign_data)
+        file.write(step_code)
+        file.write(footer)
+
+    return 0
+
+
 def main():
-    num_uavs =  2
-    payloadType = "point"
-    state, action, params = createSyms(num_uavs=num_uavs, payloadType=payloadType)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--writeC", action="store_true", help="generate c code")  # on/off flag: write yaml file
+    parser.add_argument("--num_uavs", type=int, default=2, help="number of  uavs")
+    parser.add_argument("--ptype", default="point",  type=str, help="payload type: point or rigid")
+    args   = parser.parse_args()   
+
+    num_uavs =  args.num_uavs
+    payloadType = args.ptype
+    # write c code flag
+    writeC = args.writeC
+
+    state, action, params = createSyms(num_uavs=num_uavs, payloadType=payloadType, writeC=writeC)
     data = (state, action, params)
 
     f = computef(*data)
     Jx, Ju = computeJ(f, *data)
     step = computeStep(f, *data)
     Fx, Fu = computeF(step, *data)
+# def writeC(*data, f, Jx, Ju, Fx, Fu, simplify=False):
 
-    # write python script
-    write_python = True
-    if write_python: 
-        writePython(step, num_uavs, payloadType)        
-    # write C script (NOT IMPLEMENTED)
+    if writeC: 
+        simplify = False
+        # write C script (NOT IMPLEMENTED)
+        writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=simplify)
+    else:
+        writePython(step, num_uavs, payloadType)
     simplify = False
 if __name__ == "__main__":
     main()
