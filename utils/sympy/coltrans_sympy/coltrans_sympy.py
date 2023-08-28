@@ -292,6 +292,9 @@ def createSyms(num_uavs=1, payloadType='point', writeC=False):
     # paylaod states: position, quaternion, velocity, angular velocity dim: 13 (point mass 6)
     if writeC: 
         if payloadType == "point":
+            mi = [sp.symbols("m({})".format(i)) for i in range(num_uavs)] # mass of each uav
+            Jv = [list(sp.symbols("J_vx({}) J_vy({}) J_vz({})".format(i,i,i))) for i in range(num_uavs)]
+            Ji = [list(sp.Matrix([Jv[i][0], Jv[i][1], Jv[i][2]])) for i in range(num_uavs)]
 
             x, y, z, vx, vy, vz = sp.symbols('x(0) x(1) x(2) x(3) x(4) x(5)')
             cableSt = [list(sp.symbols('x({}) x({}) x({}) x({}) x({}) x({})'.format(i,i+1, i+2, i+3, i+4, i+5))) for i in range(6,6+6*num_uavs, 6)]
@@ -390,12 +393,12 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
     )
     assign_data = (
     r"""
-        double m[{}] = params.m;
+        Eigen::Vector2d m = params.m;
         double mp = params.m_payload;
-        double l[{}] = params.l_payload;
-        double J_vx[{}] = params.J_vx;
-        double J_vy[{}] = params.J_vy;
-        double J_vz[{}] = params.J_vz;
+        Eigen::Vector2d l = params.l_payload;
+        Eigen::Vector2d J_vx = params.J_vx;
+        Eigen::Vector2d J_vy = params.J_vy;
+        Eigen::Vector2d J_vz = params.J_vz;
         double arm_length = params.arms_length;
         double t2t = params.t2t;""".format(num_uavs, num_uavs, num_uavs, num_uavs, num_uavs)
     )
@@ -485,7 +488,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
     else:
         tp = "b"
     with open("../../../src/quadrotor_payload_dynamics_autogen_n{}_{}.hpp".format(num_uavs,tp), "w") as file:
-        file.write(headerInclude)
+        # file.write(headerInclude)
         file.write(headerf)
         file.write(assign_data)
         file.write(f_code)
