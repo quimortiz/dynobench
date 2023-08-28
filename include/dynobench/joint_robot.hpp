@@ -7,10 +7,10 @@ namespace dynobench {
 
 struct Joint_robot_params{
     Joint_robot_params() = default;
-    double double_integrator_max_vel = 1;
-    double double_integrator_min_vel = -1;
-    double double_integrator_max_acc = 1;
-    double double_integrator_min_acc = -1;
+    double double_integrator_max_vel = 0.5;
+    double double_integrator_min_vel = -0.5;
+    double double_integrator_max_acc = 2; // for the demo
+    double double_integrator_min_acc = -2; // for the demo
 
     double single_integrator_max_vel = 0.5;
     double single_integrator_min_vel = -0.5;
@@ -34,6 +34,7 @@ struct Joint_robot_params{
     Eigen::Vector2d size = Eigen::Vector2d(.5, .25); 
     Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5); 
     double radius = 0.1;
+    double big_radius = 0.40;
     std::string shape = "box";
     double dt = .1;
 };
