@@ -34,6 +34,7 @@ struct Joint_robot_params{
     Eigen::Vector2d size = Eigen::Vector2d(.5, .25); 
     Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5); 
     double radius = 0.1;
+    double big_radius = 0.40;
     std::string shape = "box";
     double dt = .1;
 };
