@@ -10,7 +10,7 @@ struct Quad3dpayload_n_params {
   Quad3dpayload_n_params() = default;
 
 
-  int num_robots = 1;
+  int num_robots = 2;
   bool point_mass = true;
 
   double col_size_robot = .2;    // radius
@@ -27,16 +27,26 @@ struct Quad3dpayload_n_params {
 
   bool motor_control = true;
 
-  double m = 0.034; // kg
+  Eigen::Vector2d m = Eigen::Vector2d(0.034, 0.034); // kg
+  // Eigen::VectorXd m(2); 
+  // m << 0.034, 0.034; // kg
 
   double m_payload = 0.0054; // kg
-  double l_payload = 0.5;    // m  Khaled DONE
+  Eigen::Vector2d l_payload = Eigen::Vector2d(0.5, 0.5);    // m  Khaled DONE
 
   double g = 9.81;
   double max_f = 1.3;        // thrust to weight ratio -- Khaled DONE
   double arm_length = 0.046; // m
   double t2t = 0.006;        // thrust-to-torque ratio
   double dt = .01;
+  
+  Eigen::Vector2d J_vx = Eigen::Vector2d(16.571710e-6, 16.571710e-6);
+  
+  Eigen::Vector2d J_vy = Eigen::Vector2d(16.655602e-6, 16.655602e-6);
+  
+  Eigen::Vector2d J_vz = Eigen::Vector2d(29.261652e-6, 29.261652e-6);
+  
+
   std::string shape = "sphere";
   Eigen::Vector4d distance_weights = Eigen::Vector4d(1, 1, .1, .1);
   Eigen::Vector4d u_ub;
@@ -95,13 +105,14 @@ struct Model_quad3dpayload_n : Model_robot {
   virtual ~Model_quad3dpayload_n() = default;
 
   // KHALED: is this even necessary?
-  struct Data {
-    Eigen::Vector3d f_u;
-    Eigen::Vector3d tau_u;
-    Eigen::VectorXd xnext;  // remember to allocate memory in constructor!
-    Matrix34 Jx;
-    Eigen::Matrix3d Ja;
-  } data;
+  // I don't think this is necessary. I dont use this in any of the models
+  // struct Data {
+  //   Eigen::Vector3d f_u;
+  //   Eigen::Vector3d tau_u;
+  //   Eigen::VectorXd xnext;  // remember to allocate memory in constructor!
+  //   Matrix34 Jx;
+  //   Eigen::Matrix3d Ja;
+  // } data;
 
   Eigen::VectorXd ff; //TODO: remember to allocate memory in constructor!
   Quad3dpayload_n_params params;
