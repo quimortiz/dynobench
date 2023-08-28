@@ -1,14 +1,14 @@
 void inline calcFFB(Eigen::Ref<Eigen::VectorXd> ff, const Quad3dpayload_n_params &params,
                                 const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &u) {
-// Auto generated 2023-08-28--19-05-46 from sympy
+// Auto generated 2023-08-29--01-15-36 from sympy
         Eigen::Vector2d m = params.m;
         double mp = params.m_payload;
         Eigen::Vector2d l = params.l_payload;
         Eigen::Vector2d J_vx = params.J_vx;
         Eigen::Vector2d J_vy = params.J_vy;
         Eigen::Vector2d J_vz = params.J_vz;
-        double arm_length = params.arms_length;
+        double arm_length = params.arm_length;
         double t2t = params.t2t;
         ff(0) = x(3);
         ff(1) = x(4);
@@ -55,7 +55,7 @@ void inline calcJB(Eigen::Ref<Eigen::MatrixXd> Jv_x,
         Eigen::Vector2d J_vx = params.J_vx;
         Eigen::Vector2d J_vy = params.J_vy;
         Eigen::Vector2d J_vz = params.J_vz;
-        double arm_length = params.arms_length;
+        double arm_length = params.arm_length;
         double t2t = params.t2t;
         Jv_x(0,3) = 1;
         Jv_x(1,4) = 1;
@@ -431,7 +431,7 @@ void inline calcFB(Eigen::Ref<Eigen::MatrixXd> Fx,
         Eigen::Vector2d J_vx = params.J_vx;
         Eigen::Vector2d J_vy = params.J_vy;
         Eigen::Vector2d J_vz = params.J_vz;
-        double arm_length = params.arms_length;
+        double arm_length = params.arm_length;
         double t2t = params.t2t;
         Fx(0,0) = 1;
         Fx(0,3) = dt;
@@ -845,7 +845,7 @@ void inline calcStepB(Eigen::Ref<Eigen::VectorXd> xnext, const Quad3dpayload_n_p
         Eigen::Vector2d J_vx = params.J_vx;
         Eigen::Vector2d J_vy = params.J_vy;
         Eigen::Vector2d J_vz = params.J_vz;
-        double arm_length = params.arms_length;
+        double arm_length = params.arm_length;
         double t2t = params.t2t;
         xnext(0) = dt*x(3) + x(0);
         xnext(1) = dt*x(4) + x(1);
