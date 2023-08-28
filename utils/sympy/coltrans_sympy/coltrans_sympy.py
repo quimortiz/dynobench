@@ -144,7 +144,6 @@ def testJ(f, Jx, Ju, *data):
                 print(i,j)
     print("Jx_diff and Jx are the same")
 
-    exit()
     # test for 2 uavs: 
 
 def computeJ(f, *data):
@@ -154,7 +153,9 @@ def computeJ(f, *data):
     action = flatten_symbolic_structure(action)
     Jx = f.jacobian(state)
     Ju = f.jacobian(action)
-    testJ(f, Jx, Ju, *data)
+    test = False
+    if test:  
+        testJ(f, Jx, Ju, *data)
     return Jx, Ju
 
 def computef(*data):
