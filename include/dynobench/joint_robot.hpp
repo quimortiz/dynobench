@@ -7,10 +7,10 @@ namespace dynobench {
 
 struct Joint_robot_params{
     Joint_robot_params() = default;
-    double double_integrator_max_vel = 1;
-    double double_integrator_min_vel = -1;
-    double double_integrator_max_acc = 1;
-    double double_integrator_min_acc = -1;
+    double double_integrator_max_vel = 0.5;
+    double double_integrator_min_vel = -0.5;
+    double double_integrator_max_acc = 2; // for the demo
+    double double_integrator_min_acc = -2; // for the demo
 
     double single_integrator_max_vel = 0.5;
     double single_integrator_min_vel = -0.5;

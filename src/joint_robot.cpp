@@ -24,7 +24,7 @@ void Joint_robot::get_x_lb(const std::vector<std::string> &robot_types,
       k += 4;
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       xlb(k) = RM_low__;
-      k += 1;
+      k += 3;
     } else if (t == "single_integrator_0") {
       xlb(k) = low__;
       xlb(k + 1) = low__;
@@ -50,7 +50,7 @@ void Joint_robot::get_x_ub(const std::vector<std::string> &robot_types,
       k += 4;
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       xub(k) = RM_max__;
-      k += 1;
+      k += 3;
     } else if (t == "single_integrator_0") {
       xub(k) = max__;
       xub(k + 1) = max__;
@@ -97,8 +97,7 @@ void Joint_robot::get_collision_geometries(
   for (auto t : robot_types) {
     if (t == "double_integrator_0" || t == "single_integrator_0") {
       col_geom.push_back(std::make_shared<fcl::Sphered>(params.radius));
-    } 
-    if (t == "unicycle_first_order_0_sphere") {
+    } else if (t == "unicycle_first_order_0_sphere") {
       col_geom.push_back(std::make_shared<fcl::Sphered>(params.big_radius));
     } else if (t == "unicycle_first_order_0") {
       col_geom.push_back(
