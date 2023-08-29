@@ -48,26 +48,41 @@ class QuadPayloadRobot():
         self.payload = Payload(self.pType)
 
     def updateFullState(self, state):
-        if self.payload.shape == "quad3dpayload":
-            self.state = state.copy()
-            _state = state.copy() # this is useful for the multiple uavs 
-        elif self.payload.shape == "point":
-            # THIS FOR MULTIPLE UAVs FOR POINTMASS PAYLOAD
-            # NOT IMPLEMENTED
-            print('NOT IMPLEMENTED, please use payload type as point')
-            exit()
-        elif self.payload.shape == "rigid":
-            # THIS IS FOR MULTIPLE UAVS WITH RIGID PAYLOAD
-            # NOT IMPLEMENTED
-            print('NOT IMPLEMENTED, please use payload type as point')
-            exit()
-        else:
-            print("Payload type doesn't exist")
-            exit()
+        _state = np.empty(19,)
+        num_uavs = self.quadNum
+        for name, quad in self.quads.items():
+            if self.payload.shape == "quad3dpayload":
+                self.state = state.copy()
+                _state = state.copy() # this is useful for the multiple uavs 
+            elif self.payload.shape == "point":
+                # THIS FOR MULTIPLE UAVs FOR POINTMASS PAYLOAD: 
+                # state that defines UAV state: p_load, qc, v_load, wc, quat, w
+                qcwcs = state[6:6+6*num_uavs]
+                quatws = state[6+6*num_uavs:6+6*num_uavs+7*num_uavs]
+                i   = 6*int(name)
+                qc = qcwcs[i: i + 3]
+                wc = qcwcs[i+3: i + 6]
+                j = 7*int(name)
+                quat = quatws[j:j+4]
+                w = quatws[j+4:j+7]
+                _state[0:3] = state[0:3]
+                _state[3:6] = qc
+                _state[6:9] = state[3:6]
+                _state[9:12] = wc
+                _state[12:16] = quat
+                _state[16:19] = w
 
-        self.payload._updateState(state)
-        for name,quad in self.quads.items():
+            elif self.payload.shape == "rigid":
+                # THIS IS FOR MULTIPLE UAVS WITH RIGID PAYLOAD
+                # NOT IMPLEMENTED
+                print('NOT IMPLEMENTED, please use payload type as point')
+                exit()
+            else:
+                print("Payload type doesn't exist")
+                exit()
+
             self.quads[name] = self._updateRobotState(quad, _state)
+        self.payload._updateState(state)
         
     def _updateRobotState(self, quad, state):
         # position, quaternion, velocity, angular velocity
@@ -115,37 +130,39 @@ class Visualizer():
         state = self.env["robots"][0]["goal"]
         self.QuadPayloadRobot.updateFullState(state)
         self.updateVis(state,"goal")
+    
     def __setStart(self):
         self._addQuadsPayload("start", "green")
         state = self.env["robots"][0]["start"]
         self.QuadPayloadRobot.updateFullState(state)
         self.updateVis(state,"start")
-    def draw_traces(self,result):
+    
+    def draw_traces(self,result, quadNum, pType, l):
         # trace payload:
-        print(result.shape)
-        payload = np.transpose(result[:,:3])
-        print(payload.shape)
+        payload = result[:,:3].T
         self.vis["trace_payload"].set_object(g.Line(g.PointsGeometry(payload), g.LineBasicMaterial()))
 
-        qc = np.transpose(result[:,3:6])
+        if pType == "quad3dpayload":
+            qc = result[:,3:6].T
+            quad_pos = payload - 0.5 * qc
+            self.vis["trace_quad"].set_object(g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
+        elif pType == "point":
+            qcwcs = result[:, 6:6+6*quadNum]
+            for i in range(quadNum):
+                print(i, 6*i, 6*i+3)
+                qc = qcwcs[:, 6*i: 6*i+3].T
+                print(qc.shape)
+                quad_pos = payload - l[i] * qc
 
-        quad_pos = payload - 0.5 * qc
-
-        self.vis["trace_quad"].set_object(g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
+                self.vis["trace_quad"+str(i)].set_object(g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
 
 
     def _addQuadsPayload(self, prefix: str = "", color_name: str = ""):
         self.quads = self.QuadPayloadRobot.quads
         self.payload = self.QuadPayloadRobot.payload
-        if self.payload.shape == "quad3dpayload":    
+        if self.payload.shape == "quad3dpayload" or self.payload.shape == "point":    
             self.vis[prefix + self.payload.shape].set_object(g.Mesh(g.Sphere(0.02), 
                                     g.MeshLambertMaterial(DnametoColor.get(color_name, 0xff11dd))))
-        elif self.payload.shape == "point":
-            # THIS FOR MULTIPLE UAVs FOR POINTMASS PAYLOAD
-            # different state order
-            # NOT IMPLEMENTED
-            print('NOT IMPLEMENTED, please use payload type as point')
-            exit()
         elif self.payload.shape == "rigid":
             # THIS IS FOR MULTIPLE UAVS WITH RIGID PAYLOAD
             # different state order
@@ -159,7 +176,9 @@ class Visualizer():
         for name in self.quads.keys():
             self.vis[prefix + name].set_object(g.StlMeshGeometry.from_file('cf2_assembly.stl'), 
                     g.MeshLambertMaterial(color= DnametoColor.get(color_name,0xffffff)))
-    
+
+            self.vis[prefix + name + "_sphere"].set_object(g.Mesh(g.Sphere(0.1), 
+                g.MeshLambertMaterial(opacity=0.1))) # safety distance
 
 
 
@@ -203,12 +222,13 @@ class Visualizer():
             cablePos = np.linspace(payloadSt[0:3], quad.state[0:3], num=2).T
             cableMat  = g.LineBasicMaterial(linewidth=1, color=0x000000)
             self.vis[prefix + "cable_"+name].set_object(g.Line(g.PointsGeometry(cablePos), material=cableMat))
-        
+            self.vis[prefix + name + "_sphere"].set_transform(tf.translation_matrix(quad.state[0:3]))
+
 
 
 def quad3dpayload_meshcatViewer():    
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot', type=str, help="robot model: quad3dpayload, (point rigid: for n robots)")
+    parser.add_argument('--robot', type=str, help="robot model: quad3dpayload, (point, rigid: for n robots)")
     parser.add_argument('--env', type=str, help="environment")
     parser.add_argument('--result', type=str, help="result trajectory")
     parser.add_argument("-i", "--interactive", action="store_true")  # on/off flag
@@ -246,7 +266,7 @@ def quad3dpayload_meshcatViewer():
             raise NotImplementedError("unknown result format")
 
         visualizer._addQuadsPayload()
-        visualizer.draw_traces(np.array(states))
+        visualizer.draw_traces(np.array(states), quadNum, pType, l)
 
         while True:
             for state in states:
