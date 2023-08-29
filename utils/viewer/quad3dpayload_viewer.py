@@ -6,7 +6,9 @@ import time
 import meshcat
 import meshcat.geometry as g
 import meshcat.transformations as tf
+import viewer_utils
 import argparse
+import matplotlib.pyplot as plt
 
 class Quad():
     def __init__(self, name, l):
@@ -246,6 +248,31 @@ def quad3dpayload_meshcatViewer():
     goal     = env["robots"][0]["goal"]
     obstacles = env["environment"]["obstacles"]
     quadsPayload = QuadPayloadRobot(quadNum=quadNum, pType=pType)
+
+
+
+    fig, (ax1, ax2) = plt.subplots(2)
+
+
+    if args.result is not None:
+
+
+        with open(args.result, 'r') as file:
+            path = yaml.safe_load(file)
+
+
+        print("path")
+        print(path)
+        if "states" in path and "actions" in path:
+            path = path
+        else:
+            path = path["result"]
+
+
+        viewer_utils.plot_traj_default(
+            (ax1,ax2),path, labels_x=None, labels_u=None)
+
+        plt.show()
 
     visualizer = Visualizer(quadsPayload, env)
     if args.interactive == True:     

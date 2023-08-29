@@ -210,6 +210,13 @@ struct Rn : StateQ {
 
 struct Model_robot {
 
+
+
+  virtual std::map<std::string, std::vector<double>> get_info(const Eigen::Ref<const Eigen::VectorXd>  &x)  {
+    return {};
+  }
+
+
   size_t nx;
   size_t nu;
   size_t nx_pr; // the first nx_pr components are about position/orientation
@@ -217,6 +224,7 @@ struct Model_robot {
 
   size_t nr_reg;
   size_t nr_ineq;
+  Eigen::VectorXd goal_weight; // overload this to set the goal weight -- ohterwise, vector of ones
 
   bool invariance_reuse_col_shape = true;
   bool is_2d;

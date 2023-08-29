@@ -67,6 +67,7 @@ PYBIND11_MODULE(robot_python, m) {
       .def("lower_bound_time", &Model_robot::lower_bound_time)
       .def("collision_distance", &Model_robot::collision_distance)
       .def("collision_distance_diff", &Model_robot::collision_distance_diff)
+      .def("get_info", &Model_robot::get_info)
       .def("transformation_collision_geometries",
            &Model_robot::transformation_collision_geometries);
 

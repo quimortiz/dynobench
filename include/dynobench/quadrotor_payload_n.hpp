@@ -2,13 +2,20 @@
 #include "dynobench/for_each_macro.hpp"
 #include "dynobench/robot_models_base.hpp"
 
+inline Eigen::VectorXd create_vector(const std::vector<double> &v) {
+  Eigen::VectorXd out(v.size());
+  for (size_t i = 0; i < v.size(); ++i) {
+    out(i) = v[i];
+  }
+  return out;
+}
+
 namespace dynobench {
 
 struct Quad3dpayload_n_params {
 
   Quad3dpayload_n_params(const char *file) { read_from_yaml(file); }
   Quad3dpayload_n_params() = default;
-
 
   int num_robots = 2;
   bool point_mass = true;
@@ -27,26 +34,26 @@ struct Quad3dpayload_n_params {
 
   bool motor_control = true;
 
-  Eigen::Vector2d m = Eigen::Vector2d(0.034, 0.034); // kg
+  Eigen::VectorXd m = create_vector({0.034, 0.034}); // kg
+  // Eigen::Vector2d(0.034, 0.034); // kg
   // This can't be done here, it needs to be defined in the constructor
   // Eigen::VectorXd m(2);
   // m << 0.034, 0.034; // kg
 
-  double m_payload = 0.0054; // kg
-  Eigen::Vector2d l_payload = Eigen::Vector2d(0.5, 0.5);    // m  Khaled DONE
+  double m_payload = 0.0054;                             // kg
+  Eigen::Vector2d l_payload = Eigen::Vector2d(0.5, 0.5); // m  Khaled DONE
 
   double g = 9.81;
   double max_f = 1.3;        // thrust to weight ratio -- Khaled DONE
   double arm_length = 0.046; // m
   double t2t = 0.006;        // thrust-to-torque ratio
   double dt = .01;
-  
+
   Eigen::Vector2d J_vx = Eigen::Vector2d(16.571710e-6, 16.571710e-6);
-  
+
   Eigen::Vector2d J_vy = Eigen::Vector2d(16.655602e-6, 16.655602e-6);
-  
+
   Eigen::Vector2d J_vz = Eigen::Vector2d(29.261652e-6, 29.261652e-6);
-  
 
   std::string shape = "sphere";
   Eigen::Vector4d distance_weights = Eigen::Vector4d(1, 1, .1, .1);
@@ -68,8 +75,6 @@ struct Quad3dpayload_n_params {
 
     out << be << STR(point_mass, af) << std::endl;
     out << be << STR(num_robots, af) << std::endl;
-
-
 
     out << be << STR(col_size_robot, af) << std::endl;
     out << be << STR(col_size_payload, af) << std::endl;
@@ -115,7 +120,7 @@ struct Model_quad3dpayload_n : Model_robot {
   //   Eigen::Matrix3d Ja;
   // } data;
 
-  Eigen::VectorXd ff; //TODO: remember to allocate memory in constructor!
+  Eigen::VectorXd ff; // TODO: remember to allocate memory in constructor!
   Quad3dpayload_n_params params;
 
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
@@ -129,51 +134,49 @@ struct Model_quad3dpayload_n : Model_robot {
   }
 
   void get_qc_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
-              Eigen::Ref<Eigen::Vector3d> out) {
+                Eigen::Ref<Eigen::Vector3d> out) {
     // NOT_IMPLEMENTED_TODO; // @KHALED
     // This is for pointmass payload only, if rigid body --> 13+3*i
-    int qc_idx =6+6*i;
+    int qc_idx = 6 + 6 * i;
     out = x.segment(qc_idx, 3);
   }
 
   void get_payload_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
-               Eigen::Ref<Eigen::Vector3d> out) {
+                       Eigen::Ref<Eigen::Vector3d> out) {
     // NOT_IMPLEMENTED_TODO; // @KHALED
-    out = x.segment(3,3);
+    out = x.segment(3, 3);
   }
 
-  void get_wc_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i , 
-              Eigen::Ref<Eigen::Vector3d> out) {
+  void get_wc_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
+                Eigen::Ref<Eigen::Vector3d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
     // NOT_IMPLEMENTED_TODO; // @KHALED
     // 6 for payload pos and vel + 6*i + 3 (for 2 uavs: 3, 9)
-    int wc_idx = 6 + 6*i + 3;
-    out = x.segment(wc_idx,3);
+    int wc_idx = 6 + 6 * i + 3;
+    out = x.segment(wc_idx, 3);
   }
 
   void get_payload_q(const Eigen::Ref<const Eigen::VectorXd> &x,
-             Eigen::Ref<Eigen::Vector4d> out) {
-    NOT_IMPLEMENTED_TODO; // @KHALED: This is for the rigid case: Not implemented now
-
+                     Eigen::Ref<Eigen::Vector4d> out) {
+    NOT_IMPLEMENTED_TODO; // @KHALED: This is for the rigid case: Not
+                          // implemented now
   }
 
   void get_payload_w(const Eigen::Ref<const Eigen::VectorXd> &x,
-             Eigen::Ref<Eigen::Vector3d> out) {
-    NOT_IMPLEMENTED_TODO; // @KHALED: RIGID Payload 
+                     Eigen::Ref<Eigen::Vector3d> out) {
+    NOT_IMPLEMENTED_TODO; // @KHALED: RIGID Payload
   }
 
-
-  void get_robot_w_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i, 
-             Eigen::Ref<Eigen::Vector3d> out) {
+  void get_robot_w_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
+                     Eigen::Ref<Eigen::Vector3d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
     // NOT_IMPLEMENTED_TODO; // @KHALED
-    int w_idx =6+6*params.num_robots+7*i+3;
-    out = x.segment(w_idx,3);
+    int w_idx = 6 + 6 * params.num_robots + 7 * i + 3;
+    out = x.segment(w_idx, 3);
   }
 
   virtual void get_position_robot_i(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                    int i , 
-                                  Eigen::Ref<Eigen::Vector3d> out) {
+                                    int i, Eigen::Ref<Eigen::Vector3d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
     // NOT_IMPLEMENTED_TODO; // @KHALED
     // WE NEED  THE LENGTH OF THE CABLES HERE
@@ -182,16 +185,15 @@ struct Model_quad3dpayload_n : Model_robot {
     get_payload_pos(x, payload_pos);
     Eigen::Vector3d qc;
     get_qc_i(x, i, qc);
-    out = payload_pos - qc*0.5;
-
+    out = payload_pos - qc * 0.5;
   }
 
-  virtual void get_orientation_robot_i(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                    int i , 
-                                  Eigen::Ref<Eigen::Vector4d> out) {
+  virtual void
+  get_orientation_robot_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
+                          Eigen::Ref<Eigen::Vector4d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
     // NOT_IMPLEMENTED_TODO; // @KHALED
-    int q_idx =6+6*params.num_robots+7*i;
+    int q_idx = 6 + 6 * params.num_robots + 7 * i;
     out = x.segment(q_idx, 4);
   }
 
@@ -202,20 +204,19 @@ struct Model_quad3dpayload_n : Model_robot {
     // NOT_IMPLEMENTED_TODO; // @KHALED
     // Also we need the length of the cable here
     // Assume it is 0.5
-    // 
+    //
     Eigen::Vector3d payload_pos;
     get_payload_pos(x, payload_pos);
     Eigen::Vector3d qc;
     get_qc_i(x, i, qc);
-    out = payload_pos - qc*0.5*0.5;
-
+    out = payload_pos - qc * 0.5 * 0.5;
   }
 
   // NOTE: there are infinite solutions to this problem
   // we just take the "smallest" rotation
   // I just way this to update the capsule orientation
-  virtual void quaternion_cable_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
-                                 Eigen::Ref<Eigen::Vector4d> out) {
+  virtual void quaternion_cable_i(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                  int i, Eigen::Ref<Eigen::Vector4d> out) {
 
     CHECK_LEQ(i, params.num_robots - 1, "");
     Eigen::Vector3d from(0., 0., -1.);
@@ -254,14 +255,17 @@ struct Model_quad3dpayload_n : Model_robot {
   Model_quad3dpayload_n(const Model_quad3dpayload_n &) = default;
 
   Model_quad3dpayload_n(const char *file,
-                      const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
-                      const Eigen::VectorXd &p_ub = Eigen::VectorXd())
+                        const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+                        const Eigen::VectorXd &p_ub = Eigen::VectorXd())
       : Model_quad3dpayload_n(Quad3dpayload_n_params(file), p_lb, p_ub) {}
 
   Model_quad3dpayload_n(
       const Quad3dpayload_n_params &params = Quad3dpayload_n_params(),
       const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
       const Eigen::VectorXd &p_ub = Eigen::VectorXd());
+
+  virtual std::map<std::string, std::vector<double>>
+  get_info(const Eigen::Ref<const Eigen::VectorXd> &x) override; 
 
   virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
     // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)
@@ -271,9 +275,9 @@ struct Model_quad3dpayload_n : Model_robot {
     // xout.segment<4>(12).normalize();
     // xout.segment<3>(3).normalize();
 
-    for (int i = 0 ; i < params.num_robots ; ++i) {
-      xout.segment(6+6*i,3).normalize();
-      xout.segment(6+6*params.num_robots+7*i,4).normalize();
+    for (int i = 0; i < params.num_robots; ++i) {
+      xout.segment(6 + 6 * i, 3).normalize();
+      xout.segment(6 + 6 * params.num_robots + 7 * i, 4).normalize();
     }
   }
 
