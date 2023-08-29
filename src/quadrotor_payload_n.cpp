@@ -67,7 +67,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   // TODO: @Khaled:
   if (params.motor_control) {
-    u_0.setOnes();
+    u_0.setOnes(4*params.num_robots);
   } else {
     u_0 << 1, 0, 0, 0;
   }
@@ -83,7 +83,11 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   distance_weights = params.distance_weights;
 
   arm = 0.707106781 * params.arm_length;
-  // There was an error here so I had to change this to params.m(0)
+  // There was an error here so I had to change this to params.m(0) 
+  //-- I am still not sure if this correct or not:
+  // I implemented the same way in the coltrans_sympy but u_nominal is per UAV:
+  // i.e., (params.m(i)+ params.m_payload)*g/4
+  // it will not matter in this case since we are using same mass, but it will if different masses where used
   u_nominal = (params.m(0) + params.m_payload) * g / 4.; // now u is between [0,1]
 
   if (params.motor_control) {
@@ -101,7 +105,8 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   }
 
   name = "quad3dpayload_n";
-  // @KHALED TODO: DONE: note that the cable states are per uav: [qc_0, wc_0, qc_1, wc_1]
+  // @KHALED: DONE:
+  // note that the cable states are per uav: [qc_0, wc_0, qc_1, wc_1]
   // Also for the uavs: [quat1, w1, quat2, w2]
   x_desc = {"xp [m]",   "yp [m]",  "zp [m]", "vpx [m/s]",   "vpy [m/s]",   "vpz [m/s]"  ,   
             "qcx []",   "qcy []",  "qcz[]",  "wcx [rad/s]", "wcy [rad/s]", "wcz [rad/s]",
@@ -144,25 +149,25 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
     u_ub = params.u_ub;
   }
 
-  // TODO: Khaled:
+  // TODO: Khaled: DONE 
   // payload pos and vel lower bounds
   x_lb.segment(0, 6) << RM_low__, RM_low__, RM_low__,-params.max_vel, -params.max_vel, -params.max_vel;
+  
+  for (int i = 0; i < params.num_robots; ++i) {
+    x_lb.segment(6 + 6*i, 3) << RM_low__, RM_low__, RM_low__; // cable directional vec
+    x_lb.segment(6 + 6*i + 3, 3) << -params.max_angular_vel, -params.max_angular_vel, -params.max_angular_vel; // cable ang vel
+    x_lb.segment(6 + 6*params.num_robots + 7*i, 4) << RM_low__, RM_low__, RM_low__, RM_low__; // uav qaut
+    x_lb.segment(6 + 6*params.num_robots + 7*i + 3, 3) << -params.max_angular_vel, -params.max_angular_vel, -params.max_angular_vel; // uav ang vel
+  }
 
-  x_lb.segment(6, 3) << -params.max_vel, -params.max_vel, -params.max_vel;
-  x_lb.segment(9, 3) << -params.max_angular_vel, -params.max_angular_vel,
-      -params.max_angular_vel;
-  x_lb.segment(12, 4) << RM_low__, RM_low__, RM_low__, RM_low__;
-  x_lb.segment(16, 3) << -params.max_angular_vel, -params.max_angular_vel,
-      -params.max_angular_vel;
-
-  x_ub.segment(0, 6) << RM_max__, RM_max__, RM_max__, RM_max__, RM_max__,
-      RM_max__;
-  x_ub.segment(6, 3) << params.max_vel, params.max_vel, params.max_vel;
-  x_ub.segment(9, 3) << params.max_angular_vel, params.max_angular_vel,
-      params.max_angular_vel;
-  x_ub.segment(12, 4) << RM_max__, RM_max__, RM_max__, RM_max__;
-  x_ub.segment(16, 3) << params.max_angular_vel, params.max_angular_vel,
-      params.max_angular_vel;
+  x_ub.segment(0, 6) << RM_max__, RM_max__, RM_max__,params.max_vel, params.max_vel, params.max_vel;
+  
+  for (int i = 0; i < params.num_robots; ++i) {
+    x_ub.segment(6 + 6*i, 3) << RM_max__, RM_max__, RM_max__;
+    x_ub.segment(6 + 6*i + 3, 3) << params.max_angular_vel, params.max_angular_vel, params.max_angular_vel;
+    x_ub.segment(6 + 6*params.num_robots + 7*i, 4) << RM_max__, RM_max__, RM_max__, RM_max__;
+    x_ub.segment(6 + 6*params.num_robots + 7*i + 3, 3) << params.max_angular_vel, params.max_angular_vel, params.max_angular_vel;
+  }
 
   // some precomputation
   inverseJ_v = params.J_v.cwiseInverse();
@@ -215,7 +220,19 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
 Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
   // @KHALED  TODO
-  NOT_IMPLEMENTED_TODO;
+  // NOT_IMPLEMENTED_TODO;
+  CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+  Eigen::VectorXd out(nx);
+  out.setZero();
+  out.head(6) = x.head(6);
+  size_t c_idx = 6;
+  for (size_t i = 0; i < params.num_robots; ++i) { 
+    out.segment(c_idx + 6*i, 3)                           = x.segment(c_idx + 6*i, 3);
+    out.segment(c_idx + 6*i + 3, 3)                       = x.segment(c_idx + 6*i + 3, 3);
+    out.segment(c_idx + 6*params.num_robots + 7*i, 4)     = x.segment(c_idx + 6*params.num_robots + 7*i, 4);
+    out.segment(c_idx + 6*params.num_robots + 7*i + 4, 3) = x.segment(c_idx + 6*params.num_robots + 7*i + 4, 3);
+  }
+  return out;
 }
 
 void Model_quad3dpayload_n::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
@@ -267,7 +284,9 @@ void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
   // calcFFA(ff,  x, u);
 
   } else if (params.num_robots == 2 && params.point_mass) {
-    // calcFFB(ff, params, x, u);
+
+    calcFFB(ff, params, x, u);
+
   } else if (params.num_robots == 3 && params.point_mass) {
   }
 
@@ -292,12 +311,12 @@ void Model_quad3dpayload_n::calcDiffV(
     const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   // Call a function in the autogenerated file
-  NOT_IMPLEMENTED_TODO;
+  // NOT_IMPLEMENTED_TODO;
   if (params.num_robots == 1 && params.point_mass) {
 
   } else if (params.num_robots == 2 && params.point_mass) {
     
-    // calcJB(Jv_x, Jv_u, params, x, u);
+    calcJB(Jv_x, Jv_u, params, x, u);
 
   } else if (params.num_robots == 3 && params.point_mass) {
   }
@@ -325,12 +344,14 @@ void Model_quad3dpayload_n::step(Eigen::Ref<Eigen::VectorXd> xnext,
 
   // Call a function in the autogenerated file
   // calcStep(xnext, data, x, u, dt);
-  NOT_IMPLEMENTED_TODO;
+  // NOT_IMPLEMENTED_TODO;
 
   if (params.num_robots == 1 && params.point_mass) {
 
   } else if (params.num_robots == 2 && params.point_mass) {
-    // calcStepB(xnext, params, x, u, dt);
+    
+    calcStepB(xnext, params, x, u, dt);
+  
   } else if (params.num_robots == 3 && params.point_mass) {
   }
 
@@ -365,13 +386,14 @@ void Model_quad3dpayload_n::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
   // // calcF(Fx, Fu, data, x, u, dt);
   // NOT_IMPLEMENTED_TODO;
 
-  NOT_IMPLEMENTED_TODO;
+  // NOT_IMPLEMENTED_TODO;
   //
 
   if (params.num_robots == 1 && params.point_mass) {
 
   } else if (params.num_robots == 2 && params.point_mass) {
-    // calcFB(Fx, Fu, params, x, u, dt);
+    
+    calcFB(Fx, Fu, params, x, u, dt);
 
   } else if (params.num_robots == 3 && params.point_mass) {
   }

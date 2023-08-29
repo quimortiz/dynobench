@@ -28,7 +28,8 @@ struct Quad3dpayload_n_params {
   bool motor_control = true;
 
   Eigen::Vector2d m = Eigen::Vector2d(0.034, 0.034); // kg
-  // Eigen::VectorXd m(2); 
+  // This can't be done here, it needs to be defined in the constructor
+  // Eigen::VectorXd m(2);
   // m << 0.034, 0.034; // kg
 
   double m_payload = 0.0054; // kg
@@ -123,61 +124,91 @@ struct Model_quad3dpayload_n : Model_robot {
 
   void get_payload_pos(const Eigen::Ref<const Eigen::VectorXd> &x,
                        Eigen::Ref<Eigen::Vector3d> out) {
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    out = x.head<3>();
   }
 
   void get_qc_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
               Eigen::Ref<Eigen::Vector3d> out) {
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    // This is for pointmass payload only, if rigid body --> 13+3*i
+    int qc_idx =6+6*i;
+    out = x.segment(qc_idx, 3);
   }
 
   void get_payload_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                Eigen::Ref<Eigen::Vector3d> out) {
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    out = x.segment(3,3);
   }
 
   void get_wc_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i , 
               Eigen::Ref<Eigen::Vector3d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    // 6 for payload pos and vel + 6*i + 3 (for 2 uavs: 3, 9)
+    int wc_idx = 6 + 6*i + 3;
+    out = x.segment(wc_idx,3);
   }
 
   void get_payload_q(const Eigen::Ref<const Eigen::VectorXd> &x,
              Eigen::Ref<Eigen::Vector4d> out) {
-    NOT_IMPLEMENTED_TODO; // @KHALED 
+    NOT_IMPLEMENTED_TODO; // @KHALED: This is for the rigid case: Not implemented now
+
   }
 
   void get_payload_w(const Eigen::Ref<const Eigen::VectorXd> &x,
              Eigen::Ref<Eigen::Vector3d> out) {
-    NOT_IMPLEMENTED_TODO; // @KHALED 
+    NOT_IMPLEMENTED_TODO; // @KHALED: RIGID Payload 
   }
 
 
   void get_robot_w_i(const Eigen::Ref<const Eigen::VectorXd> &x, int i, 
              Eigen::Ref<Eigen::Vector3d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    int w_idx =6+6*params.num_robots+7*i+3;
+    out = x.segment(w_idx,3);
   }
 
   virtual void get_position_robot_i(const Eigen::Ref<const Eigen::VectorXd> &x,
                                     int i , 
                                   Eigen::Ref<Eigen::Vector3d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    // WE NEED  THE LENGTH OF THE CABLES HERE
+    // I WILL ASSUME IT IS 0.5 for now
+    Eigen::Vector3d payload_pos;
+    get_payload_pos(x, payload_pos);
+    Eigen::Vector3d qc;
+    get_qc_i(x, i, qc);
+    out = payload_pos - qc*0.5;
+
   }
 
   virtual void get_orientation_robot_i(const Eigen::Ref<const Eigen::VectorXd> &x,
                                     int i , 
                                   Eigen::Ref<Eigen::Vector4d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    int q_idx =6+6*params.num_robots+7*i;
+    out = x.segment(q_idx, 4);
   }
 
   virtual void
   get_position_center_cable(const Eigen::Ref<const Eigen::VectorXd> &x,
                             Eigen::Ref<Eigen::Vector3d> out, int i) {
     CHECK_LEQ(i, params.num_robots - 1, "");
-    NOT_IMPLEMENTED_TODO; // @KHALED
+    // NOT_IMPLEMENTED_TODO; // @KHALED
+    // Also we need the length of the cable here
+    // Assume it is 0.5
+    // 
+    Eigen::Vector3d payload_pos;
+    get_payload_pos(x, payload_pos);
+    Eigen::Vector3d qc;
+    get_qc_i(x, i, qc);
+    out = payload_pos - qc*0.5*0.5;
+
   }
 
   // NOTE: there are infinite solutions to this problem
