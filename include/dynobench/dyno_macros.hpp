@@ -1,9 +1,10 @@
 #pragma once
 
-#include <boost/stacktrace/stacktrace.hpp>
-#include <boost/stacktrace/stacktrace_fwd.hpp>
 #include <iostream>
 #include <sstream>
+
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+#include <boost/stacktrace.hpp>
 
 #define NAMEOF(variable) #variable
 

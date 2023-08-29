@@ -57,6 +57,7 @@ Model_car_with_trailers::Model_car_with_trailers(const Car_params &params,
   distance_weights = params.distance_weights;
 
   u_weight = V2d(.5, .5);
+  x_weightb << 10, 10, 0, 0;
 
   x_desc = {"x [m]", "y [m]", "yaw [rad]"};
   u_desc = {"v [m/s]", "phi [rad]"};

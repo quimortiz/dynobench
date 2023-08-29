@@ -86,6 +86,8 @@ struct Problem {
   Problem(const char *t_file) : file(t_file) { read_from_yaml(t_file); }
   Problem() = default;
 
+  std::shared_ptr<Model_robot> model_robot;
+
   std::string name; // name of the proble: E.g. bugtrap-car1
   std::string file;
   std::string models_base_path;
@@ -384,6 +386,7 @@ struct Info_out {
   std::vector<Trajectory> trajs_opt;
   std::vector<std::map<std::string, std::string>> infos_raw;
   std::vector<std::map<std::string, std::string>> infos_opt;
+  std::map<std::string, std::string> data;
 
   Info_out() = default;
   ~Info_out() = default;

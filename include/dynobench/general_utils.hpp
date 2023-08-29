@@ -19,10 +19,6 @@
 #include <chrono>
 #include <filesystem>
 
-#define BOOST_STACKTRACE_USE_ADDR2LINE
-
-#include <boost/stacktrace.hpp>
-
 template <class T> using ptr = boost::shared_ptr<T>;
 template <class T> using ptrs = std::shared_ptr<T>;
 
