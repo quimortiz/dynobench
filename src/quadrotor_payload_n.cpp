@@ -227,10 +227,8 @@ Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
   out.head(6) = x.head(6);
   size_t c_idx = 6;
   for (size_t i = 0; i < params.num_robots; ++i) { 
-    out.segment(c_idx + 6*i, 3)                           = x.segment(c_idx + 6*i, 3);
-    out.segment(c_idx + 6*i + 3, 3)                       = x.segment(c_idx + 6*i + 3, 3);
-    out.segment(c_idx + 6*params.num_robots + 7*i, 4)     = x.segment(c_idx + 6*params.num_robots + 7*i, 4);
-    out.segment(c_idx + 6*params.num_robots + 7*i + 4, 3) = x.segment(c_idx + 6*params.num_robots + 7*i + 4, 3);
+    out(c_idx + 6*i + 3)   = -1; 
+    out(c_idx + 6*params.num_robots + 7*i + 4)  = 1;
   }
   return out;
 }
