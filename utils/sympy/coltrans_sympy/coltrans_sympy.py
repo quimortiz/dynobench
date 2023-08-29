@@ -287,7 +287,6 @@ def createSyms(num_uavs=1, payloadType='point', writeC=False):
     # time step:
     dt = sp.symbols('dt')
 
-    params = [num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt]
     # States: 
     # paylaod states: position, quaternion, velocity, angular velocity dim: 13 (point mass 6)
     if writeC: 
@@ -323,6 +322,7 @@ def createSyms(num_uavs=1, payloadType='point', writeC=False):
         exit()
     # action 
 
+    params = [num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt]
     B = []
     B0 = sp.Matrix([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
     for i in range(num_uavs):
