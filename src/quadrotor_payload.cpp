@@ -148,8 +148,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
   x_lb.segment(0, 6) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__,
       RM_low__;
   x_lb.segment(6, 3) << -params.max_vel, -params.max_vel, -params.max_vel;
-  x_lb.segment(9, 3) << -params.max_angular_vel, -params.max_angular_vel,
-      -params.max_angular_vel;
+  x_lb.segment(9, 3) << -params.max_vel, -params.max_vel, -params.max_vel;
   x_lb.segment(12, 4) << RM_low__, RM_low__, RM_low__, RM_low__;
   x_lb.segment(16, 3) << -params.max_angular_vel, -params.max_angular_vel,
       -params.max_angular_vel;
