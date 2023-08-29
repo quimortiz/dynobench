@@ -268,8 +268,13 @@ struct Model_quad3dpayload_n : Model_robot {
     // quat(4,)     w_uav(3)]
     //         idx:  [(0, 1, 2), (3,  4,  5),  (6,  7,  8), (9,  10, 11),
     //         (12,13,14,15), (16, 17, 18)]
-    xout.segment<4>(12).normalize();
-    xout.segment<3>(3).normalize();
+    // xout.segment<4>(12).normalize();
+    // xout.segment<3>(3).normalize();
+
+    for (int i = 0 ; i < params.num_robots ; ++i) {
+      xout.segment(6+6*i,3).normalize();
+      xout.segment(6+6*params.num_robots+7*i,4).normalize();
+    }
   }
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
