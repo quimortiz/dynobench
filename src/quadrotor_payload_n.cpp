@@ -1,11 +1,11 @@
 #include "dynobench/quadrotor_payload_n.hpp"
-#include "quadrotor_payload_dynamics_autogen_n2_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 #include "quadrotor_payload_dynamics_autogen_n3_b.hpp" // @KHALED TODO (e.g. n=3, rigid body)
 #include <fcl/geometry/shape/box.h>
 #include <fcl/geometry/shape/capsule.h>
 #include <fcl/geometry/shape/sphere.h>
 
 namespace dynobench {
+#include "quadrotor_payload_dynamics_autogen_n2_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 
 void Quad3dpayload_n_params::read_from_yaml(YAML::Node &node) {
 
