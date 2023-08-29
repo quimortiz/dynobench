@@ -560,6 +560,22 @@ struct Model_robot {
     }
   }
 
+  virtual void transform_primitive_last_state_backward(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in,
+      Eigen::Ref<Eigen::VectorXd> x_out) {
+
+    assert(xs_in.size());
+    assert(us_in.size() == xs_in.size() - 1);
+    if (translation_invariance) {
+      x_out = xs_in.back();
+      x_out.head(translation_invariance) += p;
+    } else {
+      x_out = xs_in.back();
+    }
+  }
+
   virtual void transform_primitive2(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,

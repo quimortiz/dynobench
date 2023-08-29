@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include "dynobench/for_each_macro.hpp"
 #include "dynobench/robot_models_base.hpp"
@@ -165,6 +165,77 @@ struct Model_quad3d : Model_robot {
       x_out.head<3>() +=
           p.head<3>() + us_in.size() * ref_dt * p.tail<3>(); // velocity
       x_out.segment<3>(7) += p.tail<3>();                    // velocity
+    }
+  }
+
+  virtual void transform_primitive_last_state_backward(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in,
+      Eigen::Ref<Eigen::VectorXd> x_out) override {
+
+    assert(p.size() == 3 || 6);
+
+    if (p.size() == 3) {
+      Model_robot::transform_primitive_last_state(p, xs_in, us_in, x_out);
+
+    } else {
+      x_out.head<3>() = xs_in.back().head<3>() + p.head<3>() -
+                        (xs_in.size() - 1) * ref_dt * p.tail<3>();
+      x_out.segment<4>(3) = xs_in.back().segment<4>(3);
+      x_out.segment<3>(7) = xs_in.back().segment<3>(7) + p.tail<3>();
+      x_out.tail<3>() = xs_in.back().tail<3>();
+    }
+  }
+
+  virtual void transform_primitiveDirect(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    assert(is_valid_fun == nullptr);
+    assert(num_valid_states == nullptr);
+    assert(p.size() == 6);
+
+    for (size_t i = 0; i < traj_out.get_size(); i++) {
+      traj_out.get_state(i).head<3>() =
+          xs_in[i].head<3>() + p.head<3>() + i * ref_dt * p.tail<3>();
+      traj_out.get_state(i).segment<4>(3) = xs_in[i].segment<4>(3);
+      traj_out.get_state(i).segment<3>(7) =
+          xs_in[i].segment<3>(7) + p.tail<3>();
+      traj_out.get_state(i).tail<3>() = xs_in[i].tail<3>();
+      if (i < traj_out.get_size() - 1) {
+        traj_out.get_action(i).head<4>() = us_in[i].head<4>();
+      }
+    }
+  }
+
+  virtual void transform_primitiveDirectReverse(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    assert(is_valid_fun == nullptr);
+    assert(num_valid_states == nullptr);
+    assert(xs_in.size());
+    assert(xs_in.size() == us_in.size() + 1);
+
+    for (size_t i = 0; i < traj_out.get_size(); i++) {
+      traj_out.get_state(i).head<3>() =
+          xs_in[i].head<3>() + p.head<3>() - i * ref_dt * p.tail<3>();
+      traj_out.get_state(i).segment<4>(3) = xs_in[i].segment<4>(3);
+      traj_out.get_state(i).segment<3>(7) =
+          xs_in[i].segment<3>(7) + p.tail<3>();
+      traj_out.get_state(i).tail<3>() = xs_in[i].tail<3>();
+      if (i < traj_out.get_size() - 1) {
+        traj_out.get_action(i).head<4>() = us_in[i].head<4>();
+      }
     }
   }
 

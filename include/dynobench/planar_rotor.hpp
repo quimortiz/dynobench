@@ -198,8 +198,51 @@ struct Model_quad2d : Model_robot {
     } else {
       x_out = xs_in.back();
       x_out.head<2>() +=
-          p.head<2>() + us_in.size() * ref_dt * p.tail<2>(); // velocity
+          p.head<2>() + us_in.size() * ref_dt * p.tail<2>(); // position
       x_out.segment<2>(3) += p.tail<2>();                    // velocity
+    }
+  }
+
+  virtual void transform_primitiveDirect(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    assert(is_valid_fun == nullptr);
+    assert(num_valid_states == nullptr);
+
+    for (size_t i = 0; i < traj_out.get_size(); i++) {
+      traj_out.get_state(i).head<2>() += p.head<2>() + i * ref_dt * p.tail<2>();
+      traj_out.get_state(i).segment<2>(3) += p.tail<2>();
+    }
+  }
+
+  virtual void transform_primitiveDirectReverse(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    assert(is_valid_fun == nullptr);
+    assert(num_valid_states == nullptr);
+    assert(xs_in.size());
+    assert(xs_in.size() == us_in.size() + 1);
+
+    for (size_t i = 0; i < traj_out.get_size(); i++) {
+      traj_out.get_state(i) = xs_in[i];
+      traj_out.get_state(i).head<2>() +=
+          p.head<2>() -
+          i * ref_dt *
+              p.tail<2>(); // minus here because we go backwards in time
+      traj_out.get_state(i).segment<2>(3) += p.tail<2>();
+      if (i < traj_out.get_size() - 1) {
+        traj_out.get_action(i) = us_in[i];
+      }
     }
   }
 

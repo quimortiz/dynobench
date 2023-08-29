@@ -1055,7 +1055,7 @@ bool is_motion_collision_free(dynobench::TrajWrapper &traj,
 
   if (robot.ref_dt < .05) {
     // TODO: which number to put here?
-    index_resolution = 5;
+    index_resolution = 2;
   }
 
   // I could use a spatial resolution also...

@@ -86,7 +86,7 @@ Model_quad2dpole::Model_quad2dpole(const Quad2dpole_params &params,
 
   u_weight = V2d(.5, .5);
   x_weightb = 10. * Vxd::Ones(8);
-  x_weightb.head<4>() = V4d::Zero();
+  x_weightb.head<4>() << 10, 10, 0, 0;
 
   if (params.shape == "box") {
     collision_geometries.push_back(
