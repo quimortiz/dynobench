@@ -87,6 +87,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   ref_dt = params.dt;
   distance_weights = params.distance_weights;
+  // u_ref.setOnes(); // new!!
 
   arm = 0.707106781 * params.arm_length;
   // There was an error here so I had to change this to params.m(0)
@@ -124,7 +125,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   goal_weight.setOnes();
 
   for (size_t i = 0; i < params.num_robots; i++) {
-    goal_weight.segment(6 + 6 * params.num_robots + i * 7, 4).setConstant(.001);
+    goal_weight.segment(6 + 6 * params.num_robots + i * 7, 7).setConstant(.001);
   }
 
   // for (size_t i = 0; i < params.num_robots; i++) {

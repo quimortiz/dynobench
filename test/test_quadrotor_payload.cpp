@@ -9,6 +9,23 @@
 using namespace dynobench;
 
 
+BOOST_AUTO_TEST_CASE(t_bug) {
+
+
+  Trajectory traj("/home/quim/stg/khaled/dynoplan/possible_bug_two_uavs.yaml");
+
+  dynobench::Quad3dpayload_n_params params;
+  params.point_mass = true;
+  params.num_robots = 2;
+  auto model = std::make_shared<dynobench::Model_quad3dpayload_n>(params);
+
+  traj.check(model, true);
+
+
+}
+
+
+
 BOOST_AUTO_TEST_CASE(t_hello_quadrotor_payload_n) {
 
   std::cout << "Hello Khaled" << std::endl;

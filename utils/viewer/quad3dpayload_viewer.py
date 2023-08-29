@@ -1,6 +1,6 @@
 import math
 import numpy as np
-import  rowan as rn
+import rowan as rn
 import yaml
 import time
 import meshcat
@@ -10,23 +10,25 @@ import viewer_utils
 import argparse
 import matplotlib.pyplot as plt
 
+
 class Quad():
     def __init__(self, name, l):
-        self.l = l # length of cable
-        self.name = name    
-        self.state = 0 # [quad_pos, quat, vel, w]
+        self.l = l  # length of cable
+        self.name = name
+        self.state = 0  # [quad_pos, quat, vel, w]
         self.state_ap = []
-    
+
     def _updateState(self, state):
         self.state = state
         self.state_ap.append(state)
 
-        
+
 class Payload():
     def __init__(self, shape):
         self.shape = shape
         self.state = 0
         self.state_ap = []
+
     def _updateState(self, state):
         self.state = state
         self.state_ap.append(state)
@@ -34,13 +36,13 @@ class Payload():
 
 class QuadPayloadRobot():
     def __init__(self, quadNum=1, pType="quad3dpayload"):
-        ## ASSUMPTION: CABLE LENTH IS ALWAYS 0.5 
+        # ASSUMPTION: CABLE LENTH IS ALWAYS 0.5
         self.quadNum = quadNum
         self.pType = pType
-        l = (0.5*np.ones(quadNum,)).tolist()
+        l = (0.5 * np.ones(quadNum,)).tolist()
         self._addQuad(l)
         self._addPayload()
-    
+
     def _addQuad(self, l):
         self.quads = dict()
         for i in range(self.quadNum):
@@ -55,18 +57,19 @@ class QuadPayloadRobot():
         for name, quad in self.quads.items():
             if self.payload.shape == "quad3dpayload":
                 self.state = state.copy()
-                _state = state.copy() # this is useful for the multiple uavs 
+                _state = state.copy()  # this is useful for the multiple uavs
             elif self.payload.shape == "point":
-                # THIS FOR MULTIPLE UAVs FOR POINTMASS PAYLOAD: 
+                # THIS FOR MULTIPLE UAVs FOR POINTMASS PAYLOAD:
                 # state that defines UAV state: p_load, qc, v_load, wc, quat, w
-                qcwcs = state[6:6+6*num_uavs]
-                quatws = state[6+6*num_uavs:6+6*num_uavs+7*num_uavs]
-                i   = 6*int(name)
+                qcwcs = state[6:6 + 6 * num_uavs]
+                quatws = state[6 + 6 * num_uavs:6 +
+                               6 * num_uavs + 7 * num_uavs]
+                i = 6 * int(name)
                 qc = qcwcs[i: i + 3]
-                wc = qcwcs[i+3: i + 6]
-                j = 7*int(name)
-                quat = quatws[j:j+4]
-                w = quatws[j+4:j+7]
+                wc = qcwcs[i + 3: i + 6]
+                j = 7 * int(name)
+                quat = quatws[j:j + 4]
+                w = quatws[j + 4:j + 7]
                 _state[0:3] = state[0:3]
                 _state[3:6] = qc
                 _state[6:9] = state[3:6]
@@ -85,41 +88,42 @@ class QuadPayloadRobot():
 
             self.quads[name] = self._updateRobotState(quad, _state)
         self.payload._updateState(state)
-        
+
     def _updateRobotState(self, quad, state):
         # position, quaternion, velocity, angular velocity
         p_load = np.array(state[0:3])
-        qc     = np.array(state[3:6])
+        qc = np.array(state[3:6])
         v_load = np.array(state[6:9])
-        wc     = np.array(state[9:12])
+        wc = np.array(state[9:12])
         qc_dot = np.cross(wc, qc)
-        quat   = state[12:16]
-        quat   = np.array([quat[3], quat[0], quat[1], quat[2]])
-        w      = np.array(state[16:19])
-        p_quad = p_load - quad.l*qc
-        v_quad = v_load - quad.l*qc_dot
+        quat = state[12:16]
+        quat = np.array([quat[3], quat[0], quat[1], quat[2]])
+        w = np.array(state[16:19])
+        p_quad = p_load - quad.l * qc
+        v_quad = v_load - quad.l * qc_dot
         quad_state = [*p_quad, *quat, *v_quad, *w]
         quad._updateState(quad_state)
         return quad
 
 
 DnametoColor = {
-    "red" : 0xff0000,
-    "green" : 0x00ff00,
-    "blue" : 0x0000ff,
-    "yellow" : 0xffff00,
-    "white" : 0xffffff,
+    "red": 0xff0000,
+    "green": 0x00ff00,
+    "blue": 0x0000ff,
+    "yellow": 0xffff00,
+    "white": 0xffffff,
 }
+
 
 class Visualizer():
     def __init__(self, QuadPayloadRobot, env):
         self.vis = meshcat.Visualizer()
         self.vis["/Cameras/default"].set_transform(
-        tf.translation_matrix([0.5, 0, 0]).dot(
-            tf.euler_matrix(np.radians(-40), np.radians(0), np.radians(-100))))
+            tf.translation_matrix([0.5, 0, 0]).dot(
+                tf.euler_matrix(np.radians(-40), np.radians(0), np.radians(-100))))
         self.vis["/Cameras/default/rotated/<object>"].set_transform(
             tf.translation_matrix([-2, 0, 2.5]))
-  
+
         self.QuadPayloadRobot = QuadPayloadRobot
         # self._addQuadsPayload()
         self._setObstacles(env["environment"]["obstacles"])
@@ -131,40 +135,44 @@ class Visualizer():
         self._addQuadsPayload("goal", "red")
         state = self.env["robots"][0]["goal"]
         self.QuadPayloadRobot.updateFullState(state)
-        self.updateVis(state,"goal")
-    
+        self.updateVis(state, "goal")
+
     def __setStart(self):
         self._addQuadsPayload("start", "green")
         state = self.env["robots"][0]["start"]
         self.QuadPayloadRobot.updateFullState(state)
-        self.updateVis(state,"start")
-    
-    def draw_traces(self,result, quadNum, pType, l):
+        self.updateVis(state, "start")
+
+    def draw_traces(self, result, quadNum, pType, l):
         # trace payload:
-        payload = result[:,:3].T
-        self.vis["trace_payload"].set_object(g.Line(g.PointsGeometry(payload), g.LineBasicMaterial()))
+        payload = result[:, :3].T
+        self.vis["trace_payload"].set_object(
+            g.Line(g.PointsGeometry(payload), g.LineBasicMaterial()))
 
         if pType == "quad3dpayload":
-            qc = result[:,3:6].T
+            qc = result[:, 3:6].T
             quad_pos = payload - 0.5 * qc
-            self.vis["trace_quad"].set_object(g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
+            self.vis["trace_quad"].set_object(
+                g.Line(
+                    g.PointsGeometry(quad_pos),
+                    g.LineBasicMaterial()))
         elif pType == "point":
-            qcwcs = result[:, 6:6+6*quadNum]
+            qcwcs = result[:, 6:6 + 6 * quadNum]
             for i in range(quadNum):
-                print(i, 6*i, 6*i+3)
-                qc = qcwcs[:, 6*i: 6*i+3].T
+                print(i, 6 * i, 6 * i + 3)
+                qc = qcwcs[:, 6 * i: 6 * i + 3].T
                 print(qc.shape)
                 quad_pos = payload - l[i] * qc
 
-                self.vis["trace_quad"+str(i)].set_object(g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
-
+                self.vis["trace_quad" + str(i)].set_object(
+                    g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
 
     def _addQuadsPayload(self, prefix: str = "", color_name: str = ""):
         self.quads = self.QuadPayloadRobot.quads
         self.payload = self.QuadPayloadRobot.payload
-        if self.payload.shape == "quad3dpayload" or self.payload.shape == "point":    
-            self.vis[prefix + self.payload.shape].set_object(g.Mesh(g.Sphere(0.02), 
-                                    g.MeshLambertMaterial(DnametoColor.get(color_name, 0xff11dd))))
+        if self.payload.shape == "quad3dpayload" or self.payload.shape == "point":
+            self.vis[prefix + self.payload.shape].set_object(g.Mesh(
+                g.Sphere(0.02), g.MeshLambertMaterial(DnametoColor.get(color_name, 0xff11dd))))
         elif self.payload.shape == "rigid":
             # THIS IS FOR MULTIPLE UAVS WITH RIGID PAYLOAD
             # different state order
@@ -176,106 +184,185 @@ class Visualizer():
             exit()
 
         for name in self.quads.keys():
-            self.vis[prefix + name].set_object(g.StlMeshGeometry.from_file('cf2_assembly.stl'), 
-                    g.MeshLambertMaterial(color= DnametoColor.get(color_name,0xffffff)))
+            self.vis[prefix + name].set_object(g.StlMeshGeometry.from_file(
+                'cf2_assembly.stl'), g.MeshLambertMaterial(color=DnametoColor.get(color_name, 0xffffff)))
 
-            self.vis[prefix + name + "_sphere"].set_object(g.Mesh(g.Sphere(0.1), 
-                g.MeshLambertMaterial(opacity=0.1))) # safety distance
-
-
+            self.vis[prefix + name + "_sphere"].set_object(
+                g.Mesh(g.Sphere(0.1), g.MeshLambertMaterial(opacity=0.1)))  # safety distance
 
     def _setObstacles(self, obstacles):
-        for idx, obstacle in enumerate(obstacles): 
+        for idx, obstacle in enumerate(obstacles):
             obsMat = g.MeshLambertMaterial(opacity=0.5, color=0x008000)
             center = obstacle["center"]
             shape = obstacle["type"]
-            if (shape =="sphere"):
+            if (shape == "sphere"):
                 radius = obstacle["radius"]
-                self.vis["obstacle"+str(idx)].set_object(g.Mesh(g.Sphere(radius),material=obsMat))
-                self.vis["obstacle"+str(idx)].set_transform(tf.translation_matrix(center))
+                self.vis["obstacle" +
+                         str(idx)].set_object(g.Mesh(g.Sphere(radius), material=obsMat))
+                self.vis["obstacle" +
+                         str(idx)].set_transform(tf.translation_matrix(center))
             elif shape == "box":
                 size = obstacle["size"]
-                self.vis["obstacle"+str(idx)].set_object(g.Mesh(g.Box(size), material=obsMat))
-                self.vis["obstacle"+str(idx)].set_transform(tf.translation_matrix(center))
-    
+                self.vis["obstacle" +
+                         str(idx)].set_object(g.Mesh(g.Box(size), material=obsMat))
+                self.vis["obstacle" +
+                         str(idx)].set_transform(tf.translation_matrix(center))
+
     def updateVis(self, state, prefix: str = ""):
         self.QuadPayloadRobot.updateFullState(state)
         payloadSt = self.payload.state
         # color of the payload trajectory
         point_color = np.array([1.0, 1.0, 1.0])
-        full_state = np.array(self.payload.state_ap, dtype=np.float64)[:,0:3].T
+        full_state = np.array(
+            self.payload.state_ap,
+            dtype=np.float64)[
+            :,
+            0:3].T
         self.vis[prefix + 'points'].set_object(g.Points(
             g.PointsGeometry(full_state, color=point_color),
             g.PointsMaterial(size=0.01)
         ))
         if self.payload.shape == "quad3dpayload" or self.payload.shape == "point":
             self.vis[prefix + self.payload.shape].set_transform(
-                    tf.translation_matrix(payloadSt).dot(
-                        tf.quaternion_matrix([1,0,0,0])))
+                tf.translation_matrix(payloadSt).dot(
+                    tf.quaternion_matrix([1, 0, 0, 0])))
         else:
             self.vis[prefix + self.payload.shape].set_transform(
-                    tf.translation_matrix(payloadSt[0:3]).dot(
-                        tf.quaternion_matrix(payloadSt[3:7])))
-            
+                tf.translation_matrix(payloadSt[0:3]).dot(
+                    tf.quaternion_matrix(payloadSt[3:7])))
+
         for name, quad in self.quads.items():
             self.vis[prefix + name].set_transform(
-                    tf.translation_matrix(quad.state[0:3]).dot(
-                        tf.quaternion_matrix(quad.state[3:7])))
+                tf.translation_matrix(quad.state[0:3]).dot(
+                    tf.quaternion_matrix(quad.state[3:7])))
             cablePos = np.linspace(payloadSt[0:3], quad.state[0:3], num=2).T
-            cableMat  = g.LineBasicMaterial(linewidth=1, color=0x000000)
-            self.vis[prefix + "cable_"+name].set_object(g.Line(g.PointsGeometry(cablePos), material=cableMat))
-            self.vis[prefix + name + "_sphere"].set_transform(tf.translation_matrix(quad.state[0:3]))
+            cableMat = g.LineBasicMaterial(linewidth=1, color=0x000000)
+            self.vis[prefix + "cable_" + name].set_object(
+                g.Line(g.PointsGeometry(cablePos), material=cableMat))
+            self.vis[prefix + name + \
+                "_sphere"].set_transform(tf.translation_matrix(quad.state[0:3]))
 
 
-
-def quad3dpayload_meshcatViewer():    
+def quad3dpayload_meshcatViewer():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--robot', type=str, help="robot model: quad3dpayload, (point, rigid: for n robots)")
+    parser.add_argument(
+        '--robot',
+        type=str,
+        help="robot model: quad3dpayload, (point, rigid: for n robots)")
     parser.add_argument('--env', type=str, help="environment")
     parser.add_argument('--result', type=str, help="result trajectory")
-    parser.add_argument("-i", "--interactive", action="store_true")  # on/off flag
-    
-    args   = parser.parse_args()
+    parser.add_argument(
+        "-i",
+        "--interactive",
+        action="store_true")  # on/off flag
+
+    args = parser.parse_args()
     pathtoenv = args.env
     robotname = args.robot
     with open(pathtoenv, "r") as file:
         env = yaml.safe_load(file)
-    
-    pType   = robotname 
+
+    pType = robotname
     quadNum = env["robots"][0]["quadsNum"]
-    l       =  env["robots"][0]["l"]
-    start   = env["robots"][0]["start"]
-    goal     = env["robots"][0]["goal"]
+    lengths = env["robots"][0]["l"]
+    start = env["robots"][0]["start"]
+    goal = env["robots"][0]["goal"]
     obstacles = env["environment"]["obstacles"]
     quadsPayload = QuadPayloadRobot(quadNum=quadNum, pType=pType)
 
-
-
-    fig, (ax1, ax2) = plt.subplots(2)
-
+    fig, axs = plt.subplots(7)
+    # payload
+    # cable1
+    # cable2
+    # robot1
+    # robot2
+    # control1
+    # control2
 
     if args.result is not None:
-
-
         with open(args.result, 'r') as file:
-            path = yaml.safe_load(file)
+            __path = yaml.safe_load(file)
 
 
-        print("path")
-        print(path)
-        if "states" in path and "actions" in path:
-            path = path
+        if "states" in __path and "actions" in __path:
+            __path = __path
         else:
-            path = path["result"]
+            __path = __path["result"]
 
 
-        viewer_utils.plot_traj_default(
-            (ax1,ax2),path, labels_x=None, labels_u=None)
+        xs = [ x[:6] for x in __path["states"] ]
+
+        labels_x = ["x" + str(i) for i in range(len(xs[0]))]
+
+        for i, l in enumerate(labels_x):
+            xi = [x[i] for x in xs]
+            axs[0].plot(xi, label=l)
+        axs[0].legend()
+
+        xs = [ x[6:6+6] for x in __path["states"] ]
+
+        labels_x = ["x" + str(i) for i in range(len(xs[0]))]
+
+        for i, l in enumerate(labels_x):
+            xi = [x[i] for x in xs]
+            axs[1].plot(xi, label=l)
+        axs[1].legend()
+
+
+        xs = [ x[6+6:6+6+6] for x in __path["states"] ]
+
+        labels_x = ["x" + str(i) for i in range(len(xs[0]))]
+
+        for i, l in enumerate(labels_x):
+            xi = [x[i] for x in xs]
+            axs[2].plot(xi, label=l)
+        axs[2].legend()
+
+        xs = [ x[6+6+6:6+6+6+7] for x in __path["states"] ]
+
+        labels_x = ["x" + str(i) for i in range(len(xs[0]))]
+
+        for i, l in enumerate(labels_x):
+            xi = [x[i] for x in xs]
+            axs[3].plot(xi, label=l)
+        axs[3].legend()
+
+
+        xs = [ x[6+6+6+7:6+6+6+7+7] for x in __path["states"] ]
+
+        labels_x = ["x" + str(i) for i in range(len(xs[0]))]
+
+        for i, l in enumerate(labels_x):
+            xi = [x[i] for x in xs]
+            axs[4].plot(xi, label=l)
+        axs[4].legend()
+
+        us = [ u[:4] for u in __path["actions"] ]
+
+        labels_u = ["x" + str(i) for i in range(len(us[0]))]
+
+        for i, l in enumerate(labels_u):
+            ui = [u[i] for u in us]
+            axs[5].plot(ui, label=l)
+        axs[5].legend()
+
+
+        us = [ u[4:4+4] for u in __path["actions"] ]
+
+        labels_u = ["x" + str(i) for i in range(len(us[0]))]
+
+        for i, l in enumerate(labels_u):
+            ui = [u[i] for u in us]
+            axs[6].plot(ui, label=l)
+        axs[6].legend()
+
+
+        for u in __path["actions"]:
+            print(u)
 
         plt.show()
-
     visualizer = Visualizer(quadsPayload, env)
-    if args.interactive == True:     
+    if args.interactive:
         visualizer.vis.open()
 
     pathtoresult = args.result
@@ -289,20 +376,20 @@ def quad3dpayload_meshcatViewer():
             states = path['states']
         elif "result" in path:
             states = path['result']['states']
-        else: 
+        else:
             raise NotImplementedError("unknown result format")
 
         visualizer._addQuadsPayload()
-        visualizer.draw_traces(np.array(states), quadNum, pType, l)
+        visualizer.draw_traces(np.array(states), quadNum, pType, lengths)
 
         while True:
             for state in states:
                 visualizer.updateVis(state)
                 time.sleep(0.01)
-    else: 
+    else:
         name = input("press any key on terminal to close: ")
         print("closing")
 
-        
+
 # if __name__ == "__main__":
 #     main()
