@@ -273,21 +273,17 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   col_mng_robots_ = std::make_shared<fcl::DynamicAABBTreeCollisionManagerd>();
   col_mng_robots_->setup();
 
-
-
-  // IMPORTANT: we add a little a bit of regularization to having the cables looking upwards
+  // IMPORTANT: we add a little a bit of regularization to having the cables
+  // looking upwards
   // @ TODO: khaled: make this generci
-        Vxd state_weights = Vxd::Zero(nx);
-        Vxd state_ref = Vxd::Zero(nx);
+  state_weights = Vxd::Zero(nx);
+  state_ref = Vxd::Zero(nx);
 
-        state_weights.segment(6,3).setConstant(0.1);
-        state_weights.segment(6+6,3).setConstant(0.1);
-        
-        state_ref(6+2) = -.9;
-        state_ref(6+6+2) = -.9;
+  state_weights.segment(6, 3).setConstant(0.1);
+  state_weights.segment(6 + 6, 3).setConstant(0.1);
 
-
-
+  state_ref(6 + 2) = -.9;
+  state_ref(6 + 6 + 2) = -.9;
 }
 
 Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
