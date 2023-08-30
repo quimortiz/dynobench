@@ -20,7 +20,7 @@ struct Quad3dpayload_n_params {
   int num_robots = 2;
   bool point_mass = true;
 
-  double col_size_robot = .2;    // radius
+  double col_size_robot = .1;    // radius
   double col_size_payload = .05; // radius
   //
   //
@@ -107,6 +107,17 @@ struct Quad3dpayload_n_params {
 struct Model_quad3dpayload_n : Model_robot {
 
   using Matrix34 = Eigen::Matrix<double, 3, 4>;
+
+
+  // Regularization in the optimization problem.
+  // @KHALED please check this in the constructor!! --
+  // you have to make this genereal
+  Eigen::VectorXd state_weights;
+  Eigen::VectorXd state_ref ;
+
+
+  std::vector<std::unique_ptr<fcl::CollisionObjectd>>
+      collision_objects; // QUIM : TODO move this to the base class!
 
   virtual ~Model_quad3dpayload_n() = default;
 
@@ -251,6 +262,9 @@ struct Model_quad3dpayload_n : Model_robot {
   Matrix34 Ftau_selection_B0;
 
   const bool adapt_vel = true;
+  bool check_inner = true;
+
+  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
 
   Model_quad3dpayload_n(const Model_quad3dpayload_n &) = default;
 
@@ -265,7 +279,7 @@ struct Model_quad3dpayload_n : Model_robot {
       const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
   virtual std::map<std::string, std::vector<double>>
-  get_info(const Eigen::Ref<const Eigen::VectorXd> &x) override; 
+  get_info(const Eigen::Ref<const Eigen::VectorXd> &x) override;
 
   virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
     // state (size): [x_load(3,)  q_cable(3,)   v_load(3,)   w_cable(3,)

@@ -36,10 +36,7 @@
 #include "dynobench/unicycle1.hpp"
 #include "dynobench/unicycle2.hpp"
 #include "dynobench/quadrotor_payload_n.hpp"
-<<<<<<< HEAD
 
-=======
->>>>>>> origin/coltrans
 namespace dynobench {
 
 std::unique_ptr<Model_robot> robot_factory(const char *file,

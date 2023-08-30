@@ -1,5 +1,7 @@
 #include "dynobench/quadrotor_payload_n.hpp"
 #include "quadrotor_payload_dynamics_autogen_n3_b.hpp" // @KHALED TODO (e.g. n=3, rigid body)
+#include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
+#include <fcl/broadphase/default_broadphase_callbacks.h>
 #include <fcl/geometry/shape/box.h>
 #include <fcl/geometry/shape/capsule.h>
 #include <fcl/geometry/shape/sphere.h>
@@ -87,7 +89,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   ref_dt = params.dt;
   distance_weights = params.distance_weights;
-  // u_ref.setOnes(); // new!!
+  u_ref.setConstant(.95); // new!!
 
   arm = 0.707106781 * params.arm_length;
   // There was an error here so I had to change this to params.m(0)
@@ -125,13 +127,12 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   goal_weight.setOnes();
 
   for (size_t i = 0; i < params.num_robots; i++) {
-    goal_weight.segment(6 + 6 * params.num_robots + i * 7, 7).setConstant(.001);
+    goal_weight.segment(6 + 6 * params.num_robots + i * 7, 4).setConstant(.001);
   }
 
   // for (size_t i = 0; i < params.num_robots; i++) {
   //   goal_weight.segment(6 + i * 6, 3).setConstant(.01);
   // }
-
 
   x_desc = {"xp [m]",     "yp [m]",      "zp [m]",      "vpx [m/s]",
             "vpy [m/s]",  "vpz [m/s]",   "qcx []",      "qcy []",
@@ -233,16 +234,22 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   // @QUIM TODO
   collision_geometries.clear();
 
-  double rate_colision_cables = .5;
+  double rate_colision_cables =
+      .2; // we use a shorter collision body for the
+          // cables to avoid self collision against payload or robot!
   collision_geometries.emplace_back(
       std::make_shared<fcl::Sphered>(params.col_size_payload));
+
   for (size_t i = 0; i < params.num_robots; i++) {
-    collision_geometries.emplace_back(
-        std::make_shared<fcl::Sphered>(params.col_size_robot));
-    // @QUIM TODO - shorter collision body
     collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
         params.col_size_payload, rate_colision_cables * params.l_payload(0)));
   }
+
+  for (size_t i = 0; i < params.num_robots; i++) {
+    collision_geometries.emplace_back(
+        std::make_shared<fcl::Sphered>(params.col_size_robot));
+  }
+
   ts_data.resize(2 * params.num_robots + 1);
   col_outs.resize(2 * params.num_robots + 1);
 
@@ -259,6 +266,28 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   // __Jv_x.setZero(); // KHALED Done
   // __Jv_u.setZero(); // KHALED Done
+
+  for (auto &c : collision_geometries) {
+    collision_objects.emplace_back(std::make_unique<fcl::CollisionObjectd>(c));
+  }
+  col_mng_robots_ = std::make_shared<fcl::DynamicAABBTreeCollisionManagerd>();
+  col_mng_robots_->setup();
+
+
+
+  // IMPORTANT: we add a little a bit of regularization to having the cables looking upwards
+  // @ TODO: khaled: make this generci
+        Vxd state_weights = Vxd::Zero(nx);
+        Vxd state_ref = Vxd::Zero(nx);
+
+        state_weights.segment(6,3).setConstant(0.1);
+        state_weights.segment(6+6,3).setConstant(0.1);
+        
+        state_ref(6+2) = -.9;
+        state_ref(6+6+2) = -.9;
+
+
+
 }
 
 Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
@@ -286,7 +315,7 @@ void Model_quad3dpayload_n::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
 }
 
 std::map<std::string, std::vector<double>>
-Model_quad3dpayload_n::get_info(const Eigen::Ref<const Eigen::VectorXd> &x ) {
+Model_quad3dpayload_n::get_info(const Eigen::Ref<const Eigen::VectorXd> &x) {
   // TODO: test this!!
 
   std::map<std::string, std::vector<double>> out;
@@ -321,39 +350,83 @@ void Model_quad3dpayload_n::transformation_collision_geometries(
     ts.at(0) = result;
   }
 
+  // CABLE
+
+  for (size_t i = 0; i < params.num_robots; i++) {
+    Eigen::Vector3d pos_cable;
+    Eigen::Vector4d quat_cable;
+    get_position_center_cable(x, pos_cable, i);
+    // CSTR_V(pos_cable);
+    fcl::Transform3d result;
+    result = Eigen::Translation<double, 3>(pos_cable);
+    quaternion_cable_i(x, i, quat_cable);
+    // CSTR_V(quat_cable);
+    result.rotate(Eigen::Quaterniond(quat_cable));
+    ts.at(1 + i) = result;
+  }
+
   for (size_t i = 0; i < params.num_robots; i++) {
 
     // ROBOT
-    {
-      Eigen::Vector3d pos_robot;
-      get_position_robot_i(x, i, pos_robot);
-      fcl::Transform3d result;
-      result = Eigen::Translation<double, 3>(pos_robot);
-      ts.at(1 + 2 * i) = result;
-    }
-
-    // CABLE
-    {
-      Eigen::Vector3d pos_cable;
-      Eigen::Vector4d quat_cable;
-      get_position_center_cable(x, pos_cable, i);
-      // CSTR_V(pos_cable);
-      fcl::Transform3d result;
-      result = Eigen::Translation<double, 3>(pos_cable);
-      quaternion_cable_i(x, i, quat_cable);
-      // CSTR_V(quat_cable);
-      result.rotate(Eigen::Quaterniond(quat_cable));
-      ts.at(1 + 2 * i + 1) = result;
-    }
+    Eigen::Vector3d pos_robot;
+    get_position_robot_i(x, i, pos_robot);
+    fcl::Transform3d result;
+    result = Eigen::Translation<double, 3>(pos_robot);
+    ts.at(1 + params.num_robots + i) = result;
   }
 }
 
 void Model_quad3dpayload_n::collision_distance(
     const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout) {
   if (env && env->size()) {
+
+    // agains environment
     Model_robot::collision_distance(x, cout);
   } else {
     cout.distance = max__;
+  }
+
+  if (check_inner) {
+
+    // inner robots
+
+    // @QUIM TODO-> this is redundant, already done in collision distance
+    transformation_collision_geometries(x, ts_data);
+
+    // Update the collision objects
+    for (size_t i = 0; i < collision_geometries.size(); i++) {
+      fcl::Transform3d &result = ts_data[i];
+      assert(collision_objects.at(i));
+      auto &co = *collision_objects.at(i);
+      co.setTranslation(result.translation());
+      co.setRotation(result.rotation());
+      co.computeAABB();
+    }
+
+    std::vector<fcl::CollisionObjectd *> collision_objects_ptrs;
+    collision_objects_ptrs.reserve(collision_objects.size());
+    std::transform(collision_objects.begin(), collision_objects.end(),
+                   std::back_inserter(collision_objects_ptrs),
+                   [](auto &c) { return c.get(); });
+
+    col_mng_robots_->clear();
+    col_mng_robots_->registerObjects(collision_objects_ptrs);
+    fcl::DefaultDistanceData<double> inter_robot_distance_data;
+    inter_robot_distance_data.request.enable_signed_distance = true;
+
+    col_mng_robots_->distance(&inter_robot_distance_data,
+                              fcl::DefaultDistanceFunction<double>);
+
+    double inter_robot_distance = inter_robot_distance_data.result.min_distance;
+
+    if (inter_robot_distance < cout.distance) {
+      cout.distance = inter_robot_distance;
+      cout.p1 = inter_robot_distance_data.result.nearest_points[0];
+      cout.p2 = inter_robot_distance_data.result.nearest_points[1];
+      // std::cout << "inter_robot_distance: " << inter_robot_distance
+      //           << std::endl;
+      // cout.write(std::cout);
+    }
   }
 }
 
@@ -374,6 +447,7 @@ void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
   // NOT_IMPLEMENTED_TODO;
 
   if (params.num_robots == 1 && params.point_mass) {
+    NOT_IMPLEMENTED;
     // double data[x] =
     // calcFFA(ff,  x, u);
 
@@ -382,17 +456,20 @@ void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
     calcFFB(ff, params, x, u);
 
   } else if (params.num_robots == 3 && params.point_mass) {
+
+    NOT_IMPLEMENTED;
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
 
+    NOT_IMPLEMENTED;
   }
 
   else if (params.num_robots == 2 && !params.point_mass) {
+    NOT_IMPLEMENTED;
+  } else if (params.num_robots == 3 && !params.point_mass) {
 
-  }
-
-  else if (params.num_robots == 3 && !params.point_mass) {
+    NOT_IMPLEMENTED;
   } else {
     NOT_IMPLEMENTED;
   }

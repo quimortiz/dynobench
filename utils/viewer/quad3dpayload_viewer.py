@@ -380,13 +380,27 @@ def quad3dpayload_meshcatViewer():
             raise NotImplementedError("unknown result format")
 
         visualizer._addQuadsPayload()
-        visualizer.draw_traces(np.array(states), quadNum, pType, l)
+        visualizer.draw_traces(np.array(states), quadNum, pType, lengths)
         print("shape of states: ", np.array(states).shape)
         while True:
             for state in states:
                 visualizer.updateVis(state)
                 time.sleep(0.001)
     else: 
+
+        # point1 =  [-0.000187059,-0.202631,0.31554]
+        # point2 = [-2.62275e-05,-0.16202,0.252487]
+
+        point1 = [-0.000165565,-0.202613,0.315552]
+        point2 =  [-0.000163666,-0.216121,0.336588]
+
+
+        points = np.array([point1, point2]).T
+
+        visualizer.vis["col1"].set_object(
+            g.Line(g.PointsGeometry(points), g.LineBasicMaterial()))
+
+
         name = input("press any key on terminal to close: ")
         print("closing")
 
