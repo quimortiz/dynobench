@@ -41,7 +41,7 @@ def computeStep(f, *data):
     state = flatten_symbolic_structure(state)
     stepFunc = sp.Matrix(state) + f * dt
     for i in range(0,3*num_uavs, 3):
-        qc_norm = sp.simplify(qvnormalize(sp.Matrix(stepFunc[6 + 2*i : 6+ 2*i + 3])))
+        qc_norm = qvnormalize(sp.Matrix(stepFunc[6 + 2*i : 6+ 2*i + 3]))
         stepFunc[6+2*i : 6 + 2*i+3,:] = qc_norm
     for i in range(0,7*num_uavs, 7):
         qint_norm = qnormalize(sp.Matrix(stepFunc[6+6*num_uavs+i : 6+6*num_uavs+ i + 4]))
@@ -174,20 +174,17 @@ def computef(*data):
         Mq = (mp + sum(mi))*sp.eye(3)
 
         cableSt = state[6:6+num_uavs]
-        uavSt = state[6+num_uavs:  6+6+7+num_uavs]
-
+        uavStates = state[6+num_uavs:  6+6+7+num_uavs]
         # acceleration of the payload
         for c_idx, cable in enumerate(cableSt):
             qc = sp.Matrix(qvnormalize(cable[0:3]))
             wc = cable[3:6]
-            
-            uavSti = uavSt[c_idx]
-            q = qnormalize(sp.Matrix(uavSti[0:4])) 
-            # exit()
+            uavState = uavStates[c_idx]
+            q = qnormalize(sp.Matrix(uavState[0:4])) 
             eta = B[c_idx]*sp.Matrix(action[c_idx])
             fu = sp.Matrix([0,0,eta[0]])
             u_i = sp.Matrix(quat_qvrot(q,fu)) 
-
+            u_par = qc@qc.T*u_i
             ap_ += (u_i - (mi[c_idx]*li[c_idx]*vdot(wc,wc))*qc) 
 
         #Final Equation for the payload acceleration
@@ -197,31 +194,32 @@ def computef(*data):
         for c_idx, cable in enumerate(cableSt):
             qc = sp.Matrix(qvnormalize(cable[0:3]))
             wc = sp.Matrix(cable[3:6])
-            uavSti = uavSt[c_idx]
-            q = qnormalize(sp.Matrix(uavSti[0:4])) 
+            uavState = uavStates[c_idx]
+            q = qnormalize(sp.Matrix(uavState[0:4])) 
             eta = B[c_idx]*sp.Matrix(action[c_idx])
             fu = sp.Matrix([0,0,eta[0]])
             u_i = sp.Matrix(quat_qvrot(q,fu))
             u_perp = (sp.eye(3) - qc*qc.T)*u_i
-            apgrav =  ap + sp.Matrix([0,0,9.81])
-            wcdot = 1/li[c_idx] * sp.Matrix(vcross(qc,apgrav)) - (1/(mi[c_idx]*li[c_idx])) * sp.Matrix(vcross(qc,u_i)) 
+            apgrav =  ap + sp.Matrix([0,0,9.81]) 
+            wcdot = 1/li[c_idx] * sp.Matrix(vcross(qc, apgrav)) - (1/(mi[c_idx]*li[c_idx])) * sp.Matrix(vcross(qc,u_i)) 
             qcdot = sp.Matrix(vcross(wc, qc))
             qwcdot.append(qcdot)
             qwcdot.append(wcdot)
 
         # uav states: [quat_0, w_0, quat_1, w_1, ..., quat_{n-1}, quat_{n-1}]
         uavSt_dot = []
-        for u_idx, uavState in enumerate(uavSt):
-            quat = qnormalize(sp.Matrix(uavState[0:4]))
+        for u_idx, uavState in enumerate(uavStates):
+            q = qnormalize(sp.Matrix(uavState[0:4]))
             w = sp.Matrix(uavState[4::])
             uavSt_dot.extend(quat_diff(q,w).tolist())
             J_uav = sp.diag(Ji[u_idx][0], Ji[u_idx][1], Ji[u_idx][2])
             J_uav_inv = J_uav**(-1)
             J_omega = J_uav * sp.Matrix(w)
-            eta = B[c_idx]*sp.Matrix(action[c_idx])
+            eta = B[u_idx]*sp.Matrix(action[u_idx])
             tau = sp.Matrix(eta[1:4])
             wdot =  J_uav_inv * (sp.Matrix(vcross(J_omega, w)) + tau)
             uavSt_dot.extend(wdot.tolist())
+        
         payload_f = sp.Matrix(
             [
                 [vp[0]], [vp[1]], [vp[2]], # payload velocity
@@ -508,8 +506,6 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
         file.write(step_code)
         file.write(footer)
 
-    return 0
-
 
 def main():
     parser = argparse.ArgumentParser()
@@ -534,7 +530,7 @@ def main():
 
     if writeC: 
         simplify = False
-        # write C script (NOT IMPLEMENTED)
+        # write C script 
         writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=simplify)
     else:
         writePython(step, num_uavs, payloadType)
