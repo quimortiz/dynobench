@@ -53,7 +53,7 @@ def computeRd(Fd):
 def QP(P,Wd, num_uavs, qis):
     qRefs = []
     mu = cp.Variable(num_uavs*3,)
-    lambdaa = 0.0
+    lambdaa = 0.5
 
     for i in range(0,3*num_uavs-1,3):
         qis[i+2] = qis[i+2]*-1
@@ -107,7 +107,6 @@ def controller(ref, state, gains, params):
         P[0:3,3*i:3*i+3] = np.eye(3)
 
     mu_d = QP(P, Fd, num_uavs,qis)
-
     mu_des_ = []
     for i in range(0,len(mu_d),3):
         mu_des_.append(mu_d[i:i+3].tolist())
@@ -117,6 +116,7 @@ def controller(ref, state, gains, params):
     quatsws = state[6+6*num_uavs:6+6*num_uavs+7*num_uavs]
     quats    = []
     ws       = []
+
     for i in range(0,3*num_uavs,3):
         qcs.append(qcswcs[2*i:2*i+3].tolist())
         wcs.append(qcswcs[2*i+3:2*i+6].tolist())
@@ -135,7 +135,10 @@ def controller(ref, state, gains, params):
         qdc = -mu_des/np.linalg.norm(mu_des)
         qcqcT = qc.reshape(3,1)@qc.reshape(3,1).T
         mu =  qcqcT @ mu_des
-  
+        # print(qc)
+        # print(qdc)
+        # print(mu)
+        # print()
         # parallel component 
         # u_parallel = mu + m*l*(np.dot(wi, wi))*qi  +  m*qiqiT@acc0
         u_par = mu + m*l*(np.dot(wc,wc))*qc + m*qcqcT@(ades)
@@ -152,7 +155,7 @@ def controller(ref, state, gains, params):
         u_all = u_par + u_perp
         thrust = np.linalg.norm(u_all)
         Rd =  computeRd(u_all)
-
+        # print(u_all)
         Rtd = np.transpose(Rd)
         er = 0.5 * flatten((Rtd @ R - Rt @ Rd))
 
@@ -164,6 +167,7 @@ def controller(ref, state, gains, params):
             - J_M @ (skew(w) @ Rt @ Rd @ des_w)
         action  = (np.linalg.inv(B[i]) @np.array([thrust, *tau])).tolist()
         actions.append(action)
+    # exit()
     return actions
 
 def vis(states, states_d, li, num_uavs):
@@ -231,9 +235,9 @@ def reference_traj_circle(t, w, qcwc, num_uavs, h=1, r=1):
     vel_des = [ r*w*np.cos(w*t), -r*w*np.sin(w*t), 0]
     acc_des = [-r*w**2*np.sin(w*t), -r*w**2*np.cos(w*t), 0]
 
-    # pos_des = [0, 0, 0]
-    # vel_des = [0, 0, 0]
-    # acc_des = [0, 0, 0]
+    pos_des = [0, 0, 0]
+    vel_des = [0, 0, 0]
+    acc_des = [0, 0, 0]
     ref = [pos_des, vel_des, acc_des, *qcs]
     return ref
 
@@ -264,17 +268,17 @@ def main():
     # num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt
     params = num_uavs, payloadType,  mi, Ji, mp, Jp, li, t2t, arm_length, dt, B
     
-    gains = [(20,10), (20,4), (0.01,0.003)]
+    gains = [(15,12.5), (14,4), (0.01,0.003)]
     
     # initial state and setup for reference trajectory
     if num_uavs == 1:
         qcwc  =   [0,0,-1,0,0,0]
         quatw =  [0,0,0,1,0,0,0]
     elif num_uavs == 2:
-        norqc =  np.linalg.norm([0,0.0,-1])
-        qcwc  =   [0, 0,-1, 0,0,0,  0, 0,-1 , 0,0,0]
-        # norqc =  np.linalg.norm([0,0,1])
-        # qcwc  =   [0, 0,-1, 0,0,0,  0, 0,-1, 0,0,0]
+        # norqc =  np.linalg.norm([0,0.0,-1])
+        # qcwc  =   [0, 0,-1, 0,0,0,  0, 0,-1 , 0,0,0]
+        norqc =  np.linalg.norm([ 0.70710678, 0, -0.70710678])
+        qcwc  =   [ 0, 0.70710678, -0.70710678, 0,0,0,   0, -0.70710678, -0.70710678, 0,0,0]
 
         qcwc /=  norqc
 
@@ -286,9 +290,9 @@ def main():
     # initial state and setup for reference trajectory
     h = 0
     angular_vel = 0.1
-    T = 2*np.pi/angular_vel
-    r=1
-    pos = [0,1, h]    
+    T = 10#2*np.pi/angular_vel
+    r = 1
+    pos = [0,0, h]    
     vel = [0,0,0]
     # qc  = [0,0,-1]
     
