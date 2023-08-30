@@ -149,9 +149,7 @@ class Visualizer():
         elif pType == "point":
             qcwcs = result[:, 6:6+6*quadNum]
             for i in range(quadNum):
-                print(i, 6*i, 6*i+3)
                 qc = qcwcs[:, 6*i: 6*i+3].T
-                print(qc.shape)
                 quad_pos = payload - l[i] * qc
 
                 self.vis["trace_quad"+str(i)].set_object(g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
@@ -262,16 +260,18 @@ def quad3dpayload_meshcatViewer():
             states = path['states']
         elif "result" in path:
             states = path['result']['states']
+            actions = path['result']['actions']
+            print("shape of actions: ", np.array(actions).shape)
         else: 
             raise NotImplementedError("unknown result format")
 
         visualizer._addQuadsPayload()
         visualizer.draw_traces(np.array(states), quadNum, pType, l)
-
+        print("shape of states: ", np.array(states).shape)
         while True:
             for state in states:
                 visualizer.updateVis(state)
-                time.sleep(0.01)
+                time.sleep(0.001)
     else: 
         name = input("press any key on terminal to close: ")
         print("closing")
