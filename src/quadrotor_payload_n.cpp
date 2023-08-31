@@ -242,7 +242,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   for (size_t i = 0; i < params.num_robots; i++) {
     collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
-        params.col_size_payload, rate_colision_cables * params.l_payload(0)));
+        params.col_size_payload, rate_colision_cables * params.l_payload(i)));
   }
 
   for (size_t i = 0; i < params.num_robots; i++) {
@@ -582,11 +582,16 @@ Model_quad3dpayload_n::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
   CHECK_EQ(x.size(), nx, AT)
   CHECK_EQ(y.size(), nx, AT)
 
-  return (x - y).norm();
+  Eigen::VectorXd diff(x.size());
+  Eigen::VectorXd dist_weights(x.size());
+  dist_weights.setOnes()
+  // set quaternion weights to 0.01
+  for (size_t i = 0; i < params.num_robots; ++i) {
+    dist_weights.segment(6 + 6 * params.num_robots + i * 7, 4).setConstant(.001);
+  }
 
-  // NOT_IMPLEMENTED
-  // TODO QUIM
-  // return 0.;
+  diff = (x - y).cwiseProduct(dist_weights);
+  return diff.norm();
 }
 
 void Model_quad3dpayload_n::interpolate(
