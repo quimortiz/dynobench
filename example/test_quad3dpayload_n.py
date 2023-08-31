@@ -11,6 +11,7 @@ import cffirmware
 import rowan
 import yaml 
 import argparse
+from pathlib import Path
 
 np.set_printoptions(linewidth=np.inf)
 np.set_printoptions(suppress=True)
@@ -465,7 +466,7 @@ def main():
         initstate = np.array([*pos, *vel, *qcwc, *quatw])
         gains = [(15,12.5, 0), (14, 4, 1.2), (0.008,0.0013, 0.0), (100,100,100), (1)]
 
-        quadpayload = robot_python.robot_factory("../models/quad3dpayload_p.yaml", [], [])
+        quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/quad3dpayload_p.yaml"), [], [])
         robot = Robot(quadpayload, num_robots, initstate, gains, dt)
 
         ts = np.arange(0,T,dt)
