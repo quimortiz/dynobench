@@ -190,13 +190,12 @@ struct Model_quad3dpayload_n : Model_robot {
                                     int i, Eigen::Ref<Eigen::Vector3d> out) {
     CHECK_LEQ(i, params.num_robots - 1, "");
     // NOT_IMPLEMENTED_TODO; // @KHALED
-    // WE NEED  THE LENGTH OF THE CABLES HERE
-    // I WILL ASSUME IT IS 0.5 for now
+
     Eigen::Vector3d payload_pos;
     get_payload_pos(x, payload_pos);
     Eigen::Vector3d qc;
     get_qc_i(x, i, qc);
-    out = payload_pos - qc * 0.5;
+    out = payload_pos - qc * params.l_payload(i);
   }
 
   virtual void
@@ -213,14 +212,13 @@ struct Model_quad3dpayload_n : Model_robot {
                             Eigen::Ref<Eigen::Vector3d> out, int i) {
     CHECK_LEQ(i, params.num_robots - 1, "");
     // NOT_IMPLEMENTED_TODO; // @KHALED
-    // Also we need the length of the cable here
-    // Assume it is 0.5
+
     //
     Eigen::Vector3d payload_pos;
     get_payload_pos(x, payload_pos);
     Eigen::Vector3d qc;
     get_qc_i(x, i, qc);
-    out = payload_pos - qc * 0.5 * 0.5;
+    out = payload_pos - qc * params.l_payload(i) * 0.5;
   }
 
   // NOTE: there are infinite solutions to this problem
