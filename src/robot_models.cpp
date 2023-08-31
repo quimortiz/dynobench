@@ -36,6 +36,7 @@
 #include "dynobench/unicycle1.hpp"
 #include "dynobench/unicycle2.hpp"
 #include "dynobench/quadrotor_payload_n.hpp"
+
 namespace dynobench {
 
 std::unique_ptr<Model_robot> robot_factory(const char *file,
@@ -70,6 +71,9 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
   } else if (dynamics == "quad3dpayload") {
     return std::make_unique<Model_quad3dpayload>(file, p_lb, p_ub);
   } else if (dynamics == "quad3dpayload_point") {
+    return std::make_unique<Model_quad3dpayload_n>(file, p_lb, p_ub);
+  }
+  else if (dynamics == "quad3dpayload_n") {
     return std::make_unique<Model_quad3dpayload_n>(file, p_lb, p_ub);
   }
   else {
