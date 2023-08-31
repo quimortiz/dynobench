@@ -216,6 +216,7 @@ struct Model_robot {
     return {};
   }
 
+  double k_acc = 0; // weight on acceleration cost, if any (some models will never use this)
 
   size_t nx;
   size_t nu;

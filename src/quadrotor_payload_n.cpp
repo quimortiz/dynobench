@@ -284,6 +284,9 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   state_ref(6 + 2) = -.9;
   state_ref(6 + 6 + 2) = -.9;
+
+  k_acc = 1.;
+
 }
 
 Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
