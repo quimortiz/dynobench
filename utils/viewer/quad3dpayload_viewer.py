@@ -6,9 +6,11 @@ import time
 import meshcat
 import meshcat.geometry as g
 import meshcat.transformations as tf
+from meshcat.animation import Animation
 import viewer_utils
 import argparse
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 
 class Quad():
@@ -183,7 +185,7 @@ class Visualizer():
 
         for name in self.quads.keys():
             self.vis[prefix + name].set_object(g.StlMeshGeometry.from_file(
-                'cf2_assembly.stl'), g.MeshLambertMaterial(color=DnametoColor.get(color_name, 0xffffff)))
+                Path(__file__).parent / 'cf2_assembly.stl'), g.MeshLambertMaterial(color=DnametoColor.get(color_name, 0xffffff)))
 
             self.vis[prefix + name + "_sphere"].set_object(
                 g.Mesh(g.Sphere(0.1), g.MeshLambertMaterial(opacity=0.1)))  # safety distance
@@ -206,7 +208,9 @@ class Visualizer():
                 self.vis["obstacle" +
                          str(idx)].set_transform(tf.translation_matrix(center))
 
-    def updateVis(self, state, prefix: str = ""):
+    def updateVis(self, state, prefix: str = "", frame=None):
+        if frame is None:
+            frame = self.vis
         self.QuadPayloadRobot.updateFullState(state)
         payloadSt = self.payload.state
         # color of the payload trajectory
@@ -221,23 +225,23 @@ class Visualizer():
             g.PointsMaterial(size=0.01)
         ))
         if self.payload.shape == "quad3dpayload" or self.payload.shape == "point":
-            self.vis[prefix + self.payload.shape].set_transform(
+            frame[prefix + self.payload.shape].set_transform(
                 tf.translation_matrix(payloadSt).dot(
                     tf.quaternion_matrix([1, 0, 0, 0])))
         else:
-            self.vis[prefix + self.payload.shape].set_transform(
+            frame[prefix + self.payload.shape].set_transform(
                 tf.translation_matrix(payloadSt[0:3]).dot(
                     tf.quaternion_matrix(payloadSt[3:7])))
 
         for name, quad in self.quads.items():
-            self.vis[prefix + name].set_transform(
+            frame[prefix + name].set_transform(
                 tf.translation_matrix(quad.state[0:3]).dot(
                     tf.quaternion_matrix(quad.state[3:7])))
             cablePos = np.linspace(payloadSt[0:3], quad.state[0:3], num=2).T
             cableMat = g.LineBasicMaterial(linewidth=1, color=0x000000)
             self.vis[prefix + "cable_" + name].set_object(
                 g.Line(g.PointsGeometry(cablePos), material=cableMat))
-            self.vis[prefix + name + \
+            frame[prefix + name + \
                 "_sphere"].set_transform(tf.translation_matrix(quad.state[0:3]))
 
 
@@ -249,6 +253,7 @@ def quad3dpayload_meshcatViewer():
         help="robot model: quad3dpayload, (point, rigid: for n robots)")
     parser.add_argument('--env', type=str, help="environment")
     parser.add_argument('--result', type=str, help="result trajectory")
+    parser.add_argument('--output', type=str, help="result trajectory")
     parser.add_argument(
         "-i",
         "--interactive",
@@ -358,9 +363,9 @@ def quad3dpayload_meshcatViewer():
         for u in __path["actions"]:
             print(u)
 
-        plt.show()
     visualizer = Visualizer(quadsPayload, env)
     if args.interactive:
+        plt.show()
         visualizer.vis.open()
 
     pathtoresult = args.result
@@ -382,10 +387,18 @@ def quad3dpayload_meshcatViewer():
         visualizer._addQuadsPayload()
         visualizer.draw_traces(np.array(states), quadNum, pType, lengths)
         print("shape of states: ", np.array(states).shape)
-        while True:
-            for state in states:
-                visualizer.updateVis(state)
-                time.sleep(0.001)
+
+        anim = Animation()
+        for k, state in enumerate(states):
+            with anim.at_frame(visualizer.vis, k) as frame:
+                visualizer.updateVis(state, frame=frame)
+        visualizer.vis.set_animation(anim)
+
+        res = visualizer.vis.static_html()
+        # save to a file
+        # Path(args.output).mkdir(exist_ok=True)
+        with open(args.output, "w") as f:
+            f.write(res)
     else: 
 
         # point1 =  [-0.000187059,-0.202631,0.31554]
