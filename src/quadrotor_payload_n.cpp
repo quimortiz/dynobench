@@ -584,7 +584,7 @@ Model_quad3dpayload_n::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
 
   Eigen::VectorXd diff(x.size());
   Eigen::VectorXd dist_weights(x.size());
-  dist_weights.setOnes()
+  dist_weights.setOnes();
   // set quaternion weights to 0.01
   for (size_t i = 0; i < params.num_robots; ++i) {
     dist_weights.segment(6 + 6 * params.num_robots + i * 7, 4).setConstant(.001);
