@@ -458,10 +458,6 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
                         const Eigen::Ref<const Eigen::VectorXd> &x,
                         const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  // CHECK_EQ(v.size(), 3*2, AT);
-  // CHECK_EQ(x.size(), 3*2, AT);
-  // CHECK_EQ(u.size(), 2*2, AT);
-
   int k = 0;
   int m = 0;
   for (size_t i = 0; i < v_robot_types.size(); ++i) {
