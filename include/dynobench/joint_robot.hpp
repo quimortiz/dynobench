@@ -99,6 +99,7 @@ struct Joint_robot : Model_robot {
   void get_u_ub(const std::vector<std::string> &robot_types, Eigen::VectorXd &ub);
   void get_x_lb(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_lb);
   void get_x_ub(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_ub);
+  void get_x_weightb(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_weightb);
   void get_collision_geometries(const std::vector<std::string> &robot_types,
             std::vector<std::shared_ptr<fcl::CollisionGeometryd>> &col_geom);
   int get_nx_col(const std::vector<std::string> &robot_types);

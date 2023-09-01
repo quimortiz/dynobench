@@ -11,6 +11,27 @@ namespace dynobench {
 double RM_low__ = -std::sqrt(std::numeric_limits<double>::max());
 double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
 
+void Joint_robot::get_x_weightb(const std::vector<std::string> &robot_types,
+                           Eigen::VectorXd &xweightb){
+  int k = 0;
+  xweightb.setConstant(.0);
+  for (size_t i = 0; i < robot_types.size(); i++) {
+    auto t = robot_types[i];
+    if (t == "double_integrator_0") {
+      k += 4;
+    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+      k += 3;
+    } else if (t == "unicycle_second_order_0") {
+      xweightb(k + 3) = 200;
+      xweightb(k + 4) = 200;
+      k += 5;
+    } else if (t == "single_integrator_0") {
+      k += 2;
+    } else if (t == "car_first_order_with_1_trailers_0") { 
+      k += 4;
+    }
+  }
+}
 void Joint_robot::get_x_lb(const std::vector<std::string> &robot_types,
                            Eigen::VectorXd &xlb) {
   int k = 0;
@@ -357,6 +378,7 @@ Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
   int robot_num = get_robot_num(robotTypes);
 
   nxs = get_nxs(robotTypes);
+  int total_nxs =  accumulate(nxs.begin(), nxs.end(), 0);
 
   const Eigen::VectorXd &p_lb = Eigen::VectorXd();
   const Eigen::VectorXd &p_ub = Eigen::VectorXd();
@@ -370,7 +392,7 @@ Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
   ts_data.resize(robot_num); // trailer
   col_outs.resize(robot_num);
 
-  nx_col = get_nx_col(robotTypes);
+  nx_col = nx; //get_nx_col(robotTypes);
   nx_pr = nx_col;
   translation_invariance = 2;
   distance_weights = params.distance_weights;
@@ -385,7 +407,9 @@ Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
 
   u_weight.resize(nu);
   u_weight.setConstant(.2);
-  x_weightb = V3d::Zero();
+  // x_weightb = V3d::Zero();
+  x_weightb.resize(total_nxs);
+  get_x_weightb(robotTypes, x_weightb);
 
   get_collision_geometries(robotTypes, collision_geometries);
   // for collisions
