@@ -24,14 +24,25 @@ void Joint_robot::get_x_lb(const std::vector<std::string> &robot_types,
       k += 4;
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       xlb(k) = RM_low__;
+      xlb(k + 1) = RM_low__;
+      xlb(k + 2) = RM_low__;
       k += 3;
+    } else if (t == "unicycle_second_order_0") {
+      xlb(k) = RM_low__;
+      xlb(k + 1) = RM_low__;
+      xlb(k + 2) = RM_low__;
+      xlb(k + 3) = params.unicycle_second_order_min_vel;
+      xlb(k + 4) = params.unicycle_second_order_min_angular_vel;
+      k += 5;
     } else if (t == "single_integrator_0") {
       xlb(k) = low__;
       xlb(k + 1) = low__;
       k += 2;
     } else if (t == "car_first_order_with_1_trailers_0") { 
-      xlb(k) = -std::sqrt(std::numeric_limits<double>::max());
-      xlb(k + 1) = -std::sqrt(std::numeric_limits<double>::max());
+      xlb(k) = RM_low__;
+      xlb(k + 1) = RM_low__;
+      xlb(k + 2) = RM_low__;
+      xlb(k + 3) = RM_low__;
       k += 4;
     }
   }
@@ -50,15 +61,26 @@ void Joint_robot::get_x_ub(const std::vector<std::string> &robot_types,
       k += 4;
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       xub(k) = RM_max__;
+      xub(k + 1) = RM_max__;
+      xub(k + 2) = RM_max__;
       k += 3;
+    } else if (t == "unicycle_second_order_0") {
+      xub(k) = RM_max__;
+      xub(k + 1) = RM_max__;
+      xub(k + 2) = RM_max__;
+      xub(k + 3) = params.unicycle_second_order_max_vel;
+      xub(k + 4) = params.unicycle_second_order_max_angular_vel;
+      k += 5;
     } else if (t == "single_integrator_0") {
       xub(k) = max__;
       xub(k + 1) = max__;
       k += 2;
     } else if (t == "car_first_order_with_1_trailers_0") { 
-      xub(k) = std::sqrt(std::numeric_limits<double>::max());
-      xub(k + 1) = std::sqrt(std::numeric_limits<double>::max());
-      k += 2;
+      xub(k) = RM_max__;
+      xub(k + 1) = RM_max__;
+      xub(k + 2) = RM_max__;
+      xub(k + 3) = RM_max__;
+      k += 4;
     }
   }
 }
@@ -68,7 +90,8 @@ int Joint_robot::get_nx_col(const std::vector<std::string> &robot_types) {
   for (auto t : robot_types) {
     if (t == "double_integrator_0" || t == "single_integrator_0") {
       nx += 2;
-    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere" || 
+                t == "unicycle_second_order_0") {
       nx += 3;
     } else if (t == "car_first_order_with_1_trailers_0") {
       nx += 4;
@@ -82,7 +105,8 @@ int Joint_robot::get_robot_num(const std::vector<std::string> &robot_types) {
   for (auto t : robot_types) {
     if (t == "double_integrator_0" || t == "single_integrator_0") {
       num += 1;
-    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere" || 
+              t == "unicycle_second_order_0") {
       num += 1;
     } else if (t == "car_first_order_with_1_trailers_0") {
       num += 2;
@@ -99,7 +123,7 @@ void Joint_robot::get_collision_geometries(
       col_geom.push_back(std::make_shared<fcl::Sphered>(params.radius));
     } else if (t == "unicycle_first_order_0_sphere") {
       col_geom.push_back(std::make_shared<fcl::Sphered>(params.big_radius));
-    } else if (t == "unicycle_first_order_0") {
+    } else if (t == "unicycle_first_order_0" || t == "unicycle_second_order_0") {
       col_geom.push_back(
           std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
     } else if (t == "car_first_order_with_1_trailers_0") {
@@ -126,9 +150,14 @@ void Joint_robot::get_u_lb(const std::vector<std::string> &robot_types,
       lb(k) = params.unicycle_min_vel;
       lb(k + 1) = params.unicycle_min_angular_vel;
       k += 2;
+    } else if (t == "unicycle_second_order_0") {
+      lb(k) = params.unicycle_second_order_min_acc;
+      lb(k+1) = params.unicycle_second_order_min_angular_acc;
+      k += 2;
     } else if (t == "single_integrator_0") {
       lb(k) = params.single_integrator_min_vel;
-      k += 1;
+      lb(k + 1) = params.single_integrator_min_vel;
+      k += 2;
     } else if (t == "car_first_order_with_1_trailers_0") {
       lb(k) = params.car_with_trailer_min_vel;
       lb(k + 1) = -params.car_with_trailer_max_steering_abs;
@@ -136,7 +165,6 @@ void Joint_robot::get_u_lb(const std::vector<std::string> &robot_types,
     }
   }
 }
-
 void Joint_robot::get_u_ub(const std::vector<std::string> &robot_types,
                            Eigen::VectorXd &ub) {
   int k = 0;
@@ -150,9 +178,14 @@ void Joint_robot::get_u_ub(const std::vector<std::string> &robot_types,
       ub(k) = params.unicycle_max_vel;
       ub(k + 1) = params.unicycle_max_angular_vel;
       k += 2;
+    } else if (t == "unicycle_second_order_0") {
+      ub(k) = params.unicycle_second_order_max_acc;
+      ub(k + 1) = params.unicycle_second_order_max_angular_acc;
+      k += 2;
     } else if (t == "single_integrator_0") {
       ub(k) = params.single_integrator_max_vel;
-      k += 1;
+      ub(k + 1) = params.single_integrator_max_vel;
+      k += 2;
     } else if (t == "car_first_order_with_1_trailers_0") {
       ub(k) = params.car_with_trailer_max_vel;
       ub(k + 1) = params.car_with_trailer_max_steering_abs;
@@ -169,6 +202,9 @@ void get_xdesc(const std::vector<std::string> &robot_types,
       x_descr.insert(x_descr.end(), tmp.begin(), tmp.end());
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       std::vector<std::string> tmp = {"x[m]", "y[m]", "yaw[rad]"};
+      x_descr.insert(x_descr.end(), tmp.begin(), tmp.end());
+    } else if (t == "unicycle_second_order_0") {
+      std::vector<std::string> tmp = {"x [m]", "y [m]", "yaw[rad]", "v[m/s]", "w[rad/s]"};
       x_descr.insert(x_descr.end(), tmp.begin(), tmp.end());
     } else if (t == "single_integrator_0") {
       std::vector<std::string> tmp = {"x[m]", "y[m]"};
@@ -189,6 +225,9 @@ void get_udesc(const std::vector<std::string> &robot_types,
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       std::vector<std::string> tmp = {"v[m/s]", "w[rad/s]"};
       u_descr.insert(u_descr.end(), tmp.begin(), tmp.end());
+    } else if (t == "unicycle_second_order_0") {
+      std::vector<std::string> tmp = {"a [m/s^2]", "aa[rad/s^2]"};
+      u_descr.insert(u_descr.end(), tmp.begin(), tmp.end());
     } else if (t == "single_integrator_0") {
       std::vector<std::string> tmp = {"vx[m/s]", "vy[m/s]"};
       u_descr.insert(u_descr.end(), tmp.begin(), tmp.end());
@@ -207,6 +246,9 @@ std::vector<size_t> inline get_so2_indices(
     if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       out.push_back(k + 2);
       k += 3;
+    } else if (t == "unicycle_second_order_0"){
+      out.push_back(k + 2);
+      k += 5;
     } else if (t == "car_first_order_with_1_trailers_0") {
       out.push_back(k + 2);
       out.push_back(k + 3); 
@@ -219,10 +261,11 @@ std::vector<size_t> inline get_so2_indices(
 int get_so2(const std::vector<std::string> &robot_types) {
   int total_so2 = 0;
   for (auto t : robot_types) {
-    if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+    if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere" || 
+      t == "unicycle_second_order_0") {
       total_so2 += 1;
     } else if (t == "car_first_order_with_1_trailers_0") {
-      total_so2 += 2; // for the trailer ?
+      total_so2 += 2; 
     }
   }
   return total_so2;
@@ -244,6 +287,8 @@ int get_number_of_r_dofs(const std::vector<std::string> &robotTypes) {
       counter += 4;
     } else if (robot == "unicycle_first_order_0" || robot == "unicycle_first_order_0_sphere") {
       counter += 2;
+    } else if (robot == "unicycle_second_order_0") {
+      counter += 4;
     } else if (robot == "single_integrator_0") {
       counter += 2;
     } else if (robot == "car_first_order_with_1_trailers_0") {
@@ -262,7 +307,8 @@ int get_number_of_us(const std::vector<std::string> &robotTypes) {
   for (auto &robot : robotTypes) {
     if (robot == "double_integrator_0") {
       counter += 2;
-    } else if (robot == "unicycle_first_order_0" || robot == "unicycle_first_order_0_sphere") {
+    } else if (robot == "unicycle_first_order_0" || robot == "unicycle_first_order_0_sphere" ||
+      robot == "unicycle_second_order_0") {
       counter += 2;
     } else if (robot == "single_integrator_0") {
       counter += 2;
@@ -286,6 +332,8 @@ std::vector<int> get_nxs(const std::vector<std::string> &robotTypes) {
                      return 4;
                    } else if (robot == "unicycle_first_order_0" || robot == "unicycle_first_order_0_sphere") {
                      return 3;
+                   } else if (robot == "unicycle_second_order_0") {
+                     return 5;
                    } else if (robot == "single_integrator_0") {
                      return 2;
                    } else if (robot == "car_first_order_with_1_trailers_0") {
@@ -300,15 +348,11 @@ std::vector<int> get_nxs(const std::vector<std::string> &robotTypes) {
 }
 
 Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
-    // : Model_robot(std::make_shared<RnSOn>(2*v_s.size(), get_so2(v_s),
-    // get_so2_indices(v_s)), get_u(v_u))
     : Model_robot(std::make_shared<RnSOn>(get_number_of_r_dofs(robotTypes),
                                           get_so2(robotTypes),
                                           get_so2_indices(robotTypes)),
                   get_number_of_us(robotTypes)) {
-  // so2_indices = get_so2_indices(v_s);
   so2_indices = get_so2_indices(robotTypes);
-  // v_states = v_s;
   v_robot_types = robotTypes;
   int robot_num = get_robot_num(robotTypes);
 
@@ -361,9 +405,6 @@ void Joint_robot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
   x = x_lb + (x_ub - x_lb)
                  .cwiseProduct(.5 * (Eigen::VectorXd::Random(nx) +
                                      Eigen::VectorXd::Ones(nx)));
-  // for (auto a : so2_indices){
-  //   x(a) = (M_PI * Eigen::Matrix<double, 1, 1>::Random())(0);
-  // }
   int k = 0;
   for (size_t i = 0; i < v_robot_types.size(); ++i) {
     auto t = v_robot_types[i];
@@ -372,6 +413,9 @@ void Joint_robot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       x(k + 2) = (M_PI * Eigen::Matrix<double, 1, 1>::Random())(0);
       k += 3;
+    } else if (t == "unicycle_second_order_0") {
+      x(k + 2) = (M_PI * Eigen::Matrix<double, 1, 1>::Random())(0);
+      k += 5;
     } else if (t == "single_integrator_0") {
       k += 2;
     } else if (v_robot_types[i] == "car_first_order_with_1_trailers_0") {
@@ -412,6 +456,18 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
       v(k + 1) = s * u[m];
       v(k + 2) = u[m + 1];
       k += 3;
+      m += 2;
+    } else if (t ==  "unicycle_second_order_0") {
+      const double c = cos(x[k + 2]);
+      const double s = sin(x[k + 2]);
+      const double vv = x[k + 3];
+      const double w = x[k + 4];
+      v(k) = c * vv;
+      v(k + 1) = s * vv;
+      v(k + 2) = w;
+      v(k + 3) = u[m];
+      v(k + 4) = u[m + 1];
+      k += 5;
       m += 2;
     } else if (t == "single_integrator_0") {
       v(k) = u[m];
@@ -477,6 +533,22 @@ void Joint_robot::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 
       k += 3;
       m += 2;
+    } else if (t == "unicycle_second_order_0") {
+      const double c = cos(x[k + 2]);
+      const double s = sin(x[k + 2]);
+      const double vv = x[k + 3];
+
+      Jv_x(k, k + 2) = -s * vv;
+      Jv_x(k, k + 3) = c;
+      Jv_x(k + 1, k + 2) = c * vv;
+      Jv_x(k + 1, k + 3) = s;
+      Jv_x(k + 2, k + 4) = 1;
+
+      Jv_u(k + 3, m) = 1;
+      Jv_u(k + 4, m + 1) = 1;
+
+      k += 5;
+      m += 2;
     } else if (t == "single_integrator_0") {
       Jv_u(k, m) = 1;
       Jv_u(k + 1, m + 1) = 1;
@@ -511,12 +583,6 @@ void Joint_robot::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 
 double Joint_robot::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                              const Eigen::Ref<const Eigen::VectorXd> &y) {
-  // assert(x.size() == 6);
-  // assert(y.size() == 6);
-  // assert(y[2] <= M_PI && y[2] >= -M_PI);
-  // assert(x[2] <= M_PI && x[2] >= -M_PI);
-  // assert(y[5] <= M_PI && y[5] >= -M_PI);
-  // assert(x[5] <= M_PI && x[5] >= -M_PI);
   int k = 0;
   double sum = 0;
   for (size_t i = 0; i < v_robot_types.size(); ++i) {
@@ -534,6 +600,11 @@ double Joint_robot::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       sum += params.distance_weights(1) * so2_distance(x(k + 2), y(k + 2));
       k += 3;
+    } else if (t == "unicycle_second_order_0") {
+      sum += params.distance_weights(1) * so2_distance(x(k + 2), y(k + 2));
+      sum += params.distance_weights(2) * std::abs(x(k + 3) - y(k + 3));
+      sum += params.distance_weights(3) * std::abs(x(k + 4) - y(k + 4));
+      k += 5;
     } else if (t == "single_integrator_0") {
       k += 2;
     } else if (t == "car_first_order_with_1_trailers_0") {
@@ -552,10 +623,6 @@ void Joint_robot::interpolate(Eigen::Ref<Eigen::VectorXd> xt,
   assert(dt <= 1);
   assert(dt >= 0);
 
-  // assert(xt.size() == 6);
-  // assert(from.size() == 6);
-  // assert(to.size() == 6);
-
   int k = 0;
   for (size_t i = 0; i < v_robot_types.size(); ++i) {
     if (k == 0) {
@@ -570,6 +637,10 @@ void Joint_robot::interpolate(Eigen::Ref<Eigen::VectorXd> xt,
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       so2_interpolation(xt(k + 2), from(k + 2), to(k + 2), dt);
       k += 3;
+    } else if (t == "unicycle_second_order_0") {
+      so2_interpolation(xt(k + 2), from(k + 2), to(k + 2), dt);
+      xt.segment<2>(k + 3) = from.segment<2>(k + 3) + dt * (to.segment<2>(k + 3) - from.segment<2>(k + 3));
+      k += 5;
     } else if (t == "single_integrator_0") {
       k += 2;
     } else if (t == "car_first_order_with_1_trailers_0") {
@@ -579,7 +650,6 @@ void Joint_robot::interpolate(Eigen::Ref<Eigen::VectorXd> xt,
     }
   }
 }
-
 double
 Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                               const Eigen::Ref<const Eigen::VectorXd> &y) {
@@ -609,6 +679,11 @@ Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
           m, std::max(pos_norm / max_vel_abs,
                       so2_distance(x(k + 2), y(k + 2)) / max_angular_vel_abs));
       k += 3;
+    }  else if (t == "unicycle_second_order_0"){
+      m = std::max(m, pos_norm / params.unicycle_second_order_max_vel);
+      m = std::max(m, so2_distance(x(k + 2), y(k + 2)) / params.unicycle_second_order_max_angular_vel);
+      m = std::max(m, std::max(std::abs(x(k + 3) - y(k + 3)) / params.unicycle_second_order_max_acc, std::abs(x(k + 4) - y(k + 4)) / params.unicycle_second_order_max_angular_acc));
+      k += 5;
     } else if (t == "single_integrator_0") {
       m = std::max(
           m, std::max(std::abs(x(k) - y(k)) / params.single_integrator_max_vel,
@@ -631,8 +706,6 @@ Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
 void Joint_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  // CHECK_GEQ(x.size(), 6, "");
-  // CHECK_EQ(ts.size(), 2, "");
   int k = 0;
   int i = 0;
   for (auto robot_type : v_robot_types) {
@@ -647,7 +720,12 @@ void Joint_robot::transformation_collision_geometries(
       k += 3;
       ts.at(i) = result;
       i += 1;
-    } else if (robot_type == "single_integrator_0") {
+    } else if (robot_type == "unicycle_second_order_0") {
+      result.rotate(Eigen::AngleAxisd(x(k + 2), Eigen::Vector3d::UnitZ()));
+      k += 5;
+      ts.at(i) = result;
+      i += 1;
+    }else if (robot_type == "single_integrator_0") {
       k += 2;
       ts.at(i) = result;
       i += 1;
@@ -665,7 +743,6 @@ void Joint_robot::transformation_collision_geometries(
       k += 4;
       i += 2;
     }
-    // ts.at(i) = result;
   }
 }
 

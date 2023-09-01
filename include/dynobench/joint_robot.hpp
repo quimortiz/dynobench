@@ -20,6 +20,15 @@ struct Joint_robot_params{
     double unicycle_max_angular_vel = 0.5;
     double unicycle_min_angular_vel = -0.5;
 
+    double unicycle_second_order_max_vel = 0.5;
+    double unicycle_second_order_min_vel = -0.5;
+    double unicycle_second_order_max_angular_vel = 0.5;
+    double unicycle_second_order_min_angular_vel = -0.5;
+    double unicycle_second_order_max_acc = 0.25;
+    double unicycle_second_order_min_acc = -0.25;
+    double unicycle_second_order_max_angular_acc = 0.25;
+    double unicycle_second_order_min_angular_acc = -0.25;
+
     double car_with_trailer_l = .25;
     double car_with_trailer_max_vel = .5;
     double car_with_trailer_min_vel = -.1;
@@ -32,7 +41,7 @@ struct Joint_robot_params{
 
 
     Eigen::Vector2d size = Eigen::Vector2d(.5, .25); 
-    Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5); 
+    Eigen::Vector4d distance_weights = Eigen::Vector4d(1, .5, .25, .25); 
     double radius = 0.1;
     double big_radius = 0.40;
     std::string shape = "box";
