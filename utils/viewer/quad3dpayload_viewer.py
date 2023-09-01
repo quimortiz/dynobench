@@ -186,7 +186,7 @@ class Visualizer():
         for name in self.quads.keys():
             self.vis[prefix + name].set_object(g.StlMeshGeometry.from_file(
                 Path(__file__).parent / 'cf2_assembly.stl'), g.MeshLambertMaterial(color=DnametoColor.get(color_name, 0xffffff)))
-
+            self.vis[prefix + "cable_" + name].set_object(g.Box([0.005,0.005,self.quads[name].l]), g.MeshLambertMaterial(color=0x000000))            
             self.vis[prefix + name + "_sphere"].set_object(
                 g.Mesh(g.Sphere(0.1), g.MeshLambertMaterial(opacity=0.1)))  # safety distance
 
@@ -233,14 +233,15 @@ class Visualizer():
                 tf.translation_matrix(payloadSt[0:3]).dot(
                     tf.quaternion_matrix(payloadSt[3:7])))
 
-        for name, quad in self.quads.items():
+        for i, (name, quad) in enumerate(self.quads.items()):
             frame[prefix + name].set_transform(
                 tf.translation_matrix(quad.state[0:3]).dot(
                     tf.quaternion_matrix(quad.state[3:7])))
-            cablePos = np.linspace(payloadSt[0:3], quad.state[0:3], num=2).T
-            cableMat = g.LineBasicMaterial(linewidth=1, color=0x000000)
-            self.vis[prefix + "cable_" + name].set_object(
-                g.Line(g.PointsGeometry(cablePos), material=cableMat))
+            qc = state[6+6*i: 6+6*i+3]
+            cablePos  = payloadSt[0:3] - (quad.l)*np.array(qc)/2
+            cableQuat = rn.vector_vector_rotation(qc, [0,0,-1])
+            frame[prefix + "cable_" + name].set_transform(tf.translation_matrix(cablePos).dot(
+                                                                tf.quaternion_matrix(cableQuat)))
             frame[prefix + name + \
                 "_sphere"].set_transform(tf.translation_matrix(quad.state[0:3]))
 
