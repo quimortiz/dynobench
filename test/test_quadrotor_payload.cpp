@@ -30,7 +30,7 @@ BOOST_AUTO_TEST_CASE(t_hello_quadrotor_payload_n) {
 
   std::cout << "Hello Khaled" << std::endl;
   dynobench::Quad3dpayload_n_params params;
-  params.read_from_yaml(base_path "models/quad3dpayload_p.yaml");
+  params.read_from_yaml(base_path "models/point.yaml");
   auto model = mk<dynobench::Model_quad3dpayload_n>(params);
   
   Eigen::VectorXd x0 = Eigen::VectorXd::Zero(model->nx);

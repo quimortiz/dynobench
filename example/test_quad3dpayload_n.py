@@ -437,7 +437,7 @@ def main():
     args = parser.parse_args()
     
     if args.enable_cffirmware:    
-        num_robots = 3
+        num_robots = 2
         # num_robots = args.num_robots
         payloadType = "point"
         with open(args.inp, "r") as file:
@@ -457,7 +457,7 @@ def main():
 
         gains = [(15,12.5, 0), (14, 10, 1.2), (0.008,0.0013, 0.0), (1000,10000,10000), (1)]
 
-        quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/quad3dpayload_p.yaml"), [], [])
+        quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/point.yaml"), [], [])
         robot = Robot(quadpayload, num_robots, initstate, gains, dt)
 
         ts = np.arange(0,T,dt)
