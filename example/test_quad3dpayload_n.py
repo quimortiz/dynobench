@@ -13,6 +13,14 @@ import yaml
 import argparse
 from pathlib import Path
 
+# pbpath = str(Path.cwd() / "deps/dynoplan/dynobench/")
+# cfpath = str(Path.cwd() / "../deps/crazyflie-firmware")
+# sys.path.append(pbpath)
+# sys.path.append(cfpath)
+
+# import robot_python
+# import cffirmware
+
 np.set_printoptions(linewidth=np.inf)
 np.set_printoptions(suppress=True)
 
@@ -230,7 +238,7 @@ class Controller():
         self.leePayload.en_qdidot = 0
         self.leePayload.mass = mi
         self.leePayload.en_accrb = 0                                
-        self.leePayload.gen_hp = 1
+        self.leePayload.gen_hp = 1 # TODO: don't forget to change this after updating the firmware
         self.leePayload.formation_control = 0
         self.leePayload.lambda_svm = 1000
 
@@ -301,9 +309,9 @@ class Controller():
         self.setpoint.velocity.x = states_d[3]  # m/s
         self.setpoint.velocity.y = states_d[4]  # m/s
         self.setpoint.velocity.z = states_d[5]  # m/s
-        self.setpoint.acceleration.x = states_d[6]  # m/s^2
-        self.setpoint.acceleration.y = states_d[7]  # m/s^2
-        self.setpoint.acceleration.z = states_d[8]  # m/s^2
+        self.setpoint.acceleration.x = 0#states_d[6]  # m/s^2 update this to be computed from model
+        self.setpoint.acceleration.y = 0#states_d[7]  # m/s^2 update this to be computed from model
+        self.setpoint.acceleration.z = 0#states_d[8]  # m/s^2 update this to be computed from model
 
         
     def __getUAVSt(self, state, i):
@@ -369,6 +377,7 @@ class Controller():
             # cffirmware.controller_lee_payload_set_attachement(self.leePayload, cfid, cfid, attPoint[0], attPoint[1], attPoint[2])
         
     def controllerLeePayload(self, states_d, state, tick, my_id):
+        ### TODO: update the crazyflie-firmware to include the reference of the cables in the QP
         self.team_ids.remove(my_id)
         self.team_ids.insert(0, my_id)
         self.__updateDesState(states_d)
@@ -378,6 +387,8 @@ class Controller():
         cffirmware.controllerLeePayload(self.leePayload, self.control, self.setpoint, self.sensors, self.state, tick)
         control = np.array([self.leePayload.thrustSI, self.control.torque[0], self.control.torque[1], self.control.torque[2]])
         u = self.B0_inv@control
+        u = np.clip(u, 0., 1.)
+        print(u)
         return u.tolist()
 
 
@@ -418,53 +429,33 @@ class Robot():
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--out", default=None,  type=str, help="yaml file for the table")
+    parser.add_argument("--inp", default=None, type=str, help='yaml input reference trajectory', required=True)
+    parser.add_argument("--out", default=None,  type=str, help="yaml file for the table", required=True)
+    # parser.add_argument('--num_robots', default=None, type=int, required=True, help="number of robots")
     parser.add_argument("-cff", "--enable_cffirmware", action="store_true")  # on/off flag    args = parser.args
     parser.add_argument("-w", "--write", action="store_true")  # on/off flag    args = parser.args
     args = parser.parse_args()
     
     if args.enable_cffirmware:    
-        num_robots = 2
+        num_robots = 3
+        # num_robots = args.num_robots
         payloadType = "point"
+        with open(args.inp, "r") as file:
+            refresult = yaml.safe_load(file)
+        if 'states' in refresult:
+            refstate = refresult["states"]
+        elif "result" in refresult:
+            refstate = refresult["result"]["states"]
+        else:
+            raise NotImplementedError("unknown result format")
         dt = 0.01
-
-        # initial state and setup for reference trajectory
-        if num_robots == 1:
-            qcwc  =   [0,0,-1,0,0,0]
-            quatw =  [0,0,0,1,0,0,0]
-        elif num_robots == 2:
-            qcwc2 = [25, 0, 0]
-            angR1      = np.radians([25, 0, 180])
-            angR2      = np.radians([25, 0, 0])
-            q1 = rn.from_euler(angR1[0], angR1[1], angR1[2], convention='xyz', axis_type='extrinsic')
-            q2 = rn.from_euler(angR2[0], angR2[1], angR2[2], convention='xyz', axis_type='extrinsic')
-            qcwc1 = rn.to_matrix(rn.from_euler(angR1[0], angR1[1], angR1[2], convention='xyz',axis_type='extrinsic')) @ np.array([0,0,-1])
-            qcwc2 = rn.to_matrix(rn.from_euler(angR2[0], angR2[1], angR2[2], convention='xyz',axis_type='extrinsic')) @ np.array([0,0,-1])
-            # exit()
-            # qcwc1 = [0,0,-1]
-            # qcwc2 = [0, 0, -1]
-
-            norqc =  np.linalg.norm(qcwc1)
-            qcwc  =   [*qcwc1, 0,0,0,  *qcwc2 , 0,0,0]
-            qcwc /=  norqc
-
-            quatw =   [0,0,0,1,0,0,0,  0,0,0,1,0,0,0]
-        elif num_robots == 3: 
-            qcwc  =   [0,0,-1,0,0,0, 0, 0, -1, 0,0,0, 0,0,-1, 0,0,0]
-            quatw =  [0,0,0,1,0,0,0, 0,0,0,1,0,0,0, 0,0,0,1,0,0,0]
-
-        # initial state and setup for reference trajectory
-        h = 0
-        angular_vel = 0.1
-        T = 3 #2*np.pi/angular_vel
-        r=1
-        pos = [0,0, h]    
-        vel = [0,0,0]
-        # qc  = [0,0,-1]
-
+        T = len(refstate)*dt
+        
         # x, y, z, vx, vy, vz, *cableSt, *uavSt
-        initstate = np.array([*pos, *vel, *qcwc, *quatw])
-        gains = [(15,12.5, 0), (14, 4, 1.2), (0.008,0.0013, 0.0), (100,100,100), (1)]
+        initstate = np.array(refstate[0])
+        # initstate = np.delete(initstate, [6,7,8]) # remove the accelerations 
+
+        gains = [(15,12.5, 0), (14, 10, 1.2), (0.008,0.0013, 0.0), (1000,10000,10000), (1)]
 
         quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/quad3dpayload_p.yaml"), [], [])
         robot = Robot(quadpayload, num_robots, initstate, gains, dt)
@@ -473,12 +464,12 @@ def main():
         if payloadType == "point":
             states = np.zeros((len(ts)+1, 6+6*num_robots+7*num_robots))
         states[0] = initstate
-        states_d = np.zeros((len(ts)+1, 9+3*num_robots))    
+        states_d = np.array(refstate)    
         print('Simulating...')
 
         robot.appSt.append(initstate.tolist())
         for k, t in enumerate(ts):
-            states_d[k] = [ref for subref in reference_traj_circle(t, angular_vel, np.array(qcwc), num_robots, h=h, r=r) for ref in subref]
+            # states_d[k] = [ref for subref in reference_traj_circle(t, angular_vel, np.array(qcwc), num_robots, h=h, r=r) for ref in subref]
             u = []
             for r_idx, ctrl in robot.controller.items():
                 r_idx = int(r_idx)
