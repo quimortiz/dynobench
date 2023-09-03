@@ -8,6 +8,7 @@
 
 namespace dynobench {
 #include "quadrotor_payload_dynamics_autogen_n2_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
+#include "quadrotor_payload_dynamics_autogen_n3_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 
 void Quad3dpayload_n_params::read_from_yaml(YAML::Node &node) {
 
@@ -16,10 +17,12 @@ void Quad3dpayload_n_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_payload));
-  set_from_yaml(node, VAR_WITH_NAME(l_payload));
 
   set_from_yaml(node, VAR_WITH_NAME(m_payload));
   set_from_yaml(node, VAR_WITH_NAME(l_payload));
+  set_from_yaml(node, VAR_WITH_NAME(J_vx));
+  set_from_yaml(node, VAR_WITH_NAME(J_vy));
+  set_from_yaml(node, VAR_WITH_NAME(J_vz));
 
   set_from_yaml(node, VAR_WITH_NAME(max_vel));
   set_from_yaml(node, VAR_WITH_NAME(max_angular_vel));
@@ -456,7 +459,9 @@ void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
 
   } else if (params.num_robots == 3 && params.point_mass) {
 
-    NOT_IMPLEMENTED;
+    calcFFC(ff, params, x, u);
+
+    // NOT_IMPLEMENTED;
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -488,6 +493,7 @@ void Model_quad3dpayload_n::calcDiffV(
     calcJB(Jv_x, Jv_u, params, x, u);
 
   } else if (params.num_robots == 3 && params.point_mass) {
+    calcJC(Jv_x, Jv_u, params, x, u);
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -520,6 +526,7 @@ void Model_quad3dpayload_n::step(Eigen::Ref<Eigen::VectorXd> xnext,
     calcStepB(xnext, params, x, u, dt);
 
   } else if (params.num_robots == 3 && params.point_mass) {
+    calcStepC(xnext, params, x, u, dt);
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -559,6 +566,8 @@ void Model_quad3dpayload_n::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
     calcFB(Fx, Fu, params, x, u, dt);
 
   } else if (params.num_robots == 3 && params.point_mass) {
+    calcFC(Fx, Fu, params, x, u, dt);
+  
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {

@@ -17,7 +17,7 @@ struct Quad3dpayload_n_params {
   Quad3dpayload_n_params(const char *file) { read_from_yaml(file); }
   Quad3dpayload_n_params() = default;
 
-  int num_robots = 2;
+  int num_robots;// = 2;
   bool point_mass = true;
 
   double col_size_robot = .1;    // radius
@@ -34,14 +34,13 @@ struct Quad3dpayload_n_params {
 
   bool motor_control = true;
 
-  Eigen::VectorXd m = create_vector({0.034, 0.034}); // kg
-  // Eigen::Vector2d(0.034, 0.034); // kg
-  // This can't be done here, it needs to be defined in the constructor
-  // Eigen::VectorXd m(2);
-  // m << 0.034, 0.034; // kg
+  Eigen::VectorXd m; // kg
 
-  double m_payload = 0.0054;                             // kg
-  Eigen::Vector2d l_payload = Eigen::Vector2d(0.5, 0.5); // m  Khaled DONE
+  Eigen::VectorXd l_payload; // m
+  Eigen::VectorXd J_vx; 
+  Eigen::VectorXd J_vy; 
+  Eigen::VectorXd J_vz; 
+  double m_payload = 0.0054; // kg
 
   double g = 9.81;
   double max_f = 1.3;        // thrust to weight ratio -- Khaled DONE
@@ -49,11 +48,6 @@ struct Quad3dpayload_n_params {
   double t2t = 0.006;        // thrust-to-torque ratio
   double dt = .01;
 
-  Eigen::Vector2d J_vx = Eigen::Vector2d(16.571710e-6, 16.571710e-6);
-
-  Eigen::Vector2d J_vy = Eigen::Vector2d(16.655602e-6, 16.655602e-6);
-
-  Eigen::Vector2d J_vz = Eigen::Vector2d(29.261652e-6, 29.261652e-6);
 
   std::string shape = "sphere";
   Eigen::Vector4d distance_weights = Eigen::Vector4d(1, 1, .1, .1);
@@ -73,6 +67,7 @@ struct Quad3dpayload_n_params {
     const std::string be = "";
     const std::string af = ": ";
 
+    out << be << STR(filename, af) << std::endl;
     out << be << STR(point_mass, af) << std::endl;
     out << be << STR(num_robots, af) << std::endl;
 
@@ -80,24 +75,26 @@ struct Quad3dpayload_n_params {
     out << be << STR(col_size_payload, af) << std::endl;
 
     out << be << STR(m_payload, af) << std::endl;
-    out << be << STR(l_payload, af) << std::endl;
 
     out << be << STR(max_vel, af) << std::endl;
     out << be << STR(max_angular_vel, af) << std::endl;
     out << be << STR(max_acc, af) << std::endl;
     out << be << STR(max_angular_acc, af) << std::endl;
     out << be << STR(motor_control, af) << std::endl;
-    out << be << STR(m, af) << std::endl;
     out << be << STR(g, af) << std::endl;
     out << be << STR(max_f, af) << std::endl;
     out << be << STR(arm_length, af) << std::endl;
     out << be << STR(t2t, af) << std::endl;
     out << be << STR(dt, af) << std::endl;
     out << be << STR(shape, af) << std::endl;
-    out << be << STR(filename, af) << std::endl;
 
+    out << be << STR_VV(m, af) << std::endl;
+    out << be << STR_VV(l_payload, af) << std::endl;
     out << be << STR_VV(distance_weights, af) << std::endl;
-    out << be << STR_VV(J_v, af) << std::endl;
+    out << be << STR_VV(J_v, af)  << std::endl;
+    out << be << STR_VV(J_vx, af) << std::endl;
+    out << be << STR_VV(J_vy, af) << std::endl;
+    out << be << STR_VV(J_vz, af) << std::endl;
     out << be << STR_VV(size, af) << std::endl;
     out << be << STR_VV(u_lb, af) << std::endl;
     out << be << STR_VV(u_ub, af) << std::endl;

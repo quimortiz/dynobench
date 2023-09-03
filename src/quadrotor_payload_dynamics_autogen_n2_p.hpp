@@ -1,13 +1,18 @@
 void inline calcFFB(Eigen::Ref<Eigen::VectorXd> ff, const Quad3dpayload_n_params &params,
                                 const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &u) {
-// Auto generated 2023-08-30--16-49-24 from sympy
-        Eigen::Vector2d m = params.m;
+// Auto generated 2023-09-03--18-07-12 from sympy
         double mp = params.m_payload;
-        Eigen::Vector2d l = params.l_payload;
-        Eigen::Vector2d J_vx = params.J_vx;
-        Eigen::Vector2d J_vy = params.J_vy;
-        Eigen::Vector2d J_vz = params.J_vz;
+        Eigen::VectorXd m(params.num_robots); 
+        m = params.m;
+        Eigen::VectorXd l(params.num_robots); 
+        l = params.l_payload;
+        Eigen::VectorXd J_vx(params.num_robots); 
+        J_vx = params.J_vx;
+        Eigen::VectorXd J_vy(params.num_robots);
+        J_vy = params.J_vy;
+        Eigen::VectorXd J_vz(params.num_robots);
+        J_vz = params.J_vz;
         double arm_length = params.arm_length;
         double t2t = params.t2t;
         ff(0) = x(3);
@@ -49,12 +54,17 @@ void inline calcJB(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                                 Eigen::Ref<Eigen::MatrixXd> Jv_u, const Quad3dpayload_n_params &params,
                                 const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &u) {
-        Eigen::Vector2d m = params.m;
         double mp = params.m_payload;
-        Eigen::Vector2d l = params.l_payload;
-        Eigen::Vector2d J_vx = params.J_vx;
-        Eigen::Vector2d J_vy = params.J_vy;
-        Eigen::Vector2d J_vz = params.J_vz;
+        Eigen::VectorXd m(params.num_robots); 
+        m = params.m;
+        Eigen::VectorXd l(params.num_robots); 
+        l = params.l_payload;
+        Eigen::VectorXd J_vx(params.num_robots); 
+        J_vx = params.J_vx;
+        Eigen::VectorXd J_vy(params.num_robots);
+        J_vy = params.J_vy;
+        Eigen::VectorXd J_vz(params.num_robots);
+        J_vz = params.J_vz;
         double arm_length = params.arm_length;
         double t2t = params.t2t;
         Jv_x(0,3) = 1;
@@ -425,12 +435,17 @@ void inline calcFB(Eigen::Ref<Eigen::MatrixXd> Fx,
                                 const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &u,
                                 double dt) {
-        Eigen::Vector2d m = params.m;
         double mp = params.m_payload;
-        Eigen::Vector2d l = params.l_payload;
-        Eigen::Vector2d J_vx = params.J_vx;
-        Eigen::Vector2d J_vy = params.J_vy;
-        Eigen::Vector2d J_vz = params.J_vz;
+        Eigen::VectorXd m(params.num_robots); 
+        m = params.m;
+        Eigen::VectorXd l(params.num_robots); 
+        l = params.l_payload;
+        Eigen::VectorXd J_vx(params.num_robots); 
+        J_vx = params.J_vx;
+        Eigen::VectorXd J_vy(params.num_robots);
+        J_vy = params.J_vy;
+        Eigen::VectorXd J_vz(params.num_robots);
+        J_vz = params.J_vz;
         double arm_length = params.arm_length;
         double t2t = params.t2t;
         Fx(0,0) = 1;
@@ -823,12 +838,17 @@ void inline calcFB(Eigen::Ref<Eigen::MatrixXd> Fx,
 void inline calcStepB(Eigen::Ref<Eigen::VectorXd> xnext, const Quad3dpayload_n_params &params,
                                 const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &u, double dt) {
-        Eigen::Vector2d m = params.m;
         double mp = params.m_payload;
-        Eigen::Vector2d l = params.l_payload;
-        Eigen::Vector2d J_vx = params.J_vx;
-        Eigen::Vector2d J_vy = params.J_vy;
-        Eigen::Vector2d J_vz = params.J_vz;
+        Eigen::VectorXd m(params.num_robots); 
+        m = params.m;
+        Eigen::VectorXd l(params.num_robots); 
+        l = params.l_payload;
+        Eigen::VectorXd J_vx(params.num_robots); 
+        J_vx = params.J_vx;
+        Eigen::VectorXd J_vy(params.num_robots);
+        J_vy = params.J_vy;
+        Eigen::VectorXd J_vz(params.num_robots);
+        J_vz = params.J_vz;
         double arm_length = params.arm_length;
         double t2t = params.t2t;
         xnext(0) = dt*x(3) + x(0);
