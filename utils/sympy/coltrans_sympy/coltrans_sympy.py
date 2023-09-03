@@ -391,12 +391,17 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
     )
     assign_data = (
     r"""
-        Eigen::Vector2d m = params.m;
         double mp = params.m_payload;
-        Eigen::Vector2d l = params.l_payload;
-        Eigen::Vector2d J_vx = params.J_vx;
-        Eigen::Vector2d J_vy = params.J_vy;
-        Eigen::Vector2d J_vz = params.J_vz;
+        Eigen::VectorXd m(params.num_robots); 
+        m = params.m;
+        Eigen::VectorXd l(params.num_robots); 
+        l = params.l_payload;
+        Eigen::VectorXd J_vx(params.num_robots); 
+        J_vx = params.J_vx;
+        Eigen::VectorXd J_vy(params.num_robots);
+        J_vy = params.J_vy;
+        Eigen::VectorXd J_vz(params.num_robots);
+        J_vz = params.J_vz;
         double arm_length = params.arm_length;
         double t2t = params.t2t;""".format(num_uavs, num_uavs, num_uavs, num_uavs, num_uavs)
     )
