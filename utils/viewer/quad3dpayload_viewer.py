@@ -145,16 +145,23 @@ class Visualizer():
         self.QuadPayloadRobot.updateFullState(state)
         self.updateVis(state, "start")
 
-    def draw_traces(self, result, quadNum, pType, l):
+    def draw_traces(self, result, quadNum, pType, l, desired):
+        if desired: 
+            d = "_d"
+            # result = np.delete(result, [6,7,8], axis=1)
+            c = 0xff0022
+        else:
+            d = ""
+            c = 0xffffff
         # trace payload:
         payload = result[:, :3].T
-        self.vis["trace_payload"].set_object(
-            g.Line(g.PointsGeometry(payload), g.LineBasicMaterial()))
+        self.vis["trace_payload"+d].set_object(
+            g.Line(g.PointsGeometry(payload), g.LineBasicMaterial(color=c)))
 
         if pType == "quad3dpayload":
             qc = result[:, 3:6].T
             quad_pos = payload - 0.5 * qc
-            self.vis["trace_quad"].set_object(
+            self.vis["trace_quad"+d].set_object(
                 g.Line(
                     g.PointsGeometry(quad_pos),
                     g.LineBasicMaterial()))
@@ -164,8 +171,8 @@ class Visualizer():
                 qc = qcwcs[:, 6*i: 6*i+3].T
                 quad_pos = payload - l[i] * qc
 
-                self.vis["trace_quad" + str(i)].set_object(
-                    g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial()))
+                self.vis["trace_quad" + str(i) + d].set_object(
+                    g.Line(g.PointsGeometry(quad_pos), g.LineBasicMaterial(color=c)))
 
     def _addQuadsPayload(self, prefix: str = "", color_name: str = ""):
         self.quads = self.QuadPayloadRobot.quads
@@ -253,6 +260,7 @@ def quad3dpayload_meshcatViewer():
         type=str,
         help="robot model: quad3dpayload, (point, rigid: for n robots)")
     parser.add_argument('--env', type=str, help="environment")
+    parser.add_argument('--ref', type=str, help="reference trajectory")
     parser.add_argument('--result', type=str, help="result trajectory")
     parser.add_argument('--output', type=str, help="result trajectory")
     parser.add_argument(
@@ -286,7 +294,6 @@ def quad3dpayload_meshcatViewer():
     if args.result is not None:
         with open(args.result, 'r') as file:
             __path = yaml.safe_load(file)
-
 
         if "states" in __path and "actions" in __path:
             __path = __path
@@ -361,8 +368,8 @@ def quad3dpayload_meshcatViewer():
         axs[6].legend()
 
 
-        for u in __path["actions"]:
-            print(u)
+        # for u in __path["actions"]:
+        #     print(u)
 
     visualizer = Visualizer(quadsPayload, env)
     if args.interactive:
@@ -384,9 +391,23 @@ def quad3dpayload_meshcatViewer():
             print("shape of actions: ", np.array(actions).shape)
         else: 
             raise NotImplementedError("unknown result format")
-
+        
         visualizer._addQuadsPayload()
-        visualizer.draw_traces(np.array(states), quadNum, pType, lengths)
+        
+        if args.ref is not None: 
+            with open(args.ref, 'r') as file: 
+                refpath = yaml.safe_load(file)
+            if "states" in refpath:
+                states_d = refpath["states"]
+            elif "result" in refpath:
+                states_d = refpath["result"]["states"]
+            else: 
+                raise NotImplementedError("unknown result format")
+
+            desired = True
+            visualizer.draw_traces(np.array(states_d), quadNum, pType, lengths, desired)
+        desired = False
+        visualizer.draw_traces(np.array(states), quadNum, pType, lengths, desired)
         print("shape of states: ", np.array(states).shape)
 
         anim = Animation()
