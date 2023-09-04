@@ -18,6 +18,8 @@ void Joint_robot::get_x_weightb(const std::vector<std::string> &robot_types,
   for (size_t i = 0; i < robot_types.size(); i++) {
     auto t = robot_types[i];
     if (t == "double_integrator_0") {
+      xweightb(k + 2) = 100;
+      xweightb(k + 3) = 100;
       k += 4;
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       k += 3;
@@ -657,6 +659,7 @@ void Joint_robot::interpolate(Eigen::Ref<Eigen::VectorXd> xt,
     }
     auto t = v_robot_types[i];
     if (t == "double_integrator_0") {
+      xt.segment<2>(k + 2) = from.segment<2>(k + 2) + dt * (to.segment<2>(k + 2) - from.segment<2>(k + 2)); // ?
       k += 4;
     } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
       so2_interpolation(xt(k + 2), from(k + 2), to(k + 2), dt);
