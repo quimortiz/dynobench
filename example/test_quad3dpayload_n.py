@@ -388,7 +388,6 @@ class Controller():
         control = np.array([self.leePayload.thrustSI, self.control.torque[0], self.control.torque[1], self.control.torque[2]])
         u = self.B0_inv@control
         u = np.clip(u, 0., 1.)
-        print(u)
         return u.tolist()
 
 
@@ -417,8 +416,6 @@ class Robot():
         self.appSt.append(self.state.tolist())
         self.appU.append(self.u.tolist())
 
-        return xnext
-
     def updateControllerDict(self, controller, i):
         self.controller[str(i)] = controller
         
@@ -431,14 +428,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--inp", default=None, type=str, help='yaml input reference trajectory', required=True)
     parser.add_argument("--out", default=None,  type=str, help="yaml file for the table", required=True)
-    # parser.add_argument('--num_robots', default=None, type=int, required=True, help="number of robots")
+    parser.add_argument('--num_robots', default=2, type=int, required=True, help="number of robots")
     parser.add_argument("-cff", "--enable_cffirmware", action="store_true")  # on/off flag    args = parser.args
     parser.add_argument("-w", "--write", action="store_true")  # on/off flag    args = parser.args
     args = parser.parse_args()
     
     if args.enable_cffirmware:    
-        num_robots = 2
-        # num_robots = args.num_robots
+        num_robots = args.num_robots
         payloadType = "point"
         with open(args.inp, "r") as file:
             refresult = yaml.safe_load(file)
@@ -449,15 +445,14 @@ def main():
         else:
             raise NotImplementedError("unknown result format")
         dt = 0.01
-        T = len(refstate)*dt
-        
+        T = (len(refstate)-1)*dt
         # x, y, z, vx, vy, vz, *cableSt, *uavSt
         initstate = np.array(refstate[0])
         # initstate = np.delete(initstate, [6,7,8]) # remove the accelerations 
 
-        gains = [(15,12.5, 0), (14, 10, 1.2), (0.008,0.0013, 0.0), (1000,10000,10000), (1)]
+        gains = [(18, 15, 2), (14, 10, 1.2), (0.008,0.0013, 0.0), (100,100,100), (1)]
 
-        quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/point.yaml"), [], [])
+        quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/point_{}.yaml".format(num_robots)), [], [])
         robot = Robot(quadpayload, num_robots, initstate, gains, dt)
 
         ts = np.arange(0,T,dt)
