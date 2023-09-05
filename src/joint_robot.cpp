@@ -143,7 +143,7 @@ void Joint_robot::get_collision_geometries(
     std::vector<std::shared_ptr<fcl::CollisionGeometryd>> &col_geom) {
   for (auto t : robot_types) {
     if (t == "double_integrator_0" || t == "single_integrator_0") {
-      col_geom.push_back(std::make_shared<fcl::Sphered>(params.radius));
+      col_geom.push_back(std::make_shared<fcl::Sphered>(params.double_integrator_radius));
     } else if (t == "unicycle_first_order_0_sphere") {
       col_geom.push_back(std::make_shared<fcl::Sphered>(params.big_radius));
     } else if (t == "unicycle_first_order_0" || t == "unicycle_second_order_0") {

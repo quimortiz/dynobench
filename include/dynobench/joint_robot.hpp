@@ -11,6 +11,7 @@ struct Joint_robot_params{
     double double_integrator_min_vel = -0.5;
     double double_integrator_max_acc = 2; // for the demo
     double double_integrator_min_acc = -2; // for the demo
+    double double_integrator_radius = 0.15;
 
     double single_integrator_max_vel = 0.5;
     double single_integrator_min_vel = -0.5;
