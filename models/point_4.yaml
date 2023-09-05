@@ -1,0 +1,23 @@
+#use default parameters
+point_mass: true
+num_robots: 4
+max_vel: 4
+max_angular_vel: 8
+max_acc: 25
+max_angular_acc: 20
+motor_control: true
+m_payload: 0.0054
+max_f: 1.4
+arm_length: 0.046
+t2t: 0.006 # thrust-to-torque ratio
+m: [0.034, 0.034, 0.034, 0.034] 
+l_payload: [0.5, 0.5, 0.5, 0.5]
+J_vx: [16.571710e-6, 16.571710e-6, 16.571710e-6, 16.571710e-6]
+J_vy: [16.655602e-6, 16.655602e-6, 16.655602e-6, 16.655602e-6]
+J_vz: [29.261652e-6, 29.261652e-6, 29.261652e-6, 29.261652e-6]
+
+J_v : [16.571710e-6, 16.655602e-6, 29.261652e-6] # inertia matrix
+size: [0.4, 0.4, 0.4, 0.4]
+
+dt: .01
+dynamics: "quad3dpayload_point"

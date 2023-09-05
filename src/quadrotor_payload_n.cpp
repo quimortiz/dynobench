@@ -2,6 +2,9 @@
 #include "quadrotor_payload_dynamics_autogen_n2_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 #include "quadrotor_payload_dynamics_autogen_n3_b.hpp" // @KHALED TODO (e.g. n=3, rigid body)
 #include "quadrotor_payload_dynamics_autogen_n3_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
+#include "quadrotor_payload_dynamics_autogen_n4_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
+#include "quadrotor_payload_dynamics_autogen_n5_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
+#include "quadrotor_payload_dynamics_autogen_n6_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 #include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
 #include <fcl/broadphase/default_broadphase_callbacks.h>
 #include <fcl/geometry/shape/box.h>
@@ -16,7 +19,6 @@ void Quad3dpayload_n_params::read_from_yaml(YAML::Node &node) {
 
   set_from_yaml(node, VAR_WITH_NAME(num_robots));
   set_from_yaml(node, VAR_WITH_NAME(point_mass));
-  set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_payload));
 
@@ -248,10 +250,11 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
     collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
         params.col_size_payload, rate_colision_cables * params.l_payload(i)));
   }
+double col_size_robot = .05;
 
   for (size_t i = 0; i < params.num_robots; i++) {
     collision_geometries.emplace_back(
-        std::make_shared<fcl::Sphered>(params.col_size_robot));
+        std::make_shared<fcl::Sphered>(col_size_robot));
   }
 
   ts_data.resize(2 * params.num_robots + 1);
@@ -464,6 +467,27 @@ void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
     // calcFFC(ff, params, x.data(), u.data());
 
     // NOT_IMPLEMENTED;
+  } else if (params.num_robots == 4 && params.point_mass) {
+
+    calcV_n4_p(ff, params, x.data(), u.data());
+
+    // calcFFC(ff, params, x.data(), u.data());
+
+    // NOT_IMPLEMENTED;
+  } else if (params.num_robots == 5 && params.point_mass) {
+
+    calcV_n5_p(ff, params, x.data(), u.data());
+
+    // calcFFC(ff, params, x.data(), u.data());
+
+    // NOT_IMPLEMENTED;
+  } else if (params.num_robots == 6 && params.point_mass) {
+
+    // calcV_n6_p(ff, params, x.data(), u.data());
+
+    // calcFFC(ff, params, x.data(), u.data());
+
+    // NOT_IMPLEMENTED;
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -495,7 +519,20 @@ void Model_quad3dpayload_n::calcDiffV(
     calcJ_n2_p(Jv_x, Jv_u, params, x.data(), u.data());
 
   } else if (params.num_robots == 3 && params.point_mass) {
+    
     calcJ_n3_p(Jv_x, Jv_u, params, x.data(), u.data());
+  
+  } else if (params.num_robots == 4 && params.point_mass) {
+  
+    calcJ_n4_p(Jv_x, Jv_u, params, x.data(), u.data());
+  
+  } else if (params.num_robots == 5 && params.point_mass) {
+  
+    calcJ_n5_p(Jv_x, Jv_u, params, x.data(), u.data());
+  
+  }else if (params.num_robots == 6 && params.point_mass) {
+  
+    // calcJ_n6_p(Jv_x, Jv_u, params, x.data(), u.data());
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -530,6 +567,18 @@ void Model_quad3dpayload_n::step(Eigen::Ref<Eigen::VectorXd> xnext,
   } else if (params.num_robots == 3 && params.point_mass) {
 
     calcStep_n3_p(xnext, params, x.data(), u.data(), dt);
+
+  } else if (params.num_robots == 4 && params.point_mass) {
+
+    calcStep_n4_p(xnext, params, x.data(), u.data(), dt);
+
+  }else if (params.num_robots == 5 && params.point_mass) {
+
+    calcStep_n5_p(xnext, params, x.data(), u.data(), dt);
+
+  }else if (params.num_robots == 6 && params.point_mass) {
+
+    // calcStep_n6_p(xnext, params, x.data(), u.data(), dt);
 
   }
 
@@ -572,6 +621,18 @@ void Model_quad3dpayload_n::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
   } else if (params.num_robots == 3 && params.point_mass) {
 
     calcF_n3_p(Fx, Fu, params, x.data(), u.data(), dt);
+
+  } else if (params.num_robots == 4 && params.point_mass) {
+
+    calcF_n4_p(Fx, Fu, params, x.data(), u.data(), dt);
+
+  }else if (params.num_robots == 5 && params.point_mass) {
+
+    calcF_n5_p(Fx, Fu, params, x.data(), u.data(), dt);
+
+  }else if (params.num_robots == 6 && params.point_mass) {
+
+    // calcF_n6_p(Fx, Fu, params, x.data(), u.data(), dt);
 
   }
 

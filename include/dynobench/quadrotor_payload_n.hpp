@@ -23,7 +23,7 @@ struct Quad3dpayload_n_params {
   bool point_mass = true;
 
   double col_size_robot = .1;    // radius
-  double col_size_payload = .05; // radius
+  double col_size_payload = .02; // radius
   //
   //
   //
