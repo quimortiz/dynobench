@@ -440,7 +440,7 @@ def main():
     parser.add_argument("-cff", "--enable_cffirmware", action="store_true")  # on/off flag    args = parser.args
     parser.add_argument("-w", "--write", action="store_true")  # on/off flag    args = parser.args
     args = parser.parse_args()
-    
+    print("reference traj: ", args.inp)
     if args.enable_cffirmware:    
         num_robots = args.num_robots
         payloadType = "point"
@@ -464,7 +464,7 @@ def main():
         refArray = np.insert(refArray, 7,  a[:,1], axis=1)
         refArray = np.insert(refArray, 8,  a[:,2], axis=1)
 
-        gains = [(18, 15, 5), (25, 22, 1.2), (0.008,0.0013, 0.0), (100,100,100), (1)]
+        gains = [(15.5, 12.5, 0), (25, 20, 1.2), (0.008,0.0013, 0.0), (100,100,100), (1)]
 
         quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/point_{}.yaml".format(num_robots)), [], [])
         robot = Robot(quadpayload, num_robots, initstate, gains, dt)
