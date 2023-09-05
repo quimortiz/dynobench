@@ -1,3 +1,5 @@
+#pragma once
+
 #include "dynobench/croco_macros.hpp"
 #include "dynobench/for_each_macro.hpp"
 #include "dynobench/robot_models_base.hpp"

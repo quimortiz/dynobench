@@ -36,7 +36,10 @@ add_library(
   ./src/car2.cpp
   ./src/integrator2_2d.cpp
   ./src/quadrotor_payload.cpp
-  ./src/quadrotor_payload_n.cpp)
+  ./src/quadrotor_payload_n.cpp
+  ./src/quadrotor_payload_n.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n2_p.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n3_p.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
 

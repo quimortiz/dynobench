@@ -1,14 +1,16 @@
 #include "dynobench/quadrotor_payload_n.hpp"
+#include "quadrotor_payload_dynamics_autogen_n2_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 #include "quadrotor_payload_dynamics_autogen_n3_b.hpp" // @KHALED TODO (e.g. n=3, rigid body)
+#include "quadrotor_payload_dynamics_autogen_n3_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 #include <fcl/broadphase/broadphase_dynamic_AABB_tree.h>
 #include <fcl/broadphase/default_broadphase_callbacks.h>
 #include <fcl/geometry/shape/box.h>
 #include <fcl/geometry/shape/capsule.h>
 #include <fcl/geometry/shape/sphere.h>
+// #include "quadrotor_payload_dynamics_autogen_n3_p.hpp" // @KHALED TODO (e.g.
+// n=2, point mass)
 
 namespace dynobench {
-#include "quadrotor_payload_dynamics_autogen_n2_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
-#include "quadrotor_payload_dynamics_autogen_n3_p.hpp" // @KHALED TODO (e.g. n=2, point mass)
 
 void Quad3dpayload_n_params::read_from_yaml(YAML::Node &node) {
 
@@ -101,8 +103,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   // i.e., (params.m(i)+ params.m_payload)*g/4
   // it will not matter in this case since we are using same mass, but it will
   // if different masses where used
-  u_nominal =
-      params.m(0) * g / 4.; // now u is between [0,1]
+  u_nominal = params.m(0) * g / 4.; // now u is between [0,1]
 
   if (params.motor_control) {
     B0 << 1, 1, 1, 1, -arm, -arm, arm, arm, -arm, arm, arm, -arm, -params.t2t,
@@ -289,7 +290,6 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   state_ref(6 + 6 + 2) = -.9;
 
   k_acc = 1.;
-
 }
 
 Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
@@ -455,11 +455,13 @@ void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcFFB(ff, params, x.data(), u.data());
+    calcV_n2_p(ff, params, x.data(), u.data());
 
   } else if (params.num_robots == 3 && params.point_mass) {
 
-    calcFFC(ff, params, x.data(), u.data());
+    calcV_n3_p(ff, params, x.data(), u.data());
+
+    // calcFFC(ff, params, x.data(), u.data());
 
     // NOT_IMPLEMENTED;
   }
@@ -490,10 +492,10 @@ void Model_quad3dpayload_n::calcDiffV(
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcJB(Jv_x, Jv_u, params, x.data(), u.data());
+    calcJ_n2_p(Jv_x, Jv_u, params, x.data(), u.data());
 
   } else if (params.num_robots == 3 && params.point_mass) {
-    calcJC(Jv_x, Jv_u, params, x.data(), u.data());
+    calcJ_n3_p(Jv_x, Jv_u, params, x.data(), u.data());
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -523,10 +525,12 @@ void Model_quad3dpayload_n::step(Eigen::Ref<Eigen::VectorXd> xnext,
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcStepB(xnext, params, x.data(), u.data(), dt);
+    calcStep_n2_p(xnext, params, x.data(), u.data(), dt);
 
   } else if (params.num_robots == 3 && params.point_mass) {
-    calcStepC(xnext, params, x.data(), u.data(), dt);
+
+    calcStep_n3_p(xnext, params, x.data(), u.data(), dt);
+
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -563,11 +567,12 @@ void Model_quad3dpayload_n::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcFB(Fx, Fu, params, x.data(), u.data(), dt);
+    calcF_n2_p(Fx, Fu, params, x.data(), u.data(), dt);
 
   } else if (params.num_robots == 3 && params.point_mass) {
-    calcFC(Fx, Fu, params, x.data(), u.data(), dt);
-  
+
+    calcF_n3_p(Fx, Fu, params, x.data(), u.data(), dt);
+
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -596,7 +601,8 @@ Model_quad3dpayload_n::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
   dist_weights.setOnes();
   // set quaternion weights to 0.01
   for (size_t i = 0; i < params.num_robots; ++i) {
-    dist_weights.segment(6 + 6 * params.num_robots + i * 7, 4).setConstant(.001);
+    dist_weights.segment(6 + 6 * params.num_robots + i * 7, 4)
+        .setConstant(.001);
   }
 
   diff = (x - y).cwiseProduct(dist_weights);

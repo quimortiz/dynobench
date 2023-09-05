@@ -4,7 +4,7 @@
 #include "dynobench/quadrotor_payload.hpp"
 #include "dynobench/quadrotor_payload_n.hpp"
 
-#define base_path "../"
+#define base_path "../../"
 
 using namespace dynobench;
 
