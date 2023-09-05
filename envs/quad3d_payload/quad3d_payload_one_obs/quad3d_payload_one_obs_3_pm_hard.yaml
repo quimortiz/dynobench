@@ -10,7 +10,7 @@ environment:
       center: [0.5, 0., 0.0]
       size: [0.5, 0.5, 10]
 robots:
-  - type: point
+  - type: point_3
     l: [0.5, 0.5, 0.5] # This must be a list
     quadsNum: 3 # number of robots  
     # state (size): [x_load(3,)  v_load(3,)    q_cable1(3,) w_cable1(3,) q_cable2(3,) w_cable2(3,)   quat1(4,)     w1_uav(3)   quat2(4,)     w2_uav(3)]
