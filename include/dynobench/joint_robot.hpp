@@ -21,6 +21,11 @@ struct Joint_robot_params{
     double unicycle_max_angular_vel = 0.5;
     double unicycle_min_angular_vel = -0.5;
 
+    double unicycle_sphere_max_vel = 0.5;
+    double unicycle_sphere_min_vel = -0.5;
+    double unicycle_sphere_max_angular_vel = 2.0;
+    double unicycle_sphere_min_angular_vel = -2.0;
+
     double unicycle_second_order_max_vel = 0.5;
     double unicycle_second_order_min_vel = -0.5;
     double unicycle_second_order_max_angular_vel = 0.5;

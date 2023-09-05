@@ -169,9 +169,13 @@ void Joint_robot::get_u_lb(const std::vector<std::string> &robot_types,
       lb(k) = params.double_integrator_min_acc;
       lb(k + 1) = params.double_integrator_min_acc;
       k += 2;
-    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+    } else if (t == "unicycle_first_order_0") {
       lb(k) = params.unicycle_min_vel;
       lb(k + 1) = params.unicycle_min_angular_vel;
+      k += 2;
+    } else if (t == "unicycle_first_order_0_sphere") {
+      lb(k) = params.unicycle_sphere_min_vel;
+      lb(k + 1) = params.unicycle_sphere_min_angular_vel;
       k += 2;
     } else if (t == "unicycle_second_order_0") {
       lb(k) = params.unicycle_second_order_min_acc;
@@ -197,9 +201,13 @@ void Joint_robot::get_u_ub(const std::vector<std::string> &robot_types,
       ub(k) = params.double_integrator_max_acc;
       ub(k + 1) = params.double_integrator_max_acc;
       k += 2;
-    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+    } else if (t == "unicycle_first_order_0") {
       ub(k) = params.unicycle_max_vel;
       ub(k + 1) = params.unicycle_max_angular_vel;
+      k += 2;
+    } else if (t == "unicycle_first_order_0_sphere") {
+      ub(k) = params.unicycle_sphere_max_vel;
+      ub(k + 1) = params.unicycle_sphere_max_angular_vel;
       k += 2;
     } else if (t == "unicycle_second_order_0") {
       ub(k) = params.unicycle_second_order_max_acc;
@@ -696,7 +704,7 @@ Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                             (x.segment<2>(k + 2) - y.segment<2>(k + 2)).norm() /
                                 params.double_integrator_max_acc));
       k += 4;
-    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+    } else if (t == "unicycle_first_order_0") {
       double max_vel_abs = std::max(std::abs(params.unicycle_max_vel),
                                     std::abs(params.unicycle_min_vel));
       double max_angular_vel_abs =
@@ -706,7 +714,17 @@ Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
           m, std::max(pos_norm / max_vel_abs,
                       so2_distance(x(k + 2), y(k + 2)) / max_angular_vel_abs));
       k += 3;
-    }  else if (t == "unicycle_second_order_0"){
+    } else if (t == "unicycle_first_order_0_sphere") {
+      double max_vel_abs = std::max(std::abs(params.unicycle_sphere_max_vel),
+                                    std::abs(params.unicycle_sphere_min_vel));
+      double max_angular_vel_abs =
+          std::max(std::abs(params.unicycle_sphere_max_angular_vel),
+                   std::abs(params.unicycle_sphere_min_angular_vel));
+      m = std::max(
+          m, std::max(pos_norm / max_vel_abs,
+                      so2_distance(x(k + 2), y(k + 2)) / max_angular_vel_abs));
+      k += 3;
+    } else if (t == "unicycle_second_order_0"){
       m = std::max(m, pos_norm / params.unicycle_second_order_max_vel);
       m = std::max(m, so2_distance(x(k + 2), y(k + 2)) / params.unicycle_second_order_max_angular_vel);
       m = std::max(m, std::max(std::abs(x(k + 3) - y(k + 3)) / params.unicycle_second_order_max_acc, std::abs(x(k + 4) - y(k + 4)) / params.unicycle_second_order_max_angular_acc));
