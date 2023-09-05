@@ -246,7 +246,7 @@ class Visualizer():
                     tf.quaternion_matrix(quad.state[3:7])))
             qc = state[6+6*i: 6+6*i+3]
             cablePos  = payloadSt[0:3] - (quad.l)*np.array(qc)/2
-            cableQuat = rn.vector_vector_rotation(qc, [0,0,-1])
+            cableQuat = rn.vector_vector_rotation([0,0,-1], qc)
             frame[prefix + "cable_" + name].set_transform(tf.translation_matrix(cablePos).dot(
                                                                 tf.quaternion_matrix(cableQuat)))
             frame[prefix + name + \
@@ -372,6 +372,24 @@ def quad3dpayload_meshcatViewer():
         #     print(u)
 
     visualizer = Visualizer(quadsPayload, env)
+
+    
+    # point1 = [-0.473381,0.0529316,0.186414]
+    # point2 = [-0.487709,0.0579852,0.186402]
+    # point1 =  [1.14314,0.118284,0.451639]
+    # point2=  [1.03288,0.118285,0.451639]
+
+    # points = np.array([point1, point2]).T
+
+    # visualizer.vis["col1"].set_object(
+    #     g.Line(g.PointsGeometry(points), g.LineBasicMaterial()))
+
+
+    # name = input("press any key on terminal to close: ")
+    # print("closing")
+
+
+
     if args.interactive:
         plt.show()
         visualizer.vis.open()
@@ -421,24 +439,13 @@ def quad3dpayload_meshcatViewer():
         # Path(args.output).mkdir(exist_ok=True)
         with open(args.output, "w") as f:
             f.write(res)
-    else: 
+    # else: 
+
 
         # point1 =  [-0.000187059,-0.202631,0.31554]
         # point2 = [-2.62275e-05,-0.16202,0.252487]
 
-        point1 = [-0.000165565,-0.202613,0.315552]
-        point2 =  [-0.000163666,-0.216121,0.336588]
-
-
-        points = np.array([point1, point2]).T
-
-        visualizer.vis["col1"].set_object(
-            g.Line(g.PointsGeometry(points), g.LineBasicMaterial()))
-
-
-        name = input("press any key on terminal to close: ")
-        print("closing")
-
+    
 
 # if __name__ == "__main__":
 #     main()
