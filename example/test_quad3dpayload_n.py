@@ -439,6 +439,8 @@ def main():
     parser.add_argument('--num_robots', default=2, type=int, required=True, help="number of robots")
     parser.add_argument("-cff", "--enable_cffirmware", action="store_true")  # on/off flag    args = parser.args
     parser.add_argument("-w", "--write", action="store_true")  # on/off flag    args = parser.args
+    parser.add_argument("-a", "--compAcc", action="store_true")  # on/off flag    args = parser.args
+    
     args = parser.parse_args()
     print("reference traj: ", args.inp)
     if args.enable_cffirmware:    
@@ -459,7 +461,10 @@ def main():
 
         refArray = np.array(refstate)
         v = np.array(refArray[:,3:6])
-        a = derivative(v, dt)
+        if args.compAcc:
+            a = derivative(v, dt)
+        else:
+            a = np.zeros_like(v)
         refArray = np.insert(refArray, 6,  a[:,0], axis=1)
         refArray = np.insert(refArray, 7,  a[:,1], axis=1)
         refArray = np.insert(refArray, 8,  a[:,2], axis=1)
