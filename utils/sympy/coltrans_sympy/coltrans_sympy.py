@@ -293,13 +293,13 @@ def createSyms(num_uavs=1, payloadType='point', writeC=False):
             Jv = [list(sp.symbols("J_vx({}) J_vy({}) J_vz({})".format(i,i,i))) for i in range(num_uavs)]
             Ji = [list(sp.Matrix([Jv[i][0], Jv[i][1], Jv[i][2]])) for i in range(num_uavs)]
 
-            x, y, z, vx, vy, vz = sp.symbols('x(0) x(1) x(2) x(3) x(4) x(5)')
-            cableSt = [list(sp.symbols('x({}) x({}) x({}) x({}) x({}) x({})'.format(i,i+1, i+2, i+3, i+4, i+5))) for i in range(6,6+6*num_uavs, 6)]
-            uavSt   = [list(sp.symbols('x({}) x({}) x({}) x({}) x({}) x({}) x({})'.format(i,i+1, i+2, i+3, i+4, i+5, i+6))) for i in range(6+6*num_uavs, 6+6*num_uavs+7*num_uavs, 7)]
-            action  = [list(sp.symbols('u({}) u({}) u({}) u({})'.format(i,i+1,i+2,i+3))) for i in range(0,4*num_uavs,4)]
+            x, y, z, vx, vy, vz = sp.symbols('x[0] x[1] x[2] x[3] x[4] x[5]')
+            cableSt = [list(sp.symbols('x[{}] x[{}] x[{}] x[{}] x[{}] x[{}]'.format(i,i+1, i+2, i+3, i+4, i+5))) for i in range(6,6+6*num_uavs, 6)]
+            uavSt   = [list(sp.symbols('x[{}] x[{}] x[{}] x[{}] x[{}] x[{}] x[{}]'.format(i,i+1, i+2, i+3, i+4, i+5, i+6))) for i in range(6+6*num_uavs, 6+6*num_uavs+7*num_uavs, 7)]
+            action  = [list(sp.symbols('u[{}] u[{}] u[{}] u[{}]'.format(i,i+1,i+2,i+3))) for i in range(0,4*num_uavs,4)]
         elif payloadType == "rigid":
-            x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('x(0) x(1) x(2)  x(3) x(4) x(5) x(6)\
-                                                                        x(7) x(8) x(9) x(10) x(11) x(12)')
+            x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('x[0] x[1] x[2]  x[3] x[4] x[5] x[6]\
+                                                                        x[7] x[8] x[9] x[1]) x[1]) x[1])')
     else: #WRITE SYMBOLS FOR PYTHON
         x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('pos[0] pos[1] pos[2]  qp[0] qp[1] qp[2] qw[3]\
                                                                             vel[0] vel[1] vel[2] wpx  wpy wpz')
@@ -382,8 +382,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
     headerInclude = r"""#include "dynobench/quadrotor_payload_n.hpp" """ + "\n"
     headerf = (
     r"""void inline calcFF{}(Eigen::Ref<Eigen::VectorXd> ff, const Quad3dpayload_n_params &params,
-                                const Eigen::Ref<const Eigen::VectorXd> &x,
-                                const Eigen::Ref<const Eigen::VectorXd> &u) {{""".format(chr(num_uavs + ord('A') - 1))
+                                const double *x, const double *u) {{""".format(chr(num_uavs + ord('A') - 1))
             + "\n"
             + r"// Auto generated "
             + date_time
@@ -419,8 +418,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
     headerJx = (
     r"""void inline calcJ{}(Eigen::Ref<Eigen::MatrixXd> Jv_x, 
                                 Eigen::Ref<Eigen::MatrixXd> Jv_u, const Quad3dpayload_n_params &params,
-                                const Eigen::Ref<const Eigen::VectorXd> &x,
-                                const Eigen::Ref<const Eigen::VectorXd> &u) {{""".format(chr(num_uavs + ord('A') - 1))
+                                const double *x, const double *u) {{""".format(chr(num_uavs + ord('A') - 1))
     )
     Jx_code = """\n"""
     for i in range(Jx.rows):
@@ -445,8 +443,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
     headerFx = (
     r"""void inline calcF{}(Eigen::Ref<Eigen::MatrixXd> Fx,
                                 Eigen::Ref<Eigen::MatrixXd> Fu, const Quad3dpayload_n_params &params,
-                                const Eigen::Ref<const Eigen::VectorXd> &x,
-                                const Eigen::Ref<const Eigen::VectorXd> &u,
+                                const double *x, const double *u,
                                 double dt) {{""".format(chr(num_uavs + ord('A') - 1))
     )
 
@@ -472,8 +469,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
 
     headerStep = (
     r"""void inline calcStep{}(Eigen::Ref<Eigen::VectorXd> xnext, const Quad3dpayload_n_params &params,
-                                const Eigen::Ref<const Eigen::VectorXd> &x,
-                                const Eigen::Ref<const Eigen::VectorXd> &u, double dt) {{""".format(chr(num_uavs + ord('A') - 1))
+                                const double *x, const double *u, double dt) {{""".format(chr(num_uavs + ord('A') - 1))
     )
     step_code = """\n"""
 
