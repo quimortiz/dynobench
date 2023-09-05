@@ -455,11 +455,11 @@ void Model_quad3dpayload_n::calcV(Eigen::Ref<Eigen::VectorXd> ff,
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcFFB(ff, params, x, u);
+    calcFFB(ff, params, x.data(), u.data());
 
   } else if (params.num_robots == 3 && params.point_mass) {
 
-    calcFFC(ff, params, x, u);
+    calcFFC(ff, params, x.data(), u.data());
 
     // NOT_IMPLEMENTED;
   }
@@ -490,10 +490,10 @@ void Model_quad3dpayload_n::calcDiffV(
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcJB(Jv_x, Jv_u, params, x, u);
+    calcJB(Jv_x, Jv_u, params, x.data(), u.data());
 
   } else if (params.num_robots == 3 && params.point_mass) {
-    calcJC(Jv_x, Jv_u, params, x, u);
+    calcJC(Jv_x, Jv_u, params, x.data(), u.data());
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -523,10 +523,10 @@ void Model_quad3dpayload_n::step(Eigen::Ref<Eigen::VectorXd> xnext,
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcStepB(xnext, params, x, u, dt);
+    calcStepB(xnext, params, x.data(), u.data(), dt);
 
   } else if (params.num_robots == 3 && params.point_mass) {
-    calcStepC(xnext, params, x, u, dt);
+    calcStepC(xnext, params, x.data(), u.data(), dt);
   }
 
   else if (params.num_robots == 1 && !params.point_mass) {
@@ -563,10 +563,10 @@ void Model_quad3dpayload_n::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
 
   } else if (params.num_robots == 2 && params.point_mass) {
 
-    calcFB(Fx, Fu, params, x, u, dt);
+    calcFB(Fx, Fu, params, x.data(), u.data(), dt);
 
   } else if (params.num_robots == 3 && params.point_mass) {
-    calcFC(Fx, Fu, params, x, u, dt);
+    calcFC(Fx, Fu, params, x.data(), u.data(), dt);
   
   }
 
