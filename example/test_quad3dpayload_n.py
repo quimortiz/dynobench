@@ -208,6 +208,14 @@ def reference_traj_circle(t, w, qcwc, num_uavs, h=1, r=1):
     ref = [pos_des, vel_des, acc_des, *qcs]
     return ref
 
+def derivative(vec, dt):
+    dvec  =[[0,0,0]]
+    for i in range(len(vec)-1):
+        dvectmp = (vec[i+1]-vec[i])/dt
+        dvec.append(dvectmp.tolist())
+    return np.asarray(dvec)
+
+
 class Controller():
     def __init__(self, robotparams, gains):
         mi = robotparams['mi']
@@ -309,9 +317,9 @@ class Controller():
         self.setpoint.velocity.x = states_d[3]  # m/s
         self.setpoint.velocity.y = states_d[4]  # m/s
         self.setpoint.velocity.z = states_d[5]  # m/s
-        self.setpoint.acceleration.x = 0#states_d[6]  # m/s^2 update this to be computed from model
-        self.setpoint.acceleration.y = 0#states_d[7]  # m/s^2 update this to be computed from model
-        self.setpoint.acceleration.z = 0#states_d[8]  # m/s^2 update this to be computed from model
+        self.setpoint.acceleration.x = states_d[6]  # m/s^2 update this to be computed from model
+        self.setpoint.acceleration.y = states_d[7]  # m/s^2 update this to be computed from model
+        self.setpoint.acceleration.z = states_d[8]  # m/s^2 update this to be computed from model
 
         
     def __getUAVSt(self, state, i):
@@ -448,9 +456,15 @@ def main():
         T = (len(refstate)-1)*dt
         # x, y, z, vx, vy, vz, *cableSt, *uavSt
         initstate = np.array(refstate[0])
-        # initstate = np.delete(initstate, [6,7,8]) # remove the accelerations 
 
-        gains = [(18, 15, 2), (14, 10, 1.2), (0.008,0.0013, 0.0), (100,100,100), (1)]
+        refArray = np.array(refstate)
+        v = np.array(refArray[:,3:6])
+        a = derivative(v, dt)
+        refArray = np.insert(refArray, 6,  a[:,0], axis=1)
+        refArray = np.insert(refArray, 7,  a[:,1], axis=1)
+        refArray = np.insert(refArray, 8,  a[:,2], axis=1)
+
+        gains = [(18, 15, 5), (25, 22, 1.2), (0.008,0.0013, 0.0), (100,100,100), (1)]
 
         quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/point_{}.yaml".format(num_robots)), [], [])
         robot = Robot(quadpayload, num_robots, initstate, gains, dt)
@@ -459,7 +473,7 @@ def main():
         if payloadType == "point":
             states = np.zeros((len(ts)+1, 6+6*num_robots+7*num_robots))
         states[0] = initstate
-        states_d = np.array(refstate)    
+        states_d = refArray    
         print('Simulating...')
 
         robot.appSt.append(initstate.tolist())
