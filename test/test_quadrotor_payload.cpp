@@ -191,6 +191,7 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_2_p_dynamics) {
 
   std::cout << "Hello Qium :)" << std::endl;
   dynobench::Quad3dpayload_n_params params;
+  params.read_from_yaml(base_path "models/point_2.yaml");
   params.point_mass = true;
   params.num_robots = 2;
 
@@ -297,8 +298,8 @@ BOOST_AUTO_TEST_CASE(t_quadrotor_payload_3_p_dynamics) {
 
   std::cout << "Hello Qium :)" << std::endl;
   dynobench::Quad3dpayload_n_params params;
+  params.read_from_yaml(base_path "models/point_3.yaml");
 
-  params.read_from_yaml(base_path "models/quad3dpayload_p.yaml");
 
   // params.point_mass = true;
   // params.num_robots = 3;
