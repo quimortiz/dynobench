@@ -215,7 +215,7 @@ class Controller():
         self.t2t = 0.006
         arm_length = 0.046
         self.arm = 0.707106781 * arm_length
-        u_nominal = (mi*9.81/4) + (mp*9.81/4)
+        u_nominal = (mi*9.81/4)
         self.B0 = u_nominal*np.array([[1,      1,           1,           1], 
                                 [-self.arm, -self.arm, self.arm, self.arm], 
                                 [-self.arm, self.arm, self.arm, -self.arm], 
@@ -387,7 +387,7 @@ class Controller():
         cffirmware.controllerLeePayload(self.leePayload, self.control, self.setpoint, self.sensors, self.state, tick)
         control = np.array([self.leePayload.thrustSI, self.control.torque[0], self.control.torque[1], self.control.torque[2]])
         u = self.B0_inv@control
-        u = np.clip(u, 0., 1.)
+        u = np.clip(u, 0., 1.4)
         return u.tolist()
 
 

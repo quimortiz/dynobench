@@ -102,7 +102,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   // it will not matter in this case since we are using same mass, but it will
   // if different masses where used
   u_nominal =
-      (params.m(0) + params.m_payload) * g / 4.; // now u is between [0,1]
+      params.m(0) * g / 4.; // now u is between [0,1]
 
   if (params.motor_control) {
     B0 << 1, 1, 1, 1, -arm, -arm, arm, arm, -arm, arm, arm, -arm, -params.t2t,

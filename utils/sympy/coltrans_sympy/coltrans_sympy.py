@@ -324,7 +324,7 @@ def createSyms(num_uavs=1, payloadType='point', writeC=False):
     B = []
     B0 = sp.Matrix([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
     for i in range(num_uavs):
-        u_nominal = (mi[i]*9.81/4) + (mp*9.81/(4))
+        u_nominal = mi[i]*9.81/4
         B.append(u_nominal*B0)
     params = [*params, B]
 
