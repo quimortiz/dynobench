@@ -411,7 +411,8 @@ class Robot():
         self.appU = []
         self.lambdaa = 0
         self.num_robots = num_robots
-        self.l = [0.5, 0.5, 0.5]
+        # TODO: this is a hack; should be read from the config file; supports up to 6 robots
+        self.l = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
         self.dt = dt
         self.controller = dict()   
         self.params = {'mi':self.mi, 'mp': self.mp, 'Ji': self.Ji, 'num_robots': self.num_robots,'l': self.l}
