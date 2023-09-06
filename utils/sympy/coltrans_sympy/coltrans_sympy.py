@@ -393,93 +393,108 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
     file_out_hpp = f"quadrotor_payload_dynamics_autogen_{id}.hpp"
     file_out_cpp =  f"quadrotor_payload_dynamics_autogen_{id}.cpp"
 
-    header_hpp = "#include \"dynobench/quadrotor_payload_n.hpp\"\n\n"
-    header_cpp = f"#include \"quadrotor_payload_dynamics_autogen_{id}.hpp\"\n\n" 
+    header_hpp = ""
+    header_cpp = f"""#include \"quadrotor_payload_dynamics_autogen_{id}.hpp\"
+#include <cmath>"""
 
-    headerf = f"void calcV_{id}(Eigen::Ref<Eigen::VectorXd> ff, const Quad3dpayload_n_params &params, const double *x, const double *u)"
+    params = """
+    double mp,
+    double arm_length,
+    double t2t,
+    const double *m,
+    const double *J_vx,
+    const double *J_vy,
+    const double *J_vz,
+    const double *l"""
 
-    assign_data = f"""
-        double mp = params.m_payload;
-        double m[{num_uavs}];
-        double J_vx[{num_uavs}];
-        double J_vy[{num_uavs}];
-        double J_vz[{num_uavs}];
-        double l[{num_uavs}];
-        for (size_t i = 0 ; i < {num_uavs}; i++) m[i] = params.m(i);
-        for (size_t i = 0 ; i < {num_uavs}; i++) J_vx[i] = params.J_vx(i);
-        for (size_t i = 0 ; i < {num_uavs}; i++) J_vy[i] = params.J_vy(i);
-        for (size_t i = 0 ; i < {num_uavs}; i++) J_vz[i] = params.J_vz(i);
-        for (size_t i = 0 ; i < {num_uavs}; i++) l[i] = params.l_payload(i);
-        double arm_length = params.arm_length;
-        double t2t = params.t2t;\n"""
+
+
+    headerf = f"""void calcV_{id}(double* ff,
+            {params},
+            const double *x, const double *u)"""
+
+    # assign_data = f"""
+    #     double mp = params.m_payload;
+    #     double m[{num_uavs}];
+    #     double J_vx[{num_uavs}];
+    #     double J_vy[{num_uavs}];
+    #     double J_vz[{num_uavs}];
+    #     double l[{num_uavs}];
+    #     for (size_t i = 0 ; i < {num_uavs}; i++) m[i] = params.m(i);
+    #     for (size_t i = 0 ; i < {num_uavs}; i++) J_vx[i] = params.J_vx(i);
+    #     for (size_t i = 0 ; i < {num_uavs}; i++) J_vy[i] = params.J_vy(i);
+    #     for (size_t i = 0 ; i < {num_uavs}; i++) J_vz[i] = params.J_vz(i);
+    #     for (size_t i = 0 ; i < {num_uavs}; i++) l[i] = params.l_payload(i);
+    #     double arm_length = params.arm_length;
+    #     double t2t = params.t2t;\n"""
 
 
     ####### fff vector)
     f_code = """\n"""
     for i in range(f.rows):
         if simplify: 
-            f_code += "        ff({}) = {};\n".format(i, sp.ccode(sp.simplify(f[i])))
+            f_code += "        ff[{}] = {};\n".format(i, sp.ccode(sp.simplify(f[i])))
         else:
-            f_code += "        ff({}) = {};\n".format(i, sp.ccode(f[i]))
+            f_code += "        ff[{}] = {};\n".format(i, sp.ccode(f[i]))
 
     footer = "\n}\n\n" 
 
     ###### JX, JU ##########3
-    headerJ = f"void calcJ_{id}(Eigen::Ref<Eigen::MatrixXd> Jv_x, Eigen::Ref<Eigen::MatrixXd> Jv_u, const Quad3dpayload_n_params &params, const double *x, const double *u)" 
+    headerJ = f"""void calcJ_{id}(
+        double* Jx, 
+        double* Ju, 
+        {params},
+         const double *x, const double *u)"""
 
     J_code = """\n"""
-    for i in range(Jx.rows):
-                    for j in range(Jx.cols):
-                            if Jx[i,j] != 0:
-                                if simplify:
-                                    J_code += "        Jv_x({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Jx[i,j])))
-                                else:
-                                    J_code += "        Jv_x({},{}) = {};\n".format(i,j, sp.ccode(Jx[i,j]))
 
-    for i in range(Ju.rows):
-                    for j in range(Ju.cols):
-                            if Ju[i,j] != 0:
-                                if simplify:
-                                    J_code += "        Jv_u({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Ju[i,j])))
-                                else:
-                                    J_code += "        Jv_u({},{}) = {};\n".format(i,j, sp.ccode(Ju[i,j]))
+    def write_non_zero(J, name,  simplify=False):
+        J_code = ""
+        for i in range(J.rows):
+                        for j in range(J.cols):
+                                id = i + j * J.rows
+                                if J[i,j] != 0:
+                                    code_out = J[i,j]
+                                    if simplify:
+                                        code_out = sp.simplify(code_out)
+                                    J_code += f"{name}[{id}] = {sp.ccode(code_out)};\n"
+        return J_code
+
+
+    Jx_code = write_non_zero(Jx, "Jx", simplify)
+
+    Ju_code = write_non_zero(Ju, "Ju", simplify)
+    J_code = Jx_code + Ju_code
+
 
     ####################### FX, FU  ##############################
 
-    headerF = f"void calcF_{id}(Eigen::Ref<Eigen::MatrixXd> Fx," "Eigen::Ref<Eigen::MatrixXd> Fu, const Quad3dpayload_n_params &params," "const double *x, const double *u," "double dt)"
+    headerF = f"""void calcF_{id}(
+    double* Fx, 
+    double* Fu, 
+    {params},
+     const double *x, const double *u, double dt)"""
 
     F_code = """\n"""
-    for i in range(Fx.rows):
-                    for j in range(Fx.cols):
-                            if Fx[i,j] != 0:
-                                if simplify:
-                                    F_code += "        Fx({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Fx[i,j])))
-                                else:
-                                    F_code += "        Fx({},{}) = {};\n".format(i,j, sp.ccode(Fx[i,j]))
-                                    
-    for i in range(Fu.rows):
-                    for j in range(Fu.cols):
-                            if Fu[i,j] != 0:
-                                if simplify:
-                                    F_code += "        Fu({},{}) = {};\n".format(i,j, sp.ccode(sp.simplify(Fu[i,j])))
-                                else:
-                                    F_code += "        Fu({},{}) = {};\n".format(i,j, sp.ccode(Fu[i,j]))
+    Fx_code = write_non_zero(Fx, "Fx", simplify)
+    Fu_code = write_non_zero(Fu, "Fu", simplify)
+
+    F_code = Fx_code + Fu_code
 
     ########################## STEP #######################################
 
-    headerStep = f"void calcStep_{id}(Eigen::Ref<Eigen::VectorXd> xnext, const Quad3dpayload_n_params &params, const double *x, const double *u, double dt)"
+    headerStep = f"void calcStep_{id}(double* xnext, {params}, const double *x, const double *u, double dt)"
 
     step_code = """\n"""
 
     for i in range(step.rows):
         if simplify:
-            step_code += "        xnext({}) = {};\n".format(i,sp.ccode(sp.simplify(step[i])))
+            step_code += "        xnext[{}] = {};\n".format(i,sp.ccode(sp.simplify(step[i])))
         else:
-            step_code += "        xnext({}) = {};\n".format(i,sp.ccode(step[i]))
+            step_code += "        xnext[{}] = {};\n".format(i,sp.ccode(step[i]))
 
 
     ############################################################################################
-    
 
     fun_declarations = [ headerf, headerStep, headerJ, headerF ]
     fun_implementations = [ f_code, step_code, J_code, F_code ]
@@ -521,7 +536,6 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
 
             file.write(fun_declaration)
             file.write("\n{\n")
-            file.write(assign_data)
             file.write(fun_implementation)
             file.write("\n}\n")
 

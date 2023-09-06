@@ -1,19 +1,59 @@
 #pragma once
 
 // Auto generated file
-// Created at: 2023-09-05--18-04-27
-
-#include "dynobench/quadrotor_payload_n.hpp"
+// Created at: 2023-09-06--10-13-14
 
 
 namespace dynobench {
 
-void calcV_n4_p(Eigen::Ref<Eigen::VectorXd> ff, const Quad3dpayload_n_params &params, const double *x, const double *u);
+void calcV_n4_p(double* ff,
+            
+    double mp,
+    double arm_length,
+    double t2t,
+    const double *m,
+    const double *J_vx,
+    const double *J_vy,
+    const double *J_vz,
+    const double *l,
+            const double *x, const double *u);
 
-void calcStep_n4_p(Eigen::Ref<Eigen::VectorXd> xnext, const Quad3dpayload_n_params &params, const double *x, const double *u, double dt);
+void calcStep_n4_p(double* xnext, 
+    double mp,
+    double arm_length,
+    double t2t,
+    const double *m,
+    const double *J_vx,
+    const double *J_vy,
+    const double *J_vz,
+    const double *l, const double *x, const double *u, double dt);
 
-void calcJ_n4_p(Eigen::Ref<Eigen::MatrixXd> Jv_x, Eigen::Ref<Eigen::MatrixXd> Jv_u, const Quad3dpayload_n_params &params, const double *x, const double *u);
+void calcJ_n4_p(
+        double* Jx, 
+        double* Ju, 
+        
+    double mp,
+    double arm_length,
+    double t2t,
+    const double *m,
+    const double *J_vx,
+    const double *J_vy,
+    const double *J_vz,
+    const double *l,
+         const double *x, const double *u);
 
-void calcF_n4_p(Eigen::Ref<Eigen::MatrixXd> Fx,Eigen::Ref<Eigen::MatrixXd> Fu, const Quad3dpayload_n_params &params,const double *x, const double *u,double dt);
+void calcF_n4_p(
+    double* Fx, 
+    double* Fu, 
+    
+    double mp,
+    double arm_length,
+    double t2t,
+    const double *m,
+    const double *J_vx,
+    const double *J_vy,
+    const double *J_vz,
+    const double *l,
+     const double *x, const double *u, double dt);
 
 }
