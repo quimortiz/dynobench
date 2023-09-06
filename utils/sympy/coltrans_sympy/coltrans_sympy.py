@@ -10,6 +10,11 @@ parent_dir = Path(__file__).resolve().parent.parent
 sys.path.append(str(parent_dir))
 
 import sympy as sp
+from sympy.codegen.rewriting import create_expand_pow_optimization
+
+
+expand_opt = create_expand_pow_optimization(2)
+
 from helper import *
 
 
@@ -390,6 +395,19 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
 
     base_path = "../../../src/"
 
+    # NOTE: we should try using cse
+    # import sympy as sp
+    # from sympy.codegen.rewriting import create_expand_pow_optimization
+    #
+    # expand_opt = create_expand_pow_optimization(3)
+    #
+    # a = sp.Matrix(sp.MatrixSymbol('a',3,3))
+    # res = sp.cse(a@a)
+    #
+    # for i,result in enumerate(res[1]):
+    #     print(sp.ccode(expand_opt(result),"result_%i"%i))
+
+
     file_out_hpp = f"quadrotor_payload_dynamics_autogen_{id}.hpp"
     file_out_cpp =  f"quadrotor_payload_dynamics_autogen_{id}.cpp"
 
@@ -435,7 +453,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
         if simplify: 
             f_code += "        ff[{}] = {};\n".format(i, sp.ccode(sp.simplify(f[i])))
         else:
-            f_code += "        ff[{}] = {};\n".format(i, sp.ccode(f[i]))
+            f_code += "        ff[{}] = {};\n".format(i, sp.ccode(expand_opt(f[i])))
 
     footer = "\n}\n\n" 
 
@@ -457,7 +475,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
                                     code_out = J[i,j]
                                     if simplify:
                                         code_out = sp.simplify(code_out)
-                                    J_code += f"{name}[{id}] = {sp.ccode(code_out)};\n"
+                                    J_code += f"{name}[{id}] = {sp.ccode(expand_opt(code_out))};\n"
         return J_code
 
 
@@ -491,7 +509,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
         if simplify:
             step_code += "        xnext[{}] = {};\n".format(i,sp.ccode(sp.simplify(step[i])))
         else:
-            step_code += "        xnext[{}] = {};\n".format(i,sp.ccode(step[i]))
+            step_code += "        xnext[{}] = {};\n".format(i,sp.ccode(expand_opt(step[i])))
 
 
     ############################################################################################
