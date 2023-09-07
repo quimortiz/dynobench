@@ -395,16 +395,19 @@ def main():
         quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/point_{}.yaml".format(num_robots)), [], [])
         robot = Robot(quadpayload, num_robots, initstate, gains, dt)
 
-        ts = np.arange(0,T,dt)
+        # ts = np.arange(0,T,dt)
+        # ts = np.array(range(len(refstate))) * dt
+        # assert(len(ts) == len(refstate))
         if payloadType == "point":
-            states = np.zeros((len(ts)+1, 6+6*num_robots+7*num_robots))
+            states = np.zeros((len(refstate), 6+6*num_robots+7*num_robots))
         states[0] = initstate
         states_d = refArray  
         actions_d = np.array(refactions)  
         print('Simulating...')
 
         robot.appSt.append(initstate.tolist())
-        for k, t in enumerate(ts):
+        for k in range(len(refstate)-1):
+            # states_d[k] = [ref for subref in reference_traj_circle(t, angular_vel, np.array(qcwc), num_robots, h=h, r=r) for ref in subref]
             u = []
             for r_idx, ctrl in robot.controller.items():
                 r_idx = int(r_idx)
