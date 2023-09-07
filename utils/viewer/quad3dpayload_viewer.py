@@ -246,7 +246,7 @@ class Visualizer():
                     tf.quaternion_matrix(quad.state[3:7])))
             qc = state[6+6*i: 6+6*i+3]
             cablePos  = payloadSt[0:3] - (quad.l)*np.array(qc)/2
-            cableQuat = rn.vector_vector_rotation([0,0,-1], qc)
+            cableQuat = rn.vector_vector_rotation(qc, [0,0,-1])
             frame[prefix + "cable_" + name].set_transform(tf.translation_matrix(cablePos).dot(
                                                                 tf.quaternion_matrix(cableQuat)))
             frame[prefix + name + \
