@@ -96,7 +96,7 @@ class Controller():
         self.leePayload.gen_hp = 1 # TODO: don't forget to change this after updating the firmware for rigid case
         self.leePayload.formation_control = 2 # 0: disable, 1:set mu_des_prev (regularization), 3: planned formations (qi refs)
         self.leePayload.lambda_svm = 1000
-
+        self.leePayload.radius = 0.15
         self.leePayload.lambdaa = lambdaa
         self.leePayload.Kpos_P.x = kpos_p
         self.leePayload.Kpos_P.y = kpos_p
@@ -165,6 +165,22 @@ class Controller():
             q = state[9+6*self.num_robots+7*i: 9+6*self.num_robots+7*i + 4]
             qc = state[9+6*i: 9+6*i+3]
             wc = state[9+6*i+3: 9+6*i+6]
+            q_rn = [q[3], q[0], q[1], q[2]]
+            control = self.B0@action
+            th = control[0]
+            fu = np.array([0,0,th])
+            u_i = rn.rotate(q_rn, fu)
+            ap_ += (u_i - (self.mi*self.l[i]*np.dot(wc,wc))*qc) 
+        ap = (np.linalg.inv(self.Mq)@ap_) - np.array([0,0,9.81])
+        return ap
+
+    def __computeAcc_act(self, state, actions): 
+        ap_ = np.zeros(3,)
+        for i in self.team_ids:
+            action = actions[4*i : 4*i + 4]
+            q = state[6+6*self.num_robots+7*i: 6+6*self.num_robots+7*i + 4]
+            qc = state[6+6*i: 6+6*i+3]
+            wc = state[6+6*i+3: 6+6*i+6]
             q_rn = [q[3], q[0], q[1], q[2]]
             control = self.B0@action
             th = control[0]
