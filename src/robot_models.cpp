@@ -85,8 +85,10 @@ robot_factory_with_env(const std::string &robot_name,
   return robot;
 }
 std::unique_ptr<Model_robot> 
-joint_robot_factory(const std::vector<std::string> &robot_types){
-  return std::make_unique<Joint_robot>(robot_types);
+joint_robot_factory(const std::vector<std::string> &robot_types, 
+                    const Eigen::VectorXd &p_lb,
+                    const Eigen::VectorXd &p_ub){
+  return std::make_unique<Joint_robot>(robot_types, p_lb, p_ub);
 }
 // joint_robot_factory(){
 //   return std::make_unique<Joint_robot>();

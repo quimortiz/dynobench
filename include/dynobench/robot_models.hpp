@@ -38,7 +38,8 @@ robot_factory_with_env(const std::string &robot_name,
                        const std::string &problem_name);
 
 std::unique_ptr<Model_robot> 
-joint_robot_factory(const std::vector<std::string> &robot_types);
+joint_robot_factory(const std::vector<std::string> &robot_types,const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+                                           const Eigen::VectorXd &p_ub =Eigen::VectorXd());
 
 
 } // namespace dynobench

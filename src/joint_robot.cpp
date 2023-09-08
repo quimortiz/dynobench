@@ -11,12 +11,75 @@ namespace dynobench {
 double RM_low__ = -std::sqrt(std::numeric_limits<double>::max());
 double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
 
+void Joint_robot::get_position_lb(const std::vector<std::string> &robot_types, const Eigen::Ref<const Eigen::VectorXd> &plb,
+                                  Eigen::VectorXd &xlb){
+  CHECK_EQ(plb.size() , 2 , "");
+  int k = 0;
+  for (size_t i = 0; i < robot_types.size(); i++) {
+      auto t = robot_types[i];
+      if (t == "double_integrator_0") {
+        xlb(k) = plb(0);
+        xlb(k + 1) = plb(1);
+        k += 4;
+      } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+        xlb(k) = plb(0);
+        xlb(k + 1) = plb(1);
+        k += 3;
+      } else if (t == "unicycle_second_order_0") {
+        xlb(k) = plb(0);
+        xlb(k + 1) = plb(1);
+        k += 5;
+      } else if (t == "single_integrator_0") {
+        xlb(k) = plb(0);
+        xlb(k + 1) = plb(1);
+        k += 2;
+      } else if (t == "car_first_order_with_1_trailers_0") { 
+        xlb(k) = plb(0);
+        xlb(k + 1) = plb(1);
+        k += 4;
+      }
+    }
+}
+
+void Joint_robot::get_position_ub(const std::vector<std::string> &robot_types, const Eigen::Ref<const Eigen::VectorXd> &pub, 
+                                  Eigen::VectorXd &xub){
+  CHECK_EQ(pub.size() , 2 , "");
+  int k = 0;
+  for (size_t i = 0; i < robot_types.size(); i++) {
+      auto t = robot_types[i];
+      if (t == "double_integrator_0") {
+        xub(k) = pub(0);
+        xub(k + 1) = pub(1);
+        k += 4;
+      } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere") {
+        xub(k) = pub(0);
+        xub(k + 1) = pub(1);
+        k += 3;
+      } else if (t == "unicycle_second_order_0") {
+        xub(k) = pub(0);
+        xub(k + 1) = pub(1);
+        k += 5;
+      } else if (t == "single_integrator_0") {
+        xub(k) = pub(0);
+        xub(k + 1) = pub(1);
+        k += 2;
+      } else if (t == "car_first_order_with_1_trailers_0") { 
+        xub(k) = pub(0);
+        xub(k + 1) = pub(1);
+        k += 4;
+      }
+    }
+
+}
+
 void Joint_robot::get_x_weightb(const std::vector<std::string> &robot_types,
                            Eigen::VectorXd &xweightb){
   int k = 0;
   xweightb.setConstant(.0);
   for (size_t i = 0; i < robot_types.size(); i++) {
-    auto t = robot_types[i];
+     auto t = robot_types[i];
+      xweightb(k + 0) = 100;
+      xweightb(k + 1) = 100;
     if (t == "double_integrator_0") {
       xweightb(k + 2) = 100;
       xweightb(k + 3) = 100;
@@ -378,7 +441,9 @@ std::vector<int> get_nxs(const std::vector<std::string> &robotTypes) {
   return nxs;
 }
 
-Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
+Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes,
+                          const Eigen::VectorXd &p_lb ,
+                          const Eigen::VectorXd &p_ub)
     : Model_robot(std::make_shared<RnSOn>(get_number_of_r_dofs(robotTypes),
                                           get_so2(robotTypes),
                                           get_so2_indices(robotTypes)),
@@ -390,8 +455,6 @@ Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
   nxs = get_nxs(robotTypes);
   int total_nxs =  accumulate(nxs.begin(), nxs.end(), 0);
 
-  const Eigen::VectorXd &p_lb = Eigen::VectorXd();
-  const Eigen::VectorXd &p_ub = Eigen::VectorXd();
   using V3d = Eigen::Vector3d;
   col_mng_robots_ = std::make_shared<fcl::DynamicAABBTreeCollisionManagerd>();
   col_mng_robots_->setup();
@@ -429,10 +492,8 @@ Joint_robot::Joint_robot(const std::vector<std::string> &robotTypes)
     part_objs_.push_back(robot_part);
   }
 
-  if (p_lb.size() && p_ub.size()) {
-    set_position_lb(p_lb); // needs to be changed ?
-    set_position_ub(p_ub);
-  }
+  get_position_lb(robotTypes,p_lb, x_lb); 
+  get_position_ub(robotTypes,p_ub, x_ub);
 }
 
 void Joint_robot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
@@ -467,10 +528,6 @@ void Joint_robot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
 void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
                         const Eigen::Ref<const Eigen::VectorXd> &x,
                         const Eigen::Ref<const Eigen::VectorXd> &u) {
-
-  // CHECK_EQ(v.size(), 3*2, AT);
-  // CHECK_EQ(x.size(), 3*2, AT);
-  // CHECK_EQ(u.size(), 2*2, AT);
 
   int k = 0;
   int m = 0;
