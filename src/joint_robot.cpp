@@ -13,7 +13,6 @@ double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
 
 void Joint_robot::get_position_lb(const std::vector<std::string> &robot_types, const Eigen::Ref<const Eigen::VectorXd> &plb,
                                   Eigen::VectorXd &xlb){
-  CHECK_EQ(plb.size() , 2 , "");
   int k = 0;
   for (size_t i = 0; i < robot_types.size(); i++) {
       auto t = robot_types[i];
@@ -43,7 +42,6 @@ void Joint_robot::get_position_lb(const std::vector<std::string> &robot_types, c
 
 void Joint_robot::get_position_ub(const std::vector<std::string> &robot_types, const Eigen::Ref<const Eigen::VectorXd> &pub, 
                                   Eigen::VectorXd &xub){
-  CHECK_EQ(pub.size() , 2 , "");
   int k = 0;
   for (size_t i = 0; i < robot_types.size(); i++) {
       auto t = robot_types[i];
