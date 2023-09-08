@@ -168,19 +168,93 @@ def computeJ(f, *data):
 
 def computef(*data):
     state, action, params = data
-    num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt, B = params
+    if params[1] == "point":
+        num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt, B = params
+        start_idx = 6
+    elif params[1] == "rigid":
+        num_uavs, payloadType, mi, Ji, mp, Jp, attPi, li, motor_params, dt, B = params
+        start_idx = 13
+    
+    f = sp.zeros(start_idx + 6*num_uavs + 7*num_uavs,1)
+    vp = state[3:6]
+    # qwcdot = [qc_dot_0 , wc_dot_0, qc_dot_1, wc_dot_1, ..., qc_dot_{n-1}, wc_dot_{n-1}]
+    qwcdot = []
+    ap_ = sp.zeros(3,1)
+    Mq = (mp + sum(mi))*sp.eye(3)
 
-    if payloadType == 'point':
-        f = sp.zeros(6 + 6*num_uavs + 7*num_uavs,1)
-        vp = state[3:6]
-        # qwcdot = [qc_dot_0 , wc_dot_0, qc_dot_1, wc_dot_1, ..., qc_dot_{n-1}, wc_dot_{n-1}]
-        qwcdot = []
+    cableSt = state[start_idx : start_idx + num_uavs]
+    uavStates = state[start_idx + num_uavs:  start_idx + 6 + 7 + num_uavs]
+    # acceleration of the payload
+    for c_idx, cable in enumerate(cableSt):
+        qc = sp.Matrix(qvnormalize(cable[0:3]))
+        wc = cable[3:6]
+        uavState = uavStates[c_idx]
+        q = qnormalize(sp.Matrix(uavState[0:4])) 
+        eta = B[c_idx]*sp.Matrix(action[c_idx])
+        fu = sp.Matrix([0,0,eta[0]])
+        u_i = sp.Matrix(quat_qvrot(q,fu)) 
+        ap_ += (u_i - (mi[c_idx]*li[c_idx]*vdot(wc,wc))*qc) 
+
+    #Final Equation for the payload acceleration
+    ap = (Mq**(-1)*ap_) - sp.Matrix([0,0,9.81])
+    # qwcdot vector computation:        
+    # qwcdot = [qc_dot_0 , wc_dot_0, qc_dot_1, wc_dot_1, ..., qc_dot_{n-1}, wc_dot_{n-1}]
+    for c_idx, cable in enumerate(cableSt):
+        qc = sp.Matrix(qvnormalize(cable[0:3]))
+        wc = sp.Matrix(cable[3:6])
+        uavState = uavStates[c_idx]
+        q = qnormalize(sp.Matrix(uavState[0:4])) 
+        eta = B[c_idx]*sp.Matrix(action[c_idx])
+        fu = sp.Matrix([0,0,eta[0]])
+        u_i = sp.Matrix(quat_qvrot(q,fu))
+        apgrav =  ap + sp.Matrix([0,0,9.81]) 
+        wcdot = 1/li[c_idx] * sp.Matrix(vcross(qc, apgrav)) - (1/(mi[c_idx]*li[c_idx])) * sp.Matrix(vcross(qc,u_i)) 
+        qcdot = sp.Matrix(vcross(wc, qc))
+        qwcdot.append(qcdot)
+        qwcdot.append(wcdot)
+
+    # uav states: [quat_0, w_0, quat_1, w_1, ..., quat_{n-1}, quat_{n-1}]
+    uavSt_dot = []
+    for u_idx, uavState in enumerate(uavStates):
+        q = qnormalize(sp.Matrix(uavState[0:4]))
+        w = sp.Matrix(uavState[4::])
+        uavSt_dot.extend(quat_diff(q,w).tolist())
+        J_uav = sp.diag(Ji[u_idx][0], Ji[u_idx][1], Ji[u_idx][2])
+        J_uav_inv = J_uav**(-1)
+        J_omega = J_uav * sp.Matrix(w)
+        eta = B[u_idx]*sp.Matrix(action[u_idx])
+        tau = sp.Matrix(eta[1:4])
+        wdot =  J_uav_inv * (sp.Matrix(vcross(J_omega, w)) + tau)
+        uavSt_dot.extend(wdot.tolist())
+    
+    
+    if payloadType == "point":
+        payload_f = sp.Matrix(
+            [
+                [vp[0]], [vp[1]], [vp[2]], # payload velocity
+                [ap[0]], [ap[1]], [ap[2]], # payload acceleration
+            ]
+            )
+
+        f[0:start_idx,:] = payload_f
+        f[start_idx:start_idx+6*num_uavs,:] = qwcdot
+        f[start_idx+6*num_uavs: start_idx+7*num_uavs+6*num_uavs,:] = uavSt_dot
+    
+    
+    if payloadType == "rigid":
+        ## NOT IMPLEMENTED ###
+       
+        qp = sp.Matrix(qnormalize(sp.Matrix(state[3:7])))
+        wp = sp.Matrix(state[10:13])
+                
+        qpd = quat_diff(qp, wp)
+
+        ap_grav = sp.MatrixSymbol('ap_grav', 3, 1) 
+        wpdot = sp.MatrixSymbol('wpdot', 3, 1)
+        wpdot = sp.Matrix(sp.MatrixSymbol('wpdot', 3, 1))
+        ap_grav = sp.Matrix(sp.MatrixSymbol('ap_grav', 3, 1)) 
+        # Equation 5 in https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7843619
         ap_ = sp.zeros(3,1)
-        Mq = (mp + sum(mi))*sp.eye(3)
-
-        cableSt = state[6:6+num_uavs]
-        uavStates = state[6+num_uavs:  6+6+7+num_uavs]
-        # acceleration of the payload
         for c_idx, cable in enumerate(cableSt):
             qc = sp.Matrix(qvnormalize(cable[0:3]))
             wc = cable[3:6]
@@ -189,69 +263,57 @@ def computef(*data):
             eta = B[c_idx]*sp.Matrix(action[c_idx])
             fu = sp.Matrix([0,0,eta[0]])
             u_i = sp.Matrix(quat_qvrot(q,fu)) 
-            u_par = qc@qc.T*u_i
-            ap_ += (u_i - (mi[c_idx]*li[c_idx]*vdot(wc,wc))*qc) 
+            attPi[c_idx] = sp.Matrix(attPi[c_idx])
+            # print(mi[c_idx] * qc * qc.T * sp.Matrix(quat_qvrot(qp, skew(attPi[c_idx]) * wpdot)))
+            # exit()
+            ap_ += (u_i - mi[c_idx]*li[c_idx]*vdot(wc,wc)*qc - mi[c_idx] * qc * qc.T * sp.Matrix(quat_qvrot(qp, skew(wp) * skew(wp) * attPi[c_idx]))  +  mi[c_idx] * qc * qc.T * sp.Matrix(quat_qvrot(qp, skew(attPi[c_idx]) * wpdot)) )
+        
+        eq1 = sp.Eq(Mq**(-1)*ap_, ap_grav)
 
-        #Final Equation for the payload acceleration
-        ap = (Mq**(-1)*ap_) - sp.Matrix([0,0,9.81])
-        # qwcdot vector computation:        
-        # qwcdot = [qc_dot_0 , wc_dot_0, qc_dot_1, wc_dot_1, ..., qc_dot_{n-1}, wc_dot_{n-1}]
+        # Equation 6 in https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=7843619
+        wpdot_ = sp.zeros(3,1)
+        
+        term2 = sp.zeros(3,1)
+        
+        term3_otherside = sp.zeros(3,1)
+        
+        Jp_tilde_2 = sp.zeros(3,1)
+        
+        Jp_diag = sp.diag(Jp[0], Jp[1], Jp[2])
+        
         for c_idx, cable in enumerate(cableSt):
             qc = sp.Matrix(qvnormalize(cable[0:3]))
-            wc = sp.Matrix(cable[3:6])
+            wc = cable[3:6]
             uavState = uavStates[c_idx]
             q = qnormalize(sp.Matrix(uavState[0:4])) 
             eta = B[c_idx]*sp.Matrix(action[c_idx])
             fu = sp.Matrix([0,0,eta[0]])
-            u_i = sp.Matrix(quat_qvrot(q,fu))
-            u_perp = (sp.eye(3) - qc*qc.T)*u_i
-            apgrav =  ap + sp.Matrix([0,0,9.81]) 
-            wcdot = 1/li[c_idx] * sp.Matrix(vcross(qc, apgrav)) - (1/(mi[c_idx]*li[c_idx])) * sp.Matrix(vcross(qc,u_i)) 
-            qcdot = sp.Matrix(vcross(wc, qc))
-            qwcdot.append(qcdot)
-            qwcdot.append(wcdot)
+            u_i = sp.Matrix(quat_qvrot(q,fu)) 
+            attPi[c_idx] = sp.Matrix(attPi[c_idx])
 
-        # uav states: [quat_0, w_0, quat_1, w_1, ..., quat_{n-1}, quat_{n-1}]
-        uavSt_dot = []
-        for u_idx, uavState in enumerate(uavStates):
-            q = qnormalize(sp.Matrix(uavState[0:4]))
-            w = sp.Matrix(uavState[4::])
-            uavSt_dot.extend(quat_diff(q,w).tolist())
-            J_uav = sp.diag(Ji[u_idx][0], Ji[u_idx][1], Ji[u_idx][2])
-            J_uav_inv = J_uav**(-1)
-            J_omega = J_uav * sp.Matrix(w)
-            eta = B[u_idx]*sp.Matrix(action[u_idx])
-            tau = sp.Matrix(eta[1:4])
-            wdot =  J_uav_inv * (sp.Matrix(vcross(J_omega, w)) + tau)
-            uavSt_dot.extend(wdot.tolist())
+            # compute Inertia matrix
+            
+            Jp_tilde_2 += mi[c_idx] * skew(attPi[c_idx]) * sp.Matrix(quat_qvrot(conj(qp), qc*qc.T * sp.Matrix(quat_qvrot(qp, skew(attPi[c_idx]) * wpdot )) ) )
+            
+
+            term2 += mi[c_idx] * skew(attPi[c_idx]) * sp.Matrix(quat_qvrot(conj(qp), qc * qc.T * ap_grav)) 
+
+            term3_otherside += skew(attPi[c_idx]) * sp.Matrix(quat_qvrot(conj(qp) , (u_i - mi[c_idx] * li[c_idx] * vdot(wc,wc) * qc  - mi[c_idx] * qc * qc.T * sp.Matrix(quat_qvrot(qp, skew(wp) * skew(wp) * attPi[c_idx]))  ) ) ) 
+
+        # print(skew(wp) * Jp_diag * wp)
+        # exit()
+        term1 = Jp_diag * wpdot - Jp_tilde_2
         
-        payload_f = sp.Matrix(
-            [
-                [vp[0]], [vp[1]], [vp[2]], # payload velocity
-                [ap[0]], [ap[1]], [ap[2]], # payload acceleration
-            ]
-            )
+        eq2 = sp.Eq(term1 + term2 + skew(wp) * Jp_diag * wp, term3_otherside)
 
-        f[0:6,:] = payload_f
-        f[6:6+6*num_uavs,:] = qwcdot
-        f[6+6*num_uavs: 6+7*num_uavs+6*num_uavs,:] = uavSt_dot
-        idx = 6
-    elif payloadType == 'rigid':
-        print("NOT IMPLEMENTED")
+        solution = sp.solve((eq1, eq2), (ap_grav, wpdot))
+
+
+        print(solution)
         exit()
-        ## NOT IMPLEMENTED ###
-        f = sp.zeros(13 + 6*num_uavs + 7*num_uavs, 1)
-        xp = state[0:3]
-        qp = state[3:7]
-        vp = state[7:10]
-        wp = state[10:13]
-        cableSt = state[13:13+num_uavs]
-        uavSt =  state[13+num_uavs:13+6+7+num_uavs]
-        
-        qpd = quat_diff(qp, wp)
-        ap = sp.zeros(3,1)
-        wpdot = sp.zeros(3,1)
-        
+
+
+
         payload_f = sp.Matrix(
             [[vp[0]], [vp[1]], [vp[2]], # payload velocity
             [qpd[0]], [qpd[1]], [qpd[2]], [qpd[3]], # quaternion diff
@@ -259,8 +321,7 @@ def computef(*data):
             [wpdot[0]], [wpdot[1]], [wpdot[2]], # payload angular acceleration
             ]
         )
-        f[0:13,:] = payload_f
-        idx = 13
+        f[0:start_idx,:] = payload_f
 
     return f
 
@@ -293,18 +354,24 @@ def createSyms(num_uavs=1, payloadType='point', writeC=False):
     # States: 
     # paylaod states: position, quaternion, velocity, angular velocity dim: 13 (point mass 6)
     if writeC: 
+        mi = [sp.symbols("m[{}]".format(i)) for i in range(num_uavs)] # mass of each uav
+        Jv = [list(sp.symbols("J_vx[{}] J_vy[{}] J_vz[{}]".format(i,i,i))) for i in range(num_uavs)]
+        Ji = [list(sp.Matrix([Jv[i][0], Jv[i][1], Jv[i][2]])) for i in range(num_uavs)]
+        st_idx = 6
         if payloadType == "point":
-            mi = [sp.symbols("m[{}]".format(i)) for i in range(num_uavs)] # mass of each uav
-            Jv = [list(sp.symbols("J_vx[{}] J_vy[{}] J_vz[{}]".format(i,i,i))) for i in range(num_uavs)]
-            Ji = [list(sp.Matrix([Jv[i][0], Jv[i][1], Jv[i][2]])) for i in range(num_uavs)]
-
+            st_idx = 6
             x, y, z, vx, vy, vz = sp.symbols('x[0] x[1] x[2] x[3] x[4] x[5]')
-            cableSt = [list(sp.symbols('x[{}] x[{}] x[{}] x[{}] x[{}] x[{}]'.format(i,i+1, i+2, i+3, i+4, i+5))) for i in range(6,6+6*num_uavs, 6)]
-            uavSt   = [list(sp.symbols('x[{}] x[{}] x[{}] x[{}] x[{}] x[{}] x[{}]'.format(i,i+1, i+2, i+3, i+4, i+5, i+6))) for i in range(6+6*num_uavs, 6+6*num_uavs+7*num_uavs, 7)]
-            action  = [list(sp.symbols('u[{}] u[{}] u[{}] u[{}]'.format(i,i+1,i+2,i+3))) for i in range(0,4*num_uavs,4)]
         elif payloadType == "rigid":
+            st_idx = 13
             x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('x[0] x[1] x[2]  x[3] x[4] x[5] x[6]\
-                                                                        x[7] x[8] x[9] x[1]) x[1]) x[1])')
+                                                                        x[7] x[8] x[9] x[10] x[11] x[12]')
+            attP = [list(sp.symbols("attPx[{}] attPy[{}] attPz[{}]".format(i,i,i))) for i in range(num_uavs)]
+            attPi = [list(sp.Matrix([attP[i][0], attP[i][1], attP[i][2]])) for i in range(num_uavs)]
+
+        cableSt = [list(sp.symbols('x[{}] x[{}] x[{}] x[{}] x[{}] x[{}]'.format(i,i+1, i+2, i+3, i+4, i+5))) for i in range(st_idx,st_idx+6*num_uavs, 6)]
+        uavSt   = [list(sp.symbols('x[{}] x[{}] x[{}] x[{}] x[{}] x[{}] x[{}]'.format(i,i+1, i+2, i+3, i+4, i+5, i+6))) for i in range(st_idx+6*num_uavs, st_idx+6*num_uavs+7*num_uavs, 7)]
+        action  = [list(sp.symbols('u[{}] u[{}] u[{}] u[{}]'.format(i,i+1,i+2,i+3))) for i in range(0,4*num_uavs,4)]
+
     else: #WRITE SYMBOLS FOR PYTHON
         x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz = sp.symbols('pos[0] pos[1] pos[2]  qp[0] qp[1] qp[2] qw[3]\
                                                                             vel[0] vel[1] vel[2] wpx  wpy wpz')
@@ -318,14 +385,15 @@ def createSyms(num_uavs=1, payloadType='point', writeC=False):
     
     if payloadType == "point":
         state = [x, y, z, vx, vy, vz, *cableSt, *uavSt]
+        params = [num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt]
     elif payloadType == "rigid":
         state = [x, y, z, qpx, qpy, qpz, qw, vx, vy, vz, wpx, wpy, wpz, *cableSt, *uavSt]
+        params = [num_uavs, payloadType, mi, Ji, mp, Jp, attPi, li, motor_params, dt]
+    
     else: 
         print('Wrong payload type! Choose either point or rigid')
         exit()
-    # action 
 
-    params = [num_uavs, payloadType, mi, Ji, mp, Jp, li, motor_params, dt]
     B = []
     B0 = sp.Matrix([[1,1,1,1], [-arm, -arm, arm, arm], [-arm, arm, arm, -arm], [-t2t, t2t, -t2t, t2t]])
     for i in range(num_uavs):
@@ -457,7 +525,7 @@ def writeSptoC(f, Jx, Ju, Fx, Fu, step, *data, simplify=False):
 
     footer = "\n}\n\n" 
 
-    ###### JX, JU ##########3
+    ###### JX, JU ##########
     headerJ = f"""void calcJ_{id}(
         double* Jx, 
         double* Ju, 
