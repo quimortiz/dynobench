@@ -357,11 +357,13 @@ struct Model_robot {
   // orientation/velocities of x0 to zero
   virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) { return x; }
 
+  virtual
   void set_position_ub(const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
     DYNO_CHECK_EQ(static_cast<size_t>(p_ub.size()), translation_invariance, AT);
     x_ub.head(translation_invariance) = p_ub;
   }
 
+  virtual
   void set_position_lb(const Eigen::Ref<const Eigen::VectorXd> &p_lb) {
     DYNO_CHECK_EQ(static_cast<size_t>(p_lb.size()), translation_invariance, AT);
     x_lb.head(translation_invariance) = p_lb;
