@@ -492,7 +492,7 @@ class Controller():
         # dbg messages
         if self.payloadType == "rigid":
             print("u:", u, my_id)
-        u = np.clip(u, 0., 1.4)
+        u = np.clip(u, 0., 1.5)
         return u.tolist()
 
 
@@ -585,12 +585,11 @@ def main():
         initstate = np.array(refstate[0])
         if payloadType == "point":
             ref_start_idx = 3
-            gains = [(10, 8, 2.5), (10, 6, 3.5), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
+            gains = [(15, 10, 1.5), (20, 15, 6), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
         elif payloadType == "rigid":
             ref_start_idx = 7
             # add the payload angular velocity gains 
-
-            gains = [(10, 8, 0.0), (8, 3, 0.0), (0.008,0.0013, 0.0), (1000,1000,1000), (1000), (0.0002,0.0001)]
+            gains = [(10, 8, 2.0), (8, 3, 2.5), (0.008,0.0013, 0.0), (1000,1000,1000), (1000), (0.0002,0.0001)]
 
         refArray = np.array(refstate)
         # refArray = np.vstack((refArray,refArray))
@@ -652,7 +651,7 @@ def main():
             # exit()
             # add some noise to the actuation
             u += np.random.normal(0.0, 0.025, len(u))
-            u = np.clip(u, 0, 1.4)
+            u = np.clip(u, 0, 1.5)
             # exit()
             robot.step(states[k+1], states[k],u)
             # time.sleep(1)
