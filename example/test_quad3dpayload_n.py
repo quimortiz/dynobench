@@ -585,7 +585,7 @@ def main():
         initstate = np.array(refstate[0])
         if payloadType == "point":
             ref_start_idx = 3
-            gains = [(10, 8, 2.5), (20, 15, 2.5), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
+            gains = [(10, 8, 2.5), (10, 6, 3.5), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
         elif payloadType == "rigid":
             ref_start_idx = 7
             # add the payload angular velocity gains 
