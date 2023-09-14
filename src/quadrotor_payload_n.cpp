@@ -250,11 +250,11 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
     collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
         params.col_size_payload, rate_colision_cables * params.l_payload(i)));
   }
-  double col_size_robot = .05;
+ 
 
   for (size_t i = 0; i < params.num_robots; i++) {
     collision_geometries.emplace_back(
-        std::make_shared<fcl::Sphered>(col_size_robot));
+        std::make_shared<fcl::Sphered>(params.col_size_robot));
   }
 
   ts_data.resize(2 * params.num_robots + 1);
