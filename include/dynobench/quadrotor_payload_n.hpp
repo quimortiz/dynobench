@@ -45,7 +45,7 @@ struct Quad3dpayload_n_params {
   double m_payload = 0.0054; // kg
 
   double g = 9.81;
-  double max_f = 1.3;        // thrust to weight ratio -- Khaled DONE
+  double max_f = 1.4;        // thrust to weight ratio -- Khaled DONE
   double arm_length = 0.046; // m
   double t2t = 0.006;        // thrust-to-torque ratio
   double dt = .01;
