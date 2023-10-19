@@ -57,7 +57,7 @@ struct Model_unicycle2 : Model_robot {
     xout = xin;
     xout(2) = wrap_angle(xin(2));
   }
-
+  virtual int number_of_r_dofs();
   virtual void write_params(std::ostream &out) override { params.write(out); }
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;

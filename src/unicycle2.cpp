@@ -95,7 +95,9 @@ Model_unicycle2::Model_unicycle2(const Unicycle2_params &params,
     set_position_ub(p_ub);
   }
 }
-
+int Model_unicycle2::number_of_r_dofs(){
+  return 4;
+}
 void Model_unicycle2::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
   x = x_lb + (x_ub - x_lb)
                  .cwiseProduct(.5 * (Eigen::VectorXd::Random(nx) +

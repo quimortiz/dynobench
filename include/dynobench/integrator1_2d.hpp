@@ -64,7 +64,7 @@ struct Integrator1_2d : public Model_robot {
                  const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
-
+  virtual int number_of_r_dofs();
   // DISTANCE AND TIME (cost) - BOUNDS
   // Distances and bounds are useuful in search/motion planning algorithms.
 

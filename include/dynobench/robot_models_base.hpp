@@ -235,6 +235,10 @@ struct Model_robot {
   Eigen::VectorXd x_lb;
   bool uniform_sampling_u = true;
 
+  virtual int number_of_r_dofs();
+  virtual int number_of_so2();
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect);
+  virtual int number_of_robot();
   // TODO: transition towards this API. The robot model should include
   // regularization features/ineqs...
   virtual void regularization_cost(Eigen::Ref<Eigen::VectorXd> r,
