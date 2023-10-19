@@ -57,8 +57,8 @@ struct Joint_robot_params{
 struct Joint_robot : Model_robot {
 
   virtual ~Joint_robot() = default;
-  Joint_robot(const std::vector<std::string> &robotType, 
-              const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+  Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointRobot,
+              const Eigen::VectorXd &p_lb = Eigen::VectorXd(), 
               const Eigen::VectorXd &p_ub = Eigen::VectorXd());
    
   Joint_robot_params params;
@@ -104,21 +104,10 @@ struct Joint_robot : Model_robot {
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) override;
 
-  void get_u_lb(const std::vector<std::string> &robot_types, Eigen::VectorXd &lb);
-  void get_u_ub(const std::vector<std::string> &robot_types, Eigen::VectorXd &ub);
-  void get_x_lb(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_lb);
-  void get_x_ub(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_ub);
-  void get_x_weightb(const std::vector<std::string> &robot_types, Eigen::VectorXd &x_weightb);
-  void get_collision_geometries(const std::vector<std::string> &robot_types,
-            std::vector<std::shared_ptr<fcl::CollisionGeometryd>> &col_geom);
   int get_nx_col(const std::vector<std::string> &robot_types);
-  int get_robot_num(const std::vector<std::string> &robot_types);
-  void get_position_ub(const std::vector<std::string> &robot_types, 
-                              const Eigen::Ref<const Eigen::VectorXd> &p_ub, Eigen::VectorXd &x_ub);
-  void get_position_lb(const std::vector<std::string> &robot_types, 
-                              const Eigen::Ref<const Eigen::VectorXd> &p_lb, Eigen::VectorXd &x_lb);  
+  
   std::vector<size_t> so2_indices;
-  std::vector<std::string> v_robot_types;
+  std::vector<std::shared_ptr<Model_robot>> v_jointRobot;
       
 };
 }

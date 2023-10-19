@@ -201,7 +201,6 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
 
   update_feasibility();
 
-  // &&goal_feas &&start_feas &&col_feas &&x_bounds_feas &&u_bounds_feas;
 }
 
 void Problem::read_from_yaml(const YAML::Node &env) {
@@ -212,13 +211,6 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   if (auto nn = env["name"]; nn)
     name = nn.as<std::string>();
 
-  // for (const auto &e : env["robots"][0]["start"]) {
-  //   _start.push_back(e.as<double>());
-  // }
-
-  // for (const auto &e : env["robots"][0]["goal"]) {
-  //   _goal.push_back(e.as<double>());
-  // }
   for (const auto &robot_node : env["robots"]) {
     robotTypes.push_back(robot_node["type"].as<std::string>());
     for (const auto& v : robot_node["start"]) {
@@ -232,8 +224,6 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   start = Vxd::Map(_start.data(), _start.size());
   goal = Vxd::Map(_goal.data(), _goal.size());
   std::cout << goal.size() << std::endl;
-  // const auto &env_min = env["environment"]["min"];
-  // const auto &env_max = env["environment"]["max"];
 
   std::vector<double> min_ =
       env["environment"]["min"].as<std::vector<double>>();
