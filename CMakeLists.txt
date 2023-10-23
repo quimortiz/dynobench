@@ -31,6 +31,7 @@ add_library(
   ./src/quadrotor.cpp
   ./src/unicycle1.cpp
   ./src/unicycle2.cpp
+  ./src/unicycle_sphere.cpp
   ./src/planar_rotor.cpp
   ./src/planar_rotor_pole.cpp
   ./src/car2.cpp

@@ -41,6 +41,8 @@ struct Integrator1_2d_params {
   // shape for collision
   std::string shape = "box";
 
+  double radius = 0.1;
+
   // For computing distance between states
   // Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
 

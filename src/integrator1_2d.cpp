@@ -7,6 +7,7 @@
 // #include <boost/serialization/list.hpp>
 #include <cmath>
 #include <fcl/geometry/shape/box.h>
+#include <fcl/geometry/shape/sphere.h>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -83,7 +84,11 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
   if (params.shape == "box") {
     collision_geometries.push_back(
         std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
-  } else {
+  } else if (params.shape == "sphere") {
+    collision_geometries.push_back(
+        std::make_shared<fcl::Sphered>(params.radius));
+  }
+  else {
     ERROR_WITH_INFO("not implemented");
   }
 }
