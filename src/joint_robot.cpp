@@ -8,25 +8,6 @@
 
 namespace dynobench {
 
-double RM_low__ = -std::sqrt(std::numeric_limits<double>::max());
-double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
-
-
-int Joint_robot::get_nx_col(const std::vector<std::string> &robot_types) {
-  int nx = 0;
-  for (auto t : robot_types) {
-    if (t == "double_integrator_0" || t == "single_integrator_0") {
-      nx += 2;
-    } else if (t == "unicycle_first_order_0" || t == "unicycle_first_order_0_sphere" || 
-                t == "unicycle_second_order_0") {
-      nx += 3;
-    } else if (t == "car_first_order_with_1_trailers_0") {
-      nx += 4;
-    }
-  }
-  return nx;
-}
-
 int get_robot_num(const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
   int num = 0;
   for (auto robot : jointRobot) {
@@ -104,7 +85,7 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
     x_lb.segment(k_x, size_x) = robot->x_lb;
     x_ub.segment(k_x, size_x) = robot->x_ub;
     k_x += size_x;
-    // fix Quim's geometries
+    
     collision_geometries.insert(collision_geometries.end(), robot->collision_geometries.begin(), robot->collision_geometries.end());
     // needed or automatically called by default ?
     robot->set_position_lb(p_lb);
@@ -120,9 +101,7 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
   nx_col = nx; 
   nx_pr = nx_col;
   translation_invariance = 2;
-  distance_weights = params.distance_weights;
   name = "joint_robot";
-  ref_dt = params.dt;
 
   u_weight.resize(nu);
   u_weight.setConstant(.2);

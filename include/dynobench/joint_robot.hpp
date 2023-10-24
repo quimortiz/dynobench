@@ -5,55 +5,6 @@
 
 namespace dynobench {
 
-struct Joint_robot_params{
-    Joint_robot_params() = default;
-    double double_integrator_max_vel = 0.5;
-    double double_integrator_min_vel = -0.5;
-    double double_integrator_max_acc = 2; // for the demo
-    double double_integrator_min_acc = -2; // for the demo
-    double double_integrator_radius = 0.15;
-
-    double single_integrator_max_vel = 0.5;
-    double single_integrator_min_vel = -0.5;
-
-    double unicycle_max_vel = 0.5;
-    double unicycle_min_vel = -0.5;
-    double unicycle_max_angular_vel = 0.5;
-    double unicycle_min_angular_vel = -0.5;
-
-    double unicycle_sphere_max_vel = 0.5;
-    double unicycle_sphere_min_vel = -0.5;
-    double unicycle_sphere_max_angular_vel = 2.0;
-    double unicycle_sphere_min_angular_vel = -2.0;
-
-    double unicycle_second_order_max_vel = 0.5;
-    double unicycle_second_order_min_vel = -0.5;
-    double unicycle_second_order_max_angular_vel = 0.5;
-    double unicycle_second_order_min_angular_vel = -0.5;
-    double unicycle_second_order_max_acc = 0.25;
-    double unicycle_second_order_min_acc = -0.25;
-    double unicycle_second_order_max_angular_acc = 0.25;
-    double unicycle_second_order_min_angular_acc = -0.25;
-
-    double car_with_trailer_l = .25;
-    double car_with_trailer_max_vel = .5;
-    double car_with_trailer_min_vel = -.1;
-    double car_with_trailer_max_steering_abs = M_PI / 3.;
-    double car_with_trailer_max_angular_vel = 10;
-    double car_with_trailer_diff_max_abs = M_PI / 4;
-    size_t num_trailers = 1;
-    Eigen::Vector2d size_trailer = Eigen::Vector2d(.3, .25);
-    Eigen::VectorXd hitch_lengths = Eigen::Matrix<double, 1, 1>(.5);
-
-
-    Eigen::Vector2d size = Eigen::Vector2d(.5, .25); 
-    Eigen::Vector4d distance_weights = Eigen::Vector4d(1, .5, .25, .25); 
-    double radius = 0.1;
-    double big_radius = 0.40;
-    std::string shape = "box";
-    double dt = .1;
-};
-
 struct Joint_robot : Model_robot {
 
   virtual ~Joint_robot() = default;
@@ -61,7 +12,6 @@ struct Joint_robot : Model_robot {
               const Eigen::VectorXd &p_lb = Eigen::VectorXd(), 
               const Eigen::VectorXd &p_ub = Eigen::VectorXd());
    
-  Joint_robot_params params;
 
   std::vector<int> goal_times ; // use this to set the time step on which each robot 
   // should reach the goal. E.g. goal_times = [10, 20] means that the first robot should
@@ -104,8 +54,6 @@ struct Joint_robot : Model_robot {
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) override;
 
-  int get_nx_col(const std::vector<std::string> &robot_types);
-  
   std::vector<size_t> so2_indices;
   std::vector<std::shared_ptr<Model_robot>> v_jointRobot;
       
