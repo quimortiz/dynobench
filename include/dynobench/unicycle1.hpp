@@ -15,6 +15,7 @@ struct Unicycle1_params {
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
   Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
   std::string shape = "box";
+  double radius = 0.4;
   double dt = .1;
   void read_from_yaml(YAML::Node &node);
   void read_from_yaml(const char *file);

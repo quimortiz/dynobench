@@ -1,4 +1,4 @@
-dynamics: "unicycle_sphere"
+dynamics: "unicycle1"
 max_vel: 0.5
 min_vel: -0.5
 max_angular_vel: 0.5
