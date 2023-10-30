@@ -90,7 +90,6 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
         std::make_shared<fcl::Sphered>(params.radius));
   }
   else {
-  } else {
     ERROR_WITH_INFO("not implemented");
   }
 }

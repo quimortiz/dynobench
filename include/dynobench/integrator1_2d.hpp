@@ -1,6 +1,5 @@
 #pragma once
 #include "Eigen/Core"
-#include "croco_macros.hpp"
 #include "dyno_macros.hpp"
 
 #include "dynobench/robot_models_base.hpp"

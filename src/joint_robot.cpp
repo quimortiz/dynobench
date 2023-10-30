@@ -235,9 +235,9 @@ void Joint_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
   bool check_parts = true;
   if (env) {
     transformation_collision_geometries(x, ts_data);
-    CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
     assert(collision_geometries.size() == ts_data.size());
-    CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
     assert(collision_geometries.size() == col_outs.size());
     robot_objs_.clear();
     col_mng_robots_->clear();
