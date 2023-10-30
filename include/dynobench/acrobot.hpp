@@ -107,6 +107,13 @@ struct Model_acrobot : Model_robot {
                            const Eigen::Ref<const Eigen::VectorXd> &to,
                            double dt) override;
 
+  virtual int number_of_r_dofs() override { NOT_IMPLEMENTED; }
+  virtual int number_of_so2() override { NOT_IMPLEMENTED; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
+    NOT_IMPLEMENTED;
+  }
+  virtual int number_of_robot() override { NOT_IMPLEMENTED; }
+
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,
       std::vector<Transform3d> &ts) override;

@@ -45,8 +45,10 @@
 #include "dynobench/unicycle2.hpp"
 
 #include "dynobench/acrobot.hpp"
-#include "dynobench/integrator2_2d.hpp"
+#include "dynobench/car.hpp"
 #include "dynobench/integrator1_2d.hpp"
+#include "dynobench/integrator2_2d.hpp"
+#include "dynobench/joint_robot.hpp"
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
@@ -995,7 +997,7 @@ BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
   auto model = mk<Integrator1_2d>();
 
   Eigen::VectorXd x0(2), u0(2);
-  x0 << .1, .2 ;
+  x0 << .1, .2;
   u0 << -.1, .2;
 
   Eigen::MatrixXd Jx_diff(2, 2), Ju_diff(2, 2), Jx(2, 2), Ju(2, 2);
@@ -1022,4 +1024,47 @@ BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
 
+BOOST_AUTO_TEST_CASE(t_joint_robot) {
 
+  std::vector<std::shared_ptr<Model_robot>> robots;
+  robots.push_back(std::make_unique<Model_unicycle1>());
+  robots.push_back(std::make_unique<Model_unicycle2>());
+  robots.push_back(std::make_unique<Model_car_with_trailers>());
+  robots.push_back(std::make_unique<Integrator2_2d>());
+  robots.push_back(std::make_unique<Integrator1_2d>());
+
+  auto model =
+      mk<Joint_robot>(robots, Eigen::Vector2d(2, 2), Eigen::Vector2d(2, 2));
+
+  int nx = model->nx;
+  int nu = model->nu;
+  Eigen::VectorXd x0(nx), u0(nu);
+  x0.setRandom();
+  u0.setRandom();
+  // x0 << .1, .2 ;
+  //
+  // u0 << -.1, .2;
+
+  Eigen::MatrixXd Jx_diff(nx, nx), Ju_diff(nx, nu), Jx(nx, nx), Ju(nx, nu);
+  Jx.setZero();
+  Ju.setZero();
+  Jx_diff.setZero();
+  Ju_diff.setZero();
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x, u0);
+      },
+      x0, nx, Jx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x0, u);
+      },
+      u0, nx, Ju_diff);
+
+  BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
+  BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
+}

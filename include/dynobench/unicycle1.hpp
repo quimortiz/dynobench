@@ -162,9 +162,10 @@ struct Model_unicycle1 : Model_robot {
     xout = xin;
     xout(2) = wrap_angle(xin(2));
   }
-  virtual int number_of_r_dofs();
-  virtual int number_of_so2();
-  virtual void indices_of_so2(int &k, std::vector<size_t> &vect);
+  virtual int number_of_r_dofs() override;
+  virtual int number_of_so2() override;
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override;
+  virtual int number_of_robot() override{ return 1;}
 
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
