@@ -36,7 +36,8 @@ add_library(
   ./src/car2.cpp
   ./src/integrator2_2d.cpp
   ./src/joint_robot.cpp
-  ./src/integrator1_2d.cpp)
+  ./src/integrator1_2d.cpp
+  ./src/integrator2_3d.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
 

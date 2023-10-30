@@ -283,8 +283,8 @@ int Model_robot::number_of_so2(){
 }
 
 void Model_robot::indices_of_so2(int &k, std::vector<size_t> &vect){
-  vect.push_back(k + 2);
-  k += 3;
+  // vect.push_back(k + 2);
+  // k += 3;
 }
 
 int Model_robot::number_of_robot(){

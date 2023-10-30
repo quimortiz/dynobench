@@ -21,7 +21,7 @@ struct Joint_robot : Model_robot {
   std::vector<fcl::CollisionObjectd*> part_objs_; // *
   std::vector<fcl::CollisionObjectd*> robot_objs_; // *
   //
-    
+  double dt = 0.1;
   std::vector<int> nxs;
 
   std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_; 

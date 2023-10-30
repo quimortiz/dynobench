@@ -70,6 +70,9 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
   int total_nxs = 0;
   int k_u = 0, k_x = 0;
   for (auto &robot : jointRobot){
+    if (dt != robot->ref_dt){
+      ERROR_WITH_INFO("dt is not consistent for the joint robot!");
+    }
     nxs.push_back(robot->nx);
     total_nxs += robot->nx;
 
@@ -100,7 +103,8 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
 
   nx_col = nx; 
   nx_pr = nx_col;
-  translation_invariance = 2;
+  ref_dt = dt;
+  // translation_invariance = 3; 
   name = "joint_robot";
 
   u_weight.resize(nu);
