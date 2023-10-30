@@ -1,6 +1,6 @@
 #pragma once
 #include "Eigen/Core"
-#include "croco_macros.hpp"
+#include "dyno_macros.hpp"
 #include "dynobench/robot_models_base.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "general_utils.hpp"

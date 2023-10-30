@@ -2,6 +2,7 @@
 #include "dynobench/robot_models.hpp"
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -57,6 +58,220 @@ Eigen::VectorXd default_vector;
 
 #define base_path "../../"
 
+struct Fake_opt {
+  Fake_opt() = default;
+  std::string filename = "tmp.yaml";
+  int max_it = 10;
+
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(Fake_opt, filename, max_it);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Fake_opt, filename, max_it);
+};
+
+// for string delimiter
+std::vector<std::string> split(std::string s, std::string delimiter) {
+  size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+  std::string token;
+  std::vector<std::string> res;
+
+  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+    token = s.substr(pos_start, pos_end - pos_start);
+    pos_start = pos_end + delim_len;
+    if (token.size())
+      res.push_back(token);
+  }
+
+  if (s.substr(pos_start).size())
+    res.push_back(s.substr(pos_start));
+  for (auto &r : res) {
+    std::cout << "- " << r << std::endl;
+  }
+  return res;
+}
+
+void tokenize(std::string const &str, const char delim,
+              std::vector<std::string> &out) {
+  // construct a stream from the string
+  std::stringstream ss(str);
+
+  std::string s;
+  while (std::getline(ss, s, delim)) {
+    if (s.size())
+      out.push_back(s);
+  }
+}
+
+Fake_opt fakeCLIParser(const std::string &argv) {
+
+  auto outs = split(argv, "--");
+
+  std::ofstream o(base_path "fake_cli.json");
+  o << "{\n";
+
+  for (size_t i = 0; i < outs.size(); i++) {
+    auto out = outs[i];
+
+    std::vector<std::string> _out;
+    tokenize(out, ' ', _out);
+    DYNO_CHECK_EQ(_out.size(), 2, "");
+    // if (i < outs.size() - 1)
+    o << "  \"" << _out[0] << "\": ";
+
+    try {
+      double d = std::stod(_out[1]);
+      o << _out[1];
+    } catch (const std::exception &e) {
+      o << "\"" << _out[1] << "\"";
+    }
+
+    if (i < outs.size() - 1) {
+      o << ",\n";
+    } else {
+      o << "\n";
+    }
+  }
+
+  o << "}\n";
+  o.close();
+
+  std::ifstream ii(base_path "fake_cli.json");
+  json j = json::parse(ii); //
+
+  Fake_opt opt = j;
+  return opt;
+}
+
+BOOST_AUTO_TEST_CASE(t_traj_to_json) {
+
+  Trajectory traj;
+
+  traj.states.push_back(Eigen::VectorXd::Zero(3));
+  traj.states.push_back(Eigen::VectorXd::Ones(3));
+  traj.states.push_back(-1 * Eigen::VectorXd::Zero(3));
+
+  traj.actions.push_back(Eigen::VectorXd::Zero(2));
+  traj.actions.push_back(Eigen::VectorXd::Ones(2));
+
+  json j = traj;
+  std::cout << j.dump(2) << std::endl;
+
+  auto filename = "/tmp/dynobench/traj.json";
+  create_dir_if_necessary(filename);
+  std::ofstream out(filename);
+  out << j;
+  out.close();
+
+  std::ifstream in(filename);
+  json j2;
+  in >> j2;
+
+  Trajectory traj2 = j2;
+  BOOST_TEST(traj.states == traj2.states);
+  BOOST_TEST(traj.actions == traj2.actions);
+
+  {
+    Trajectories trajs;
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+
+    auto filename = "/tmp/dynobench/trajs.json";
+    create_dir_if_necessary(filename);
+    std::ofstream out(filename);
+    out << json(trajs);
+    out.close();
+
+    {
+      std::vector<std::uint8_t> v_msgpack = json::to_msgpack(json(trajs));
+
+      ofstream fout("data.dat", ios::out | ios::binary);
+      fout.write((const char *)v_msgpack.data(), v_msgpack.size());
+      fout.close();
+
+      // Open in Python with
+      // >>> import msgpack
+      // >>> with open("data.dat", "rb") as f:
+      // ...     a = msgpack.unpackb(f.read())
+
+      ifstream fin("data.dat", ios::in | ios::binary);
+
+      // std::vector<uint8_t> contents((std::istreambuf_iterator<char>(fin)),
+      //                               std::istreambuf_iterator<char>());
+
+      std::vector<uint8_t> contents;
+      fin.seekg(0, std::ios::end);
+      contents.resize(fin.tellg());
+      fin.seekg(0, std::ios::beg);
+      fin.read((char *)contents.data(), contents.size());
+      in.close();
+
+      json j = json::from_msgpack(contents);
+      std::cout << j.dump(2) << std::endl;
+      Trajectories trajsX = j;
+    }
+
+    // lets load from msgpack
+
+    std::ifstream in(filename);
+    json j;
+    in >> j;
+    Trajectories trajs2 = j;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_jsonX) {}
+
+BOOST_AUTO_TEST_CASE(t_fakeCLIParser) {
+  Fake_opt opt =
+      fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it   100");
+  std::cout << opt.max_it << " " << opt.filename << std::endl;
+
+  {
+    Fake_opt opt =
+        fakeCLIParser("--filename ../models/quad2d_v0.yaml     --max_it   100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+
+  {
+    Fake_opt opt =
+        fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it 100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+
+  {
+    Fake_opt opt = fakeCLIParser("--max_it 100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(yaml_json) {
+
+  YAML::Node node = YAML::LoadFile(base_path "tets_yaml_json.yaml");
+
+  json j = tojson::detail::yaml2json(node);
+  std::cout << j.dump() << std::endl;
+
+  std::cout << tojson::emitters::toyaml(j) << std::endl;
+  std::ofstream o(base_path "tmp.yaml");
+  std::ofstream o2(base_path "tmp2.yaml");
+  o << tojson::emitters::toyaml(j) << std::endl;
+
+  YAML::Emitter ee;
+  ee << node;
+  o2 << ee.c_str() << std::endl;
+  // how to test that they are the same?
+}
+
+BOOST_AUTO_TEST_CASE(t_load_json) {
+  Unicycle1_paramsJ aa;
+
+  aa.read_from_yaml(
+      (std::string(base_path) + "models/unicycle1_v0.yaml").c_str());
+
+  aa.write_yaml(std::cout);
+}
+
 BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
 
   std::shared_ptr<Model_robot> robot = std::make_shared<Model_quad2d>(
@@ -75,7 +290,8 @@ BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
 //   std::shared_ptr<Model_robot> robot =
 //       std::make_shared<Model_quad2d>("../models/quad2d_v0.yaml");
 //
-//   std::vector<Trajectory> primitives = traj.find_discontinuities(robot);
+//   std::vector<Trajectory> primitives =
+//   traj.find_discontinuities(robot);
 //
 //   // lets write the trajectories
 //   std::ofstream out("fileout_primitives.yaml");
@@ -175,8 +391,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
     BOOST_TEST(std::abs(original_energy - last_energy) < 1e-2);
   }
 
-  // std::cout << "final state" << xs.back().format(FMT) <<
-  // std::endl;
+  // std::cout << "final state" << xs.back().format(FMT)
+  // << std::endl;
 
   // dyn->max_torque =
 }
@@ -689,7 +905,8 @@ BOOST_AUTO_TEST_CASE(col_acrobot) {
 
 // BOOST_AUTO_TEST_CASE(col_quad3d_v2) {
 //
-//   Problem problem("../benchmark/quadrotor_0/obstacle_flight.yaml");
+//   Problem
+//   problem("../benchmark/quadrotor_0/obstacle_flight.yaml");
 //
 //   std::shared_ptr<Model_robot> robot =
 //       robot_factory(robot_type_to_path(problem.robotType).c_str());

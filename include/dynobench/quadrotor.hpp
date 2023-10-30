@@ -150,15 +150,36 @@ struct Model_quad3d : Model_robot {
   }
 
   virtual void
-  transform_primitive(const Eigen::Ref<const Eigen::VectorXd> &p,
-                      const std::vector<Eigen::VectorXd> &xs_in,
-                      const std::vector<Eigen::VectorXd> &us_in,
-                      std::vector<Eigen::VectorXd> &xs_out,
-                      std::vector<Eigen::VectorXd> &us_out) override;
+  transform_primitive_last_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                                 const std::vector<Eigen::VectorXd> &xs_in,
+                                 const std::vector<Eigen::VectorXd> &us_in,
+                                 Eigen::Ref<Eigen::VectorXd> x_out) override {
+
+    assert(p.size() == 3 || 6);
+
+    if (p.size() == 3) {
+      Model_robot::transform_primitive_last_state(p, xs_in, us_in, x_out);
+
+    } else {
+      x_out = xs_in.back();
+      x_out.head<3>() +=
+          p.head<3>() + us_in.size() * ref_dt * p.tail<3>(); // velocity
+      x_out.segment<3>(7) += p.tail<3>();                    // velocity
+    }
+  }
+
+  void virtual transform_primitive(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) override;
 
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) override {
-    CHECK_EQ(p.size(), 6, AT);
+    DYNO_CHECK_EQ(p.size(), 6, AT);
     if (adapt_vel) {
       p.head<3>() = xin.head<3>();
       p.tail<3>() = xin.segment<3>(7);
@@ -189,6 +210,7 @@ struct Model_quad3d : Model_robot {
     if (p.size() == 3) {
       Model_robot::transform_state(p, xin, xout);
     } else if (p.size() == 6) {
+      xout = xin;
       xout.head<3>() += p.head<3>();
       xout.segment<3>(7) += p.tail<3>();
     }
