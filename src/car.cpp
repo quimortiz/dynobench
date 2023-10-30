@@ -94,6 +94,21 @@ Model_car_with_trailers::Model_car_with_trailers(const Car_params &params,
   }
 }
 
+int Model_car_with_trailers::number_of_r_dofs(){
+  return 2;
+}
+int Model_car_with_trailers::number_of_so2(){
+  return 2;
+}
+int Model_car_with_trailers::number_of_robot(){
+  return 1 + params.num_trailers;
+}
+void Model_car_with_trailers::indices_of_so2(int &k, std::vector<size_t> &vect){
+  vect.push_back(k + 2);
+  vect.push_back(k + 3);
+  k += 4;
+}
+
 void Model_car_with_trailers::constraintsIneq(
     Eigen::Ref<Eigen::VectorXd> r, const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &u) {

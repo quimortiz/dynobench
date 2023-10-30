@@ -1,6 +1,8 @@
 #pragma once
 #include "Eigen/Core"
+#include "croco_macros.hpp"
 #include "dyno_macros.hpp"
+
 #include "dynobench/robot_models_base.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "general_utils.hpp"
@@ -41,6 +43,8 @@ struct Integrator1_2d_params {
   // shape for collision
   std::string shape = "box";
 
+  double radius = 0.1;
+  
   // For computing distance between states
   // Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
 
@@ -64,7 +68,7 @@ struct Integrator1_2d : public Model_robot {
                  const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
-
+  virtual int number_of_r_dofs();
   // DISTANCE AND TIME (cost) - BOUNDS
   // Distances and bounds are useuful in search/motion planning algorithms.
 
