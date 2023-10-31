@@ -1068,3 +1068,59 @@ BOOST_AUTO_TEST_CASE(t_joint_robot) {
   BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
+
+BOOST_AUTO_TEST_CASE(t_joint_robot_env) {
+
+  std::string env = "../../envs/multirobot/gen_p10_n2_6_hetero.yaml";
+
+  Problem problem(env);
+
+  std::string robot_type = problem.robotType;
+
+  std::string _base_path = "../../models/";
+  std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
+      problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
+
+  load_env(*joint_robot, problem);
+
+  // check that start and goal are collision free.
+  //
+
+  std::cout << "start " << problem.start.format(FMT) << std::endl;
+  std::cout << "goal " << problem.goal.format(FMT) << std::endl;
+
+  CollisionOut out;
+  joint_robot->collision_distance(problem.start, out);
+
+  BOOST_TEST(out.distance > 0);
+
+  CollisionOut out2;
+  joint_robot->collision_distance(problem.goal, out);
+
+  BOOST_TEST(out.distance > 0);
+
+  {
+    // Modify the state. Now the two car are one on top of each other.
+    Eigen::VectorXd x = problem.start;
+
+    x(3) = x(0) + .01;
+    x(4) = x(1) + .01;
+
+    CollisionOut out3;
+    joint_robot->collision_distance(x, out);
+    BOOST_TEST(out.distance < 0);
+  }
+
+  {
+    // Modify the state. Put on car on top of one obstacle
+    Eigen::VectorXd x = problem.start;
+
+    x(3) = problem.obstacles.at(0).center(0) + .001;
+    x(4) = problem.obstacles.at(0).center(1) + .001;
+
+    CollisionOut out3;
+    joint_robot->collision_distance(x, out);
+    BOOST_TEST(out.distance < 0);
+
+  }
+}

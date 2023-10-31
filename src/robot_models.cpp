@@ -37,7 +37,7 @@
 #include "dynobench/joint_robot.hpp"
 #include "dynobench/integrator1_2d.hpp"
 
-#define dynobench_models "../dynoplan/dynobench/models/"
+// #define dynobench_models "../dynoplan/dynobench/models/"
 #include "dynobench/integrator1_2d.hpp"
 
 namespace dynobench {
@@ -94,13 +94,14 @@ robot_factory_with_env(const std::string &robot_name,
 }
 std::unique_ptr<Model_robot> 
 joint_robot_factory(const std::vector<std::string> &robot_types, 
+                    const std::string &base_path,
                     const Eigen::VectorXd &p_lb,
                     const Eigen::VectorXd &p_ub){
 
   std::vector<std::string> robotParams;
   std::vector<std::shared_ptr<Model_robot>> jointRobot;
   for (auto robot_type : robot_types){
-      jointRobot.push_back(robot_factory((dynobench_models + robot_type + ".yaml").c_str(), p_lb, p_ub));
+      jointRobot.push_back(robot_factory((base_path + robot_type + ".yaml").c_str(), p_lb, p_ub));
   }              
   return std::make_unique<Joint_robot>(jointRobot, p_lb, p_ub);
 
