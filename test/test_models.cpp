@@ -1,5 +1,7 @@
 #include "dynobench/math_utils.hpp"
+#include "dynobench/multirobot_trajectory.hpp"
 #include "dynobench/robot_models.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -1121,6 +1123,86 @@ BOOST_AUTO_TEST_CASE(t_joint_robot_env) {
     CollisionOut out3;
     joint_robot->collision_distance(x, out);
     BOOST_TEST(out.distance < 0);
-
   }
+}
+
+BOOST_AUTO_TEST_CASE(t_check_traj) {
+
+  std::string env = "../../envs/multirobot/swap2_trailer.yaml";
+
+  Problem problem(env);
+  std::string robot_type = problem.robotType;
+
+  std::string _base_path = "../../models/";
+
+  problem.models_base_path = _base_path;
+  std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
+      problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
+
+  load_env(*joint_robot, problem);
+
+  {
+    std::string result_file =
+        "../../envs/multirobot/swap2_trailer_solution.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible);
+  }
+
+  {
+
+    std::string result_file = "../../envs/multirobot/swap2_trailer_db.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible == false);
+  }
+
 }

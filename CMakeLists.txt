@@ -21,6 +21,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 add_executable(check_trajectory ./src/check_trajectory.cpp)
+add_executable(check_trajectory_multirobot ./src/check_trajectory_multirobot.cpp)
 
 add_library(
   dynobench
@@ -64,6 +65,13 @@ target_link_libraries(
   check_trajectory
   PUBLIC dynobench
   PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
+
+target_link_libraries(
+  check_trajectory_multirobot
+  PUBLIC dynobench
+  PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
+
+
 
 target_link_libraries(robot_python PUBLIC Eigen3::Eigen dynobench fcl)
 

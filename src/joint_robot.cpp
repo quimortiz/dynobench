@@ -63,6 +63,24 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
                                           get_so2(jointRobot),
                                           get_so2_indices(jointRobot)),
                   get_number_of_us(jointRobot)) {
+
+  bool all_equal ;
+  double first_dt = jointRobot[0]->ref_dt;
+  for (auto &robot : jointRobot){
+    all_equal = (std::abs(robot->ref_dt -first_dt) < 1e-12);
+    if(!all_equal){
+      break;
+    }
+  }
+
+  if (!all_equal){
+    throw std::runtime_error("Warning: the robots have different dt");
+  }
+
+  ref_dt = first_dt;
+
+
+
   so2_indices = get_so2_indices(jointRobot);
   v_jointRobot = jointRobot;
   int robot_num = get_robot_num(jointRobot);
