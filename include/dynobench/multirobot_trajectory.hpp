@@ -2,7 +2,6 @@
 #include <vector>
 
 
-#define dynobench_base "/home/akmarak-laptop/IMRC/db-CBS/dynoplan/dynobench/"
 
 struct MultiRobotTrajectory {
 
