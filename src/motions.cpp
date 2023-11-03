@@ -208,7 +208,6 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
   }
 
   update_feasibility();
-
 }
 
 void Problem::read_from_yaml(const YAML::Node &env) {
@@ -221,10 +220,10 @@ void Problem::read_from_yaml(const YAML::Node &env) {
 
   for (const auto &robot_node : env["robots"]) {
     robotTypes.push_back(robot_node["type"].as<std::string>());
-    for (const auto& v : robot_node["start"]) {
+    for (const auto &v : robot_node["start"]) {
       _start.push_back(v.as<double>());
     }
-    for (const auto& v : robot_node["goal"]) {
+    for (const auto &v : robot_node["goal"]) {
       _goal.push_back(v.as<double>());
     }
   }

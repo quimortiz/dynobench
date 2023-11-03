@@ -1175,7 +1175,8 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
 
   {
 
-    std::string result_file = "../../envs/multirobot/results/swap2_trailer_db.yaml";
+    std::string result_file =
+        "../../envs/multirobot/results/swap2_trailer_db.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1204,7 +1205,6 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
 
     BOOST_TEST(traj.feasible == false);
   }
-
 }
 
 BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
@@ -1256,7 +1256,8 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
 
   {
 
-    std::string result_file = "../../envs/multirobot/results/swap4_unicycle_db.yaml";
+    std::string result_file =
+        "../../envs/multirobot/results/swap4_unicycle_db.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1285,5 +1286,4 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
 
     BOOST_TEST(traj.feasible == false);
   }
-
 }

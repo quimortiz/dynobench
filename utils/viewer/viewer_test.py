@@ -10,7 +10,7 @@ import unittest
 import os
 import subprocess
 
-base_path =  "./" + os.path.dirname(__file__) + "/" + "../../"
+base_path = "./" + os.path.dirname(__file__) + "/" + "../../"
 this_path = "./" + os.path.dirname(__file__) + "/"
 
 
@@ -18,6 +18,7 @@ visualize: bool = False
 
 print(base_path)
 print(this_path)
+
 
 class TestCli(unittest.TestCase):
     def test_cli_env(self):

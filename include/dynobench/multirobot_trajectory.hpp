@@ -1,15 +1,9 @@
 #include "dynobench/motions.hpp"
 #include <vector>
 
-
-
 struct MultiRobotTrajectory {
 
-
-
-  int get_num_robots() {
-    return trajectories.size();
-  }
+  int get_num_robots() { return trajectories.size(); }
 
   std::vector<int> get_times() {
     std::vector<int> times;
@@ -143,8 +137,7 @@ struct MultiRobotTrajectory {
   };
 };
 
-inline
-MultiRobotTrajectory from_joint_to_indiv_trajectory(
+inline MultiRobotTrajectory from_joint_to_indiv_trajectory(
     const dynobench::Trajectory &traj, const std::vector<int> &nxs,
     const std::vector<int> nus, const std::vector<int> &times) {
 
@@ -182,7 +175,3 @@ MultiRobotTrajectory from_joint_to_indiv_trajectory(
   }
   return multi_robot_traj;
 }
-
-
-
-

@@ -1,9 +1,8 @@
 #include "dynobench/general_utils.hpp"
-#include "dynobench/motions.hpp"
-#include "dynobench/robot_models.hpp"
-#include "dynobench/multirobot_trajectory.hpp"
 #include "dynobench/joint_robot.hpp"
-
+#include "dynobench/motions.hpp"
+#include "dynobench/multirobot_trajectory.hpp"
+#include "dynobench/robot_models.hpp"
 
 // #include "robots.h"
 
@@ -63,26 +62,26 @@ int main(int argc, char *argv[]) {
   traj.goal = problem.goal;
 
   // "double_integrator_0",
-  // "unicycle_first_order_0", 
-  // "single_integrator_0", 
+  // "unicycle_first_order_0",
+  // "single_integrator_0",
   // "car_first_order_with_1_trailers_0"
 
   std::vector<std::string> robotTypes = problem.robotTypes;
 
   std::cout << "robot types are " << std::endl;
 
-  // create a joint robot 
-  std::shared_ptr<Model_robot> robot = joint_robot_factory(robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+  // create a joint robot
+  std::shared_ptr<Model_robot> robot = joint_robot_factory(
+      robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
 
-    // boost::math::double_factorial
-    //
-    //
-    // std::make_shared<Joint_robot>(robotTypes,problem.p_lb,problem.p_ub);
+  // boost::math::double_factorial
+  //
+  //
+  // std::make_shared<Joint_robot>(robotTypes,problem.p_lb,problem.p_ub);
 
   load_env(*robot, problem);
 
   bool verbose = true;
-
 
   traj.check(robot, verbose);
   traj.update_feasibility(feasibility_thresholds);
@@ -93,4 +92,3 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 }
-
