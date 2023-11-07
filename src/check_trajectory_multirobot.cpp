@@ -1,9 +1,8 @@
 #include "dynobench/general_utils.hpp"
-#include "dynobench/motions.hpp"
-#include "dynobench/robot_models.hpp"
-#include "dynobench/multirobot_trajectory.hpp"
 #include "dynobench/joint_robot.hpp"
-
+#include "dynobench/motions.hpp"
+#include "dynobench/multirobot_trajectory.hpp"
+#include "dynobench/robot_models.hpp"
 
 // #include "robots.h"
 
@@ -64,8 +63,8 @@ int main(int argc, char *argv[]) {
   traj.goal = problem.goal;
 
   // "double_integrator_0",
-  // "unicycle_first_order_0", 
-  // "single_integrator_0", 
+  // "unicycle_first_order_0",
+  // "single_integrator_0",
   // "car_first_order_with_1_trailers_0"
 
   std::cout << "robot types are " << std::endl;
@@ -81,7 +80,6 @@ int main(int argc, char *argv[]) {
 
   bool verbose = true;
 
-
   traj.check(robot, verbose);
   traj.update_feasibility(feasibility_thresholds);
 
@@ -91,4 +89,3 @@ int main(int argc, char *argv[]) {
     return 1;
   }
 }
-

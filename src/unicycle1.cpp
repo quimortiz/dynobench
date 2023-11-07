@@ -86,15 +86,11 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
   }
 }
 // get number of dof for the constructor
-int Model_unicycle1::number_of_r_dofs(){
-  return 2;
-}
+int Model_unicycle1::number_of_r_dofs() { return 2; }
 // get the number of so2 for the constructor
-int Model_unicycle1::number_of_so2(){
-  return 1;
-}
+int Model_unicycle1::number_of_so2() { return 1; }
 
-void Model_unicycle1::indices_of_so2(int &k, std::vector<size_t> &vect){
+void Model_unicycle1::indices_of_so2(int &k, std::vector<size_t> &vect) {
   vect.push_back(k + 2);
   k += 3;
 }

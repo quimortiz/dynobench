@@ -96,9 +96,7 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
     ERROR_WITH_INFO("not implemented");
   }
 }
-int Integrator2_2d::number_of_r_dofs(){
-  return 4;
-}
+int Integrator2_2d::number_of_r_dofs() { return 4; }
 // DISTANCE AND TIME (cost) - BOUNDS
 
 double

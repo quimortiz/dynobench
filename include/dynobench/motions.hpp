@@ -220,9 +220,9 @@ struct Trajectory {
   size_t num_time_steps = 0; // use this if we want default init guess.
   Eigen::VectorXd times;
 
-
-  std::vector<int> multi_robot_index_goal; // can be used to indicate 
-  // until which index we want to take when solving the joint problem of a multirobot problem.
+  std::vector<int> multi_robot_index_goal; // can be used to indicate
+  // until which index we want to take when solving the joint problem of a
+  // multirobot problem.
 
   void to_yaml_format(std::ostream &out, const std::string &prefix = "") const;
 

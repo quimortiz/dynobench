@@ -4,8 +4,8 @@ environment:
   min: [-1, -2.0]
   max: [2, 3]
   #visualization
-  min: [-1, -2.5]
-  max: [2.5, 3]
+  # min: [-1, -2.5]
+  # max: [2.5, 3]
   obstacles:
     - type: box
       center: [0, 1.5]

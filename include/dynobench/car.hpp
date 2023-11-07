@@ -73,7 +73,7 @@ struct Model_car_with_trailers : Model_robot {
   virtual int number_of_so2() override;
   virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override;
   virtual int number_of_robot() override;
-  
+
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> f,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;

@@ -28,14 +28,14 @@
 #include "dynobench/acrobot.hpp"
 #include "dynobench/car.hpp"
 #include "dynobench/car2.hpp"
+#include "dynobench/integrator1_2d.hpp"
 #include "dynobench/integrator2_2d.hpp"
+#include "dynobench/joint_robot.hpp"
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
 #include "dynobench/unicycle1.hpp"
 #include "dynobench/unicycle2.hpp"
-#include "dynobench/joint_robot.hpp"
-#include "dynobench/integrator1_2d.hpp"
 
 // #define dynobench_models "../dynoplan/dynobench/models/"
 #include "dynobench/integrator1_2d.hpp"
@@ -92,19 +92,18 @@ robot_factory_with_env(const std::string &robot_name,
   load_env(*robot, problem);
   return robot;
 }
-std::unique_ptr<Model_robot> 
-joint_robot_factory(const std::vector<std::string> &robot_types, 
-                    const std::string &base_path,
-                    const Eigen::VectorXd &p_lb,
-                    const Eigen::VectorXd &p_ub){
+std::unique_ptr<Model_robot>
+joint_robot_factory(const std::vector<std::string> &robot_types,
+                    const std::string &base_path, const Eigen::VectorXd &p_lb,
+                    const Eigen::VectorXd &p_ub) {
 
   std::vector<std::string> robotParams;
   std::vector<std::shared_ptr<Model_robot>> jointRobot;
-  for (auto robot_type : robot_types){
-      jointRobot.push_back(robot_factory((base_path + robot_type + ".yaml").c_str(), p_lb, p_ub));
-  }              
+  for (auto robot_type : robot_types) {
+    jointRobot.push_back(
+        robot_factory((base_path + robot_type + ".yaml").c_str(), p_lb, p_ub));
+  }
   return std::make_unique<Joint_robot>(jointRobot, p_lb, p_ub);
-
 }
 bool check_edge_at_resolution(const Eigen::VectorXd &start,
                               const Eigen::VectorXd &goal,
