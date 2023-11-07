@@ -129,7 +129,7 @@ Joint_robot::Joint_robot(
   int k_xw = 0;
   for (auto &robot : jointRobot) {
     size_t size_xw = robot->x_weightb.size();
-    x_weightb.segment(k_xw, size_xw) = robot->x_weightb; 
+    x_weightb.segment(k_xw, size_xw) = robot->x_weightb;
     k_xw += size_xw;
   }
   part_objs_.clear();

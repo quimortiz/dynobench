@@ -1337,7 +1337,8 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
 
   {
 
-    std::string result_file = "../../envs/multirobot/results/swap2_unicycle2_db.yaml";
+    std::string result_file =
+        "../../envs/multirobot/results/swap2_unicycle2_db.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1366,5 +1367,4 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
 
     BOOST_TEST(traj.feasible == false);
   }
-
 }

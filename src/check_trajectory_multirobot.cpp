@@ -69,12 +69,15 @@ int main(int argc, char *argv[]) {
 
   std::cout << "robot types are " << std::endl;
 
-  // create a joint robot 
+  // create a joint robot
   std::vector<std::shared_ptr<Model_robot>> robots;
-  for (auto robot_type : problem.robotTypes){
-      robots.push_back(robot_factory((dynobench_models + robot_type + ".yaml").c_str(), problem.p_lb, problem.p_ub));
-  }  
-  std::shared_ptr<Joint_robot> robot = std::make_shared<Joint_robot>(robots,problem.p_lb,problem.p_ub);
+  for (auto robot_type : problem.robotTypes) {
+    robots.push_back(
+        robot_factory((dynobench_models + robot_type + ".yaml").c_str(),
+                      problem.p_lb, problem.p_ub));
+  }
+  std::shared_ptr<Joint_robot> robot =
+      std::make_shared<Joint_robot>(robots, problem.p_lb, problem.p_ub);
 
   load_env(*robot, problem);
 
