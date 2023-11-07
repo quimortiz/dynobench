@@ -8,6 +8,7 @@
 // #include "robots.h"
 
 using namespace dynobench;
+#define dynobench_models "../dynoplan/dynobench/models/"
 
 int main(int argc, char *argv[]) {
 
@@ -67,17 +68,14 @@ int main(int argc, char *argv[]) {
   // "single_integrator_0", 
   // "car_first_order_with_1_trailers_0"
 
-  std::vector<std::string> robotTypes = problem.robotTypes;
-
   std::cout << "robot types are " << std::endl;
 
   // create a joint robot 
-  std::shared_ptr<Model_robot> robot = joint_robot_factory(robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
-
-    // boost::math::double_factorial
-    //
-    //
-    // std::make_shared<Joint_robot>(robotTypes,problem.p_lb,problem.p_ub);
+  std::vector<std::shared_ptr<Model_robot>> robots;
+  for (auto robot_type : problem.robotTypes){
+      robots.push_back(robot_factory((dynobench_models + robot_type + ".yaml").c_str(), problem.p_lb, problem.p_ub));
+  }  
+  std::shared_ptr<Joint_robot> robot = std::make_shared<Joint_robot>(robots,problem.p_lb,problem.p_ub);
 
   load_env(*robot, problem);
 
