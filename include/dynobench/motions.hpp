@@ -94,13 +94,19 @@ struct Problem {
 
   Eigen::VectorXd goal;
   Eigen::VectorXd start;
+  std::vector<int> goal_times; // use this to set the time step on which each
+                               // robot should reach the goal. E.g. goal_times =
+                               // [10, 20] means that the first robot should
+                               // reach its goal in 10 time steps and the
+                               // second robot in 20 time steps. the time in
+                               // seconds will be this number multiplied by dt.
 
   Eigen::VectorXd p_lb; // position bounds
   Eigen::VectorXd p_ub; // position bounds
 
   std::vector<Obstacle> obstacles;
   std::string robotType;
-
+  std::vector<std::string> robotTypes;
   void read_from_yaml(const YAML::Node &env);
 
   void read_from_yaml(const char *file);
@@ -215,6 +221,10 @@ struct Trajectory {
   std::vector<Eigen::VectorXd> actions;
   size_t num_time_steps = 0; // use this if we want default init guess.
   Eigen::VectorXd times;
+
+  std::vector<int> multi_robot_index_goal; // can be used to indicate
+  // until which index we want to take when solving the joint problem of a
+  // multirobot problem.
 
   void to_yaml_format(std::ostream &out, const std::string &prefix = "") const;
 

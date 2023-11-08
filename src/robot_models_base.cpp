@@ -277,6 +277,23 @@ Model_robot::Model_robot(std::shared_ptr<StateDyno> state, size_t nu)
   r_weight.setOnes(); // default!
 }
 
+// int Model_robot::number_of_r_dofs(){
+//   return 2;
+// }
+//
+// int Model_robot::number_of_so2(){
+//   return 0;
+// }
+
+// void Model_robot::indices_of_so2(int &k, std::vector<size_t> &vect){
+//   vect.push_back(k + 2);
+//   k += 3;
+// }
+//
+// int Model_robot::number_of_robot(){
+//   return 1;
+// }
+
 // default for collision with (x,y,theta)
 void Model_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {

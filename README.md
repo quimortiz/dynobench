@@ -12,7 +12,7 @@ Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop
 
 You will find multiple planners in [Dynoplan](https://github.com/quimortiz/dynoplan) 🦖
 
-## Robots and Problem Description 
+## Robots and Problem Description
 
 TODO
 
@@ -330,7 +330,7 @@ Primitves per system:
 * unicycle1_v0
 https://drive.google.com/file/d/15dXqC_OdrI8KjaHRNakYgk9IXLtTeMtt/view?usp=drive_link
 
-* quadrotor_v1 (OMPL-style) 
+* quadrotor_v1 (OMPL-style)
 https://drive.google.com/file/d/1r_ecGwdfvWnVWxPsvR4d8Hjcayxg5PsB/view?usp=drive_link
 
 * quadrotor_v0

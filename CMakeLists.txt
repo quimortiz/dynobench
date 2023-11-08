@@ -8,7 +8,8 @@ project(
   LANGUAGES CXX)
 
 # find_package(pinocchio REQUIRED)
-find_package(Boost REQUIRED COMPONENTS program_options serialization stacktrace_basic)
+find_package(Boost REQUIRED COMPONENTS program_options serialization
+                                       stacktrace_basic)
 find_package(fcl REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -21,6 +22,8 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 add_executable(check_trajectory ./src/check_trajectory.cpp)
+add_executable(check_trajectory_multirobot
+               ./src/check_trajectory_multirobot.cpp)
 
 add_library(
   dynobench
@@ -36,6 +39,7 @@ add_library(
   ./src/planar_rotor_pole.cpp
   ./src/car2.cpp
   ./src/integrator2_2d.cpp
+  ./src/joint_robot.cpp
   ./src/integrator1_2d.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
@@ -56,11 +60,17 @@ target_compile_options(dynobench PRIVATE -Wall -Wextra)
 
 target_link_libraries(
   dynobench
-  PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization Boost::stacktrace_basic ${CMAKE_DL_LIBS}
+  PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization
+         Boost::stacktrace_basic ${CMAKE_DL_LIBS}
   PUBLIC nlohmann_json::nlohmann_json)
 
 target_link_libraries(
   check_trajectory
+  PUBLIC dynobench
+  PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
+
+target_link_libraries(
+  check_trajectory_multirobot
   PUBLIC dynobench
   PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
 
@@ -106,11 +116,9 @@ target_link_libraries(robot_python PUBLIC Eigen3::Eigen dynobench fcl)
 #
 # # Register package in the User Package Registry export(PACKAGE dynobench)
 
-
-
 # Add test
 
-if (NOT DEFINED DISABLE_DYNOBENCH_TESTS)
+if(NOT DEFINED DISABLE_DYNOBENCH_TESTS)
   enable_testing()
   add_subdirectory(test)
 endif()

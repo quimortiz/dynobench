@@ -1,10 +1,6 @@
-
-
-
 import msgpack
 import viewer_cli
 import matplotlib.pyplot as plt
-
 
 
 # small script to load and display primitives
@@ -23,9 +19,8 @@ import matplotlib.pyplot as plt
 # robot = "quad2dpole"
 
 file = "../../envs/quadrotor_v0/motions/quad3d_v0_all3.bin.im.bin.sp1.bin.ca.bin.small.msgpack"
-    # quad2dpole_v0/motions/quad2dpole_all.bin.im.bin.sp1.bin.ca.bin.small.msgpack"
+# quad2dpole_v0/motions/quad2dpole_all.bin.im.bin.sp1.bin.ca.bin.small.msgpack"
 robot = "quad3d"
-
 
 
 with open(file, "rb") as f:
@@ -34,35 +29,32 @@ with open(file, "rb") as f:
 trajs = data["data"]
 
 
-grid = (1,5)
-num_primitives =grid[0]*grid[1]
+grid = (1, 5)
+num_primitives = grid[0] * grid[1]
 trajs = trajs[0:num_primitives]
 
 len(trajs)
 
-viewer =  viewer_cli.get_robot_viewer(robot) 
-
-
+viewer = viewer_cli.get_robot_viewer(robot)
 
 
 # fig, axs = plt.subplots(grid[0], grid[1], sharex=True, sharey=True)
 
 # fig, axs = plt.subplots(grid[0], grid[1], sharex=True, sharey=True)
 
-if viewer.is_3d :
+if viewer.is_3d:
     fig = plt.figure()
     axs = []
     for i in range(5):
-        axs.append( fig.add_subplot(1, 5, i+1, projection='3d'))
+        axs.append(fig.add_subplot(1, 5, i + 1, projection="3d"))
 
     # fig, axs = plt.subplots(grid[0], grid[1])
 
-else: 
+else:
     fig, axs = plt.subplots(grid[0], grid[1])
 
 
-
-fig.set_size_inches(10,2)
+fig.set_size_inches(10, 2)
 #
 # fig = plt.figure(figsize=plt.figaspect(0.5))
 # ax = fig.add_subplot(1, 2, 1, projection='3d')
@@ -100,18 +92,23 @@ for i, traj in enumerate(trajs):
     viewer.view_state(ax, traj["states"][-1], color="red")
     # ax.set_xlim(-2, 1.5)
     # ax.set_ylim(-3, 1.5)
-    
+
     if not viewer.is_3d:
         ax.set_aspect("equal")
     # ax.axis('off')
 
-    ax.tick_params(top=False, bottom=False, left=False, right=False,
-                labelleft=False, labelbottom=False)
+    ax.tick_params(
+        top=False,
+        bottom=False,
+        left=False,
+        right=False,
+        labelleft=False,
+        labelbottom=False,
+    )
 
 
 # plt.axis('off')
 # share_all=True
-
 
 
 # if not viewer.is_3d:
@@ -120,15 +117,6 @@ fig.tight_layout()
 fig.savefig(f"primitives-{robot}.png", dpi=300)
 
 
-    # ax.axis('equal')
+# ax.axis('equal')
 
 plt.show()
-
-
-
-
-
-
-
-
-

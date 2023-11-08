@@ -1,6 +1,7 @@
 #pragma once
 #include "Eigen/Core"
 #include "dyno_macros.hpp"
+
 #include "dynobench/robot_models_base.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "general_utils.hpp"
@@ -33,13 +34,16 @@ struct Integrator1_2d_params {
   double dt = .1;
 
   // Control and state bounds
-  double max_vel = .5; // -max_vel < vel_x < max_vel and -max_vel < vel_y < max_vel 
+  double max_vel =
+      .5; // -max_vel < vel_x < max_vel and -max_vel < vel_y < max_vel
 
   // filenam used to load the paratemers, it is set by read_from_yaml
   std::string filename = "";
 
   // shape for collision
   std::string shape = "box";
+
+  double radius = 0.1;
 
   // For computing distance between states
   // Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
@@ -64,6 +68,13 @@ struct Integrator1_2d : public Model_robot {
                  const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
+  virtual int number_of_r_dofs() override;
+
+  virtual int number_of_so2() override { return 0; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
+    k += 2;
+  }
+  virtual int number_of_robot() override { return 1; }
 
   // DISTANCE AND TIME (cost) - BOUNDS
   // Distances and bounds are useuful in search/motion planning algorithms.
@@ -81,9 +92,9 @@ struct Integrator1_2d : public Model_robot {
   // Setting velocity to 0 if an state
   // virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  // // lower bound on time, considering only the velcoity component of the state
-  // virtual double
-  // lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
+  // // lower bound on time, considering only the velcoity component of the
+  // state virtual double lower_bound_time_vel(const Eigen::Ref<const
+  // Eigen::VectorXd> &x,
   //                      const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
   // lower bound on time, considering only the position component of the state

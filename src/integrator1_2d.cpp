@@ -7,6 +7,8 @@
 // #include <boost/serialization/list.hpp>
 #include <cmath>
 #include <fcl/geometry/shape/box.h>
+#include <fcl/geometry/shape/sphere.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -71,7 +73,7 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
   x_ub << max__, max__;
 
   u_weight << 1., 1.;
-  x_weightb << 100, 100 ; // TODO: change!!
+  x_weightb << 100, 100; // TODO: change!!
 
   // add bounds on position if provided
   if (p_lb.size() && p_ub.size()) {
@@ -83,10 +85,15 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
   if (params.shape == "box") {
     collision_geometries.push_back(
         std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
+  } else if (params.shape == "sphere") {
+    collision_geometries.push_back(
+        std::make_shared<fcl::Sphered>(params.radius));
   } else {
     ERROR_WITH_INFO("not implemented");
   }
 }
+
+int Integrator1_2d::number_of_r_dofs() { return 2; }
 
 // DISTANCE AND TIME (cost) - BOUNDS
 
@@ -94,13 +101,11 @@ double
 Integrator1_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  std::array<double, 2> maxs = {
-    std::abs( x(0) - y(0) ) / params.max_vel,
-    std::abs( x(1) - y(1) ) / params.max_vel };
+  std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.max_vel,
+                                std::abs(x(1) - y(1)) / params.max_vel};
 
   return *std::max_element(maxs.begin(), maxs.end());
 }
-
 
 // double Integrator1_2d::lower_bound_time_vel(
 //     const Eigen::Ref<const Eigen::VectorXd> &x,
@@ -112,17 +117,15 @@ double Integrator1_2d::lower_bound_time_pr(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-
-  std::array<double, 2> maxs = {
-    std::abs( x(0) - y(0) ) / params.max_vel,
-    std::abs( x(1) - y(1) ) / params.max_vel };
+  std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.max_vel,
+                                std::abs(x(1) - y(1)) / params.max_vel};
 
   return *std::max_element(maxs.begin(), maxs.end());
 }
 
 double Integrator1_2d::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &y) {
-  return  (x.head<2>() - y.head<2>()).norm();
+  return (x.head<2>() - y.head<2>()).norm();
 };
 
 void Integrator1_2d::calcV(Eigen::Ref<Eigen::VectorXd> v,

@@ -94,6 +94,13 @@ struct Model_quad2dpole : Model_robot {
                    const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                    const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
+  virtual int number_of_r_dofs() override { NOT_IMPLEMENTED; }
+  virtual int number_of_so2() override { NOT_IMPLEMENTED; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
+    NOT_IMPLEMENTED
+  }
+  virtual int number_of_robot() override { NOT_IMPLEMENTED; }
+
   virtual void write_params(std::ostream &out) override { params.write(out); }
 
   virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,

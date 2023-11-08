@@ -2,9 +2,9 @@ name: CMake
 
 on:
   push:
-    branches: [ "main", "dev" ]
+    #branches: [ "main", "dev" ]
   pull_request:
-    branches: [ "main", "dev" ]
+    #branches: [ "main", "dev" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -42,22 +42,20 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      run: cmake --build ${{github.workspace}}/build --parallel --config ${{env.BUILD_TYPE}}
-
+      # --parallel
+      run: cmake --build ${{github.workspace}}/build  --config ${{env.BUILD_TYPE}}
 
     - name: Test Python Bindings
       working-directory: ${{github.workspace}}/build
       continue-on-error: true
-      run: |
-        python ../example/test_robot.py
+      run: python ../example/test_robot.py
 
     - name: Test Python Viewer
       continue-on-error: true
       #NOTE: To see the robots in your computer use:
       #VISUALIZE=1 python3 ../utils/viewer/viewer_test.py
       working-directory: ${{github.workspace}}/build
-      run: |
-        python3 ../utils/viewer/viewer_test.py
+      run: python3 ../utils/viewer/viewer_test.py
 
     - name: Test c++
       continue-on-error: true

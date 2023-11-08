@@ -190,9 +190,8 @@ def draw_problem_2d(ax, env, Robot):
     if isinstance(env, str):
         with open(env) as f:
             env = yaml.safe_load(f)
-            
 
-    if "obstacles" in env["environment"] :
+    if "obstacles" in env["environment"]:
         for obstacle in env["environment"]["obstacles"]:
             if obstacle["type"] == "box":
                 draw_box_patch(

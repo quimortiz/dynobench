@@ -1,4 +1,4 @@
-
+#pragma once
 
 #include "dynobench/for_each_macro.hpp"
 #include "dynobench/robot_models_base.hpp"
@@ -69,6 +69,10 @@ struct Model_car_with_trailers : Model_robot {
       xout(3) = wrap_angle(xin(3));
     }
   }
+  virtual int number_of_r_dofs() override;
+  virtual int number_of_so2() override;
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override;
+  virtual int number_of_robot() override;
 
   virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
     xinout(2) = wrap_angle(xinout(2));

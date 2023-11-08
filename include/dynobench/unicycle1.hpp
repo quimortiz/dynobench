@@ -98,6 +98,7 @@ struct Unicycle1_params {
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
   Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
   std::string shape = "box";
+  double radius = 0.4;
   double dt = .1;
 
   NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Unicycle1_params, max_vel, min_vel,
@@ -161,6 +162,10 @@ struct Model_unicycle1 : Model_robot {
     xout = xin;
     xout(2) = wrap_angle(xin(2));
   }
+  virtual int number_of_r_dofs() override;
+  virtual int number_of_so2() override;
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override;
+  virtual int number_of_robot() override { return 1; }
 
   virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
     xinout(2) = wrap_angle(xinout(2));

@@ -1,6 +1,7 @@
 
 #include "dynobench/unicycle1.hpp"
 #include <fcl/geometry/shape/box.h>
+#include <fcl/geometry/shape/sphere.h>
 
 namespace dynobench {
 
@@ -72,6 +73,9 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
   if (params.shape == "box") {
     collision_geometries.push_back(
         std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
+  } else if (params.shape == "sphere") {
+    collision_geometries.push_back(
+        std::make_shared<fcl::Sphered>(params.radius));
   } else {
     ERROR_WITH_INFO("not implemented");
   }
@@ -80,6 +84,15 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
     set_position_lb(p_lb);
     set_position_ub(p_ub);
   }
+}
+// get number of dof for the constructor
+int Model_unicycle1::number_of_r_dofs() { return 2; }
+// get the number of so2 for the constructor
+int Model_unicycle1::number_of_so2() { return 1; }
+
+void Model_unicycle1::indices_of_so2(int &k, std::vector<size_t> &vect) {
+  vect.push_back(k + 2);
+  k += 3;
 }
 
 void Model_unicycle1::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
@@ -93,6 +106,9 @@ void Model_unicycle1::calcV(Eigen::Ref<Eigen::VectorXd> v,
                             const Eigen::Ref<const Eigen::VectorXd> &x,
                             const Eigen::Ref<const Eigen::VectorXd> &u) {
 
+  // CHECK_EQ(v.size(), 3, AT);
+  // CHECK_EQ(x.size(), 3, AT);
+  // CHECK_EQ(u.size(), 2, AT);
   DYNO_CHECK_EQ(v.size(), 3, AT);
   DYNO_CHECK_EQ(x.size(), 3, AT);
   DYNO_CHECK_EQ(u.size(), 2, AT);
