@@ -88,6 +88,12 @@ struct Model_acrobot : Model_robot {
     xout(1) = wrap_angle(xin(1));
   }
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
+
+    xinout(0) = wrap_angle(xinout(0));
+    xinout(1) = wrap_angle(xinout(1));
+  }
+
   double calcEnergy(const Eigen::Ref<const Eigen::VectorXd> &x);
 
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> f,

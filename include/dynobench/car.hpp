@@ -74,6 +74,36 @@ struct Model_car_with_trailers : Model_robot {
   virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override;
   virtual int number_of_robot() override;
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
+    xinout(2) = wrap_angle(xinout(2));
+    if (params.num_trailers) {
+      xinout(3) = wrap_angle(xinout(3));
+    }
+  }
+
+  virtual bool check_state(const Eigen::Ref<const Eigen::VectorXd> &x,
+                           double tolerance = 1e-2) override {
+    bool good_bounds = Model_robot::check_state(x, tolerance);
+    bool verbose = true;
+
+    double diff = x(2) - x(3);
+
+    if (diff > M_PI) {
+      diff -= 2 * M_PI;
+    } else if (diff < -M_PI) {
+      diff += 2 * M_PI;
+    }
+    bool good_trailer = std::abs(diff) < params.diff_max_abs;
+    if (!good_trailer && verbose) {
+      std::cout << "TRAILER VIOLATION " << std::endl;
+      CSTR_(diff);
+      CSTR_(params.diff_max_abs);
+      CSTR_V(x);
+      // throw -1;
+    }
+    return good_bounds && good_trailer;
+  }
+
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> f,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;

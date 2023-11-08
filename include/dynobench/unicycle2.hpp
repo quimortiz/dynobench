@@ -65,6 +65,10 @@ struct Model_unicycle2 : Model_robot {
   }
   virtual int number_of_robot() override { return 1; }
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
+    xinout(2) = wrap_angle(xinout(2));
+  }
+
   virtual void write_params(std::ostream &out) override { params.write(out); }
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
