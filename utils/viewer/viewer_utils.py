@@ -130,7 +130,7 @@ def plotCubeAt2(positions, sizes=None, colors=None, **kwargs):
 
 def draw_cube(ax, pos, size, **kwargs):
     X, Y, Z = cuboid_data(pos, size)
-    ax.plot_surface(X, Y, Z, color=".5", alpha=.3)
+    ax.plot_surface(X, Y, Z, color=".5", alpha=0.3)
     # exit(1)
     # ax.plot_surface(X, Y, Z, rstride=1, cstride=1,color='gray' )
 
@@ -204,7 +204,7 @@ def draw_problem_2d(ax, env, Robot):
             else:
                 print("ERROR: unknown obstacle type")
 
-    for robot in env.get("robots",[]):
+    for robot in env.get("robots", []):
         # if robot["type"] in ["unicycle_first_order_0"]:
         #     size = np.array([0.5, 0.25])
         r = Robot()
@@ -275,23 +275,24 @@ def make_video_default(
     env, result, plot_env_func, Robot, filename_video: str = "", interactive=False
 ):
     # fig = plt.figure()  # frameon=False, figsize=(4 * aspect, 4))
-    fig = plt.figure(figsize=(6,6))  # frameon=False, figsize=(4 * aspect, 4))
+    fig = plt.figure(figsize=(6, 6))  # frameon=False, figsize=(4 * aspect, 4))
     ax = fig.add_subplot(111, aspect="equal")
 
-    plt.tick_params(top=False, bottom=False, left=False, right=False,
-                    labelleft=False, labelbottom=False)
+    plt.tick_params(
+        top=False,
+        bottom=False,
+        left=False,
+        right=False,
+        labelleft=False,
+        labelbottom=False,
+    )
 
-    plt.axis('off')
+    plt.axis("off")
 
     plot_env_func(ax, env)
 
-
-
-
     # plt.title(env["name"])
     # Remove the ticks?
-
-
 
     robot = Robot()
     fig.tight_layout()
@@ -319,7 +320,7 @@ def make_video_default(
         # TODO: this shoudld depend on the robot!!
         speed = 1
         print(f"saving video: {filename_video}")
-        DPI = 200 
+        DPI = 200
         anim.save(filename_video, "ffmpeg", fps=10 * speed, dpi=DPI)
     elif interactive:
         plt.show()

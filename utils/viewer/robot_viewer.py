@@ -95,19 +95,25 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
 
     if args.store:
         if is_3d:
+
+            ax.xaxis.set_ticklabels([])
+            ax.yaxis.set_ticklabels([])
+            ax.zaxis.set_ticklabels([])
+
             # for line in ax.xaxis.get_ticklines():
             #     line.set_visible(False)
             # for line in ax.yaxis.get_ticklines():
             #     line.set_visible(False)
             # for line in ax.zaxis.get_ticklines():
             #     line.set_visible(False)
-
-            ax.set_axis_off()
+            #
+            # ax.set_axis_off()
 
             # ax.set_xticks([])
             # ax.set_yticks([])
             # ax.set_zticks([])
 
+            pass
         if not is_3d:
             fig.tight_layout()
 

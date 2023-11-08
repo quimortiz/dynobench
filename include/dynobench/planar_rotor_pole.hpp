@@ -115,8 +115,6 @@ struct Model_quad2dpole : Model_robot {
     xinout(3) = wrap_angle(xinout(3));
   }
 
-
-
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,
       std::vector<Transform3d> &ts) override;

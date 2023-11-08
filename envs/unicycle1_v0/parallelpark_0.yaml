@@ -1,4 +1,4 @@
-name: park
+name: unicycle1_v0-park
 environment:
   min: [0.0, 0.0]
   max: [3.0, 1.2]

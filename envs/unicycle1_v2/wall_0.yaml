@@ -1,4 +1,4 @@
-name: wall
+name: unicycle1_v2-wall
 environment:
   min: [0.0, 0.0]
   max: [5.0, 6.0]

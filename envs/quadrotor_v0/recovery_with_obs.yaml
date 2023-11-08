@@ -1,4 +1,4 @@
-name: quadrotor_0-recovery_with_obstacles
+name: quadrotor_v0-recovery_with_obstacles
 environment:
   min: [-2, -2, -2] # TODO: add position bounds as constraints?
   max: [2, 2, 3]

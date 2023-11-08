@@ -111,7 +111,6 @@ struct Model_quad2d : Model_robot {
     xinout(2) = wrap_angle(xinout(2));
   }
 
-
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
     x(3) = 0;
     x(4) = 0;
