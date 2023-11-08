@@ -135,6 +135,10 @@ struct Model_quad3d : Model_robot {
     xout.segment<4>(3).normalize();
   }
 
+  virtual void ensure( Eigen::Ref<Eigen::VectorXd> xinout) override {
+    xinout.segment<4>(3).normalize();
+  }
+
   virtual void write_params(std::ostream &out) override { params.write(out); }
 
   virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) override;

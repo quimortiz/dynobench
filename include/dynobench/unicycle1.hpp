@@ -162,6 +162,10 @@ struct Model_unicycle1 : Model_robot {
     xout(2) = wrap_angle(xin(2));
   }
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
+    xinout(2) = wrap_angle(xinout(2));
+  }
+
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;

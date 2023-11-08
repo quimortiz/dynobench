@@ -327,6 +327,11 @@ struct Model_robot {
     xout = xin;
   }
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) {
+    (void) xinout;
+  }
+
+
   // State
   std::shared_ptr<StateDyno> state;
 
@@ -357,14 +362,12 @@ struct Model_robot {
   // orientation/velocities of x0 to zero
   virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) { return x; }
 
-  virtual
-  void set_position_ub(const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
+  virtual void set_position_ub(const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
     DYNO_CHECK_EQ(static_cast<size_t>(p_ub.size()), translation_invariance, AT);
     x_ub.head(translation_invariance) = p_ub;
   }
 
-  virtual
-  void set_position_lb(const Eigen::Ref<const Eigen::VectorXd> &p_lb) {
+  virtual void set_position_lb(const Eigen::Ref<const Eigen::VectorXd> &p_lb) {
     DYNO_CHECK_EQ(static_cast<size_t>(p_lb.size()), translation_invariance, AT);
     x_lb.head(translation_invariance) = p_lb;
   }
@@ -576,6 +579,20 @@ struct Model_robot {
     } else {
       x_out = xs_in.back();
     }
+  }
+
+  virtual bool check_state(const Eigen::Ref<const Eigen::VectorXd> &x,
+                           double tolerance = 1e-2) {
+    bool verbose = false;
+    double d = check_bounds_distance(x, get_x_lb(), get_x_ub());
+    if (d > tolerance && verbose) {
+      std::cout << "X BOUND VIOLATION " << std::endl;
+      CSTR_(d);
+      CSTR_V(x);
+      CSTR_V(get_x_lb());
+      CSTR_V(get_x_ub());
+    }
+    return d < tolerance;
   }
 
   virtual void transform_primitive2(

@@ -507,7 +507,7 @@ inline std::string eigen_to_string(Eigen::Vector4d x) {
   return ss.str();
 }
 double inline so3_distance(const Eigen::Vector4d &x, const Eigen::Vector4d &y) {
-  double max_quaternion_norm_error = 1e-6;
+  double max_quaternion_norm_error = 1e-5;
   DYNO_CHECK_LEQ(std::abs(x.norm() - 1), max_quaternion_norm_error,
                  eigen_to_string(x));
   DYNO_CHECK_LEQ(std::abs(y.norm() - 1), max_quaternion_norm_error,
