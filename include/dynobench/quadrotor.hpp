@@ -142,7 +142,7 @@ struct Model_quad3d : Model_robot {
     xout.segment<4>(3).normalize();
   }
 
-  virtual void ensure( Eigen::Ref<Eigen::VectorXd> xinout) override {
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
     xinout.segment<4>(3).normalize();
   }
 

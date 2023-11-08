@@ -1,3 +1,4 @@
+name: car-parallel
 environment:
   min: [0.0, -0.5]
   max: [3.5, 2.5]

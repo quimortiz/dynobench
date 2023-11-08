@@ -339,10 +339,7 @@ struct Model_robot {
     xout = xin;
   }
 
-  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) {
-    (void) xinout;
-  }
-
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) { (void)xinout; }
 
   // State
   std::shared_ptr<StateDyno> state;

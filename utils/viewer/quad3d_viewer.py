@@ -64,6 +64,7 @@ def _arrow3D(ax, x, y, z, dx, dy, dz, *args, **kwargs):
 
     arrow = Arrow3D(x, y, z, dx, dy, dz, *args, **kwargs)
     ax.add_artist(arrow)
+    return arrow
 
 
 setattr(Axes3D, "arrow3D", _arrow3D)
@@ -97,34 +98,32 @@ class Robot:
         pass
 
     def draw(self, ax, x, **kwargs):
-        ls = viewer_utils.plot_frame(ax, x, **kwargs)
-        self.lx = ls[0]
-        self.ly = ls[1]
-        self.lz = ls[2]
+        # ls = viewer_utils.plot_frame(ax, x, **kwargs)
+        # self.lx = ls[0]
+        # self.ly = ls[1]
+        # self.lz = ls[2]
         (self.h,) = ax.plot(
-            [x[0]], [x[1]], [x[2]], color=".5", linestyle="", marker="."
+            [x[0]], [x[1]], [x[2]], color=".5", linestyle="", marker=".", zorder=100
         )
 
-        print("drawing uav")
         arm_length = 0.24  # in meters
         self.uav = Uav(ax, arm_length)
         q = x[3:7]
         p = np.array(x[:3])
         R_mat = RR.from_quat(q).as_matrix()
-        print("R_mat is", R_mat)
-        print("p is", p)
-        self.uav.draw_at(p, R_mat, **kwargs)
+        self.uav.draw_at(p, R_mat, **kwargs, zorder=200)
 
         scale = 0.4
-        ax.arrow3D(
+        self.arrow = ax.arrow3D(
             p[0],
             p[1],
             p[2],
             scale * R_mat[0, 2],
             scale * R_mat[1, 2],
             scale * R_mat[2, 2],
-            mutation_scale=20,
+            mutation_scale=10,
             arrowstyle="-|>",
+            # zorder=200,
             **kwargs,
         )
         # linestyle='dashed')
@@ -133,7 +132,7 @@ class Robot:
 
     #
 
-    def update(self, x, ax, uav):
+    def update(self, x, ax, uav, arrows):
         ll = viewer_utils.update_frame([self.lx, self.ly, self.lz], x)
         self.h.set_xdata([x[0]])
         self.h.set_ydata([x[1]])
@@ -148,8 +147,8 @@ class Robot:
         uav[0].delete()
         uav[0] = _uav
 
-        print("uav at", p)
-        _uav.draw_at(p, R_mat)
+        # print("uav at", p)
+        _uav.draw_at(p, R_mat, color="blue")
         return ll + [self.h]
 
     def draw_traj_minimal(self, ax, Xs):
@@ -347,12 +346,11 @@ class Quad3dViewer(RobotViewer):
     def make_video(
         self, env, result, filename_video: str = "", interactive: bool = False
     ):
-        # fig = plt.figure()
-        fig = plt.figure(figsize=(16, 10))
+        # fig = plt.figure(figsize=(6,6)) # points appear too big!
+        fig = plt.figure(figsize=(7, 7))
         ax = plt.axes(projection="3d")
         self.view_problem(ax, env)
-        ax.set_title(env["name"])
-
+        # ax.set_title(env["name"])
         if isinstance(result, str):
             with open(result) as f:
                 __result = yaml.safe_load(f)
@@ -361,20 +359,27 @@ class Quad3dViewer(RobotViewer):
         states = result["states"]
 
         r = Robot()
-        r.draw(ax, states[0])
-        print(r)
+        r.draw(ax, states[0], color="blue")
 
         states = result["states"]
         print("hello")
         print(f"states {states}")
 
         r.draw_traj_minimal(ax, states)
-        uavs = [r.uav]
+
+        ax.axis("off")
+        plt.tight_layout()
 
         def animate_func(i):
             """ """
             state = states[i]
-            return r.update(state, ax, uavs)
+            r.uav.delete()
+            r.h.remove()
+            r.arrow.remove()
+            r.draw(ax, state, color="blue")
+
+            # r.
+            # return r.update(state, ax, uavs, arrows)
 
         T = len(states)
 
@@ -382,11 +387,13 @@ class Quad3dViewer(RobotViewer):
             fig, animate_func, frames=T, interval=10, blit=False
         )
 
+        # plt.show()
+        DPI = 200
         if len(filename_video):
-            speed = 10
+            speed = 1
             print(f"saving video: {filename_video}")
             # anim.save(filename_video, "ffmpeg", fps=10 * speed, dpi=100)
-            anim.save(filename_video, "ffmpeg", fps=10 * speed, dpi=100)
+            anim.save(filename_video, "ffmpeg", fps=10 * speed, dpi=DPI)
             print(f"saving video: {filename_video} -- DONE")
 
         elif interactive:
