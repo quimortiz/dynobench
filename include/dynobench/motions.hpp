@@ -28,13 +28,13 @@ BOOST_SERIALIZATION_SPLIT_FREE(Eigen::VectorXd)
 template <class Archive>
 void naive_eigen_vector_save(Archive &ar, const Eigen::VectorXd &v) {
   std::vector<double> vv(v.data(), v.data() + v.size());
-  ar &vv;
+  ar & vv;
 }
 
 template <class Archive>
 void naive_eigen_vector_load(Archive &ar, Eigen::VectorXd &v) {
   std::vector<double> vv;
-  ar &vv;
+  ar & vv;
   v = Eigen::VectorXd::Map(vv.data(), vv.size());
 }
 
@@ -250,14 +250,14 @@ struct Trajectory {
 
   template <class Archive>
   inline void serialize(Archive &ar, const unsigned int file_version) {
-    ar &states;
-    ar &actions;
-    ar &cost;
-    ar &feasible;
-    ar &start;
-    ar &goal;
+    ar & states;
+    ar & actions;
+    ar & cost;
+    ar & feasible;
+    ar & start;
+    ar & goal;
     if (file_version > 0) // TODO: check if I can remove the if here
-      ar &info;
+      ar & info;
   }
 
   double distance(const Trajectory &other) const;
@@ -278,7 +278,7 @@ struct Trajectories {
   template <class Archive>
   inline void serialize(Archive &ar, const unsigned int file_version) {
     (void)file_version;
-    ar &data;
+    ar & data;
   }
 
   void save_file_boost(const char *file) const;
