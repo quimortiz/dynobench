@@ -95,7 +95,6 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
 
     if args.store:
         if is_3d:
-
             ax.xaxis.set_ticklabels([])
             ax.yaxis.set_ticklabels([])
             ax.zaxis.set_ticklabels([])

@@ -80,7 +80,6 @@ fig.set_size_inches(10, 2)
 
 
 for i, traj in enumerate(trajs):
-
     if grid[0] > 1 and grid[1] > 1:
         ix = i % grid[1]
         iy = i // grid[1]
