@@ -213,19 +213,23 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
 void Problem::read_from_yaml(const YAML::Node &env) {
 
   std::vector<double> _start, _goal;
-  // YAML::Node tmp = env["robots"][0]["start"];
 
   if (auto nn = env["name"]; nn)
     name = nn.as<std::string>();
 
   for (const auto &robot_node : env["robots"]) {
     robotTypes.push_back(robot_node["type"].as<std::string>());
+    std::vector<double> tmp_start, tmp_goal;
     for (const auto &v : robot_node["start"]) {
       _start.push_back(v.as<double>());
+      tmp_start.push_back(v.as<double>());
     }
     for (const auto &v : robot_node["goal"]) {
       _goal.push_back(v.as<double>());
+      tmp_goal.push_back(v.as<double>());
     }
+    starts.push_back(Vxd::Map(tmp_start.data(), tmp_start.size())); // for tdbA*
+    goals.push_back(Vxd::Map(tmp_goal.data(), tmp_goal.size())); // for tdbA*
   }
 
   start = Vxd::Map(_start.data(), _start.size());

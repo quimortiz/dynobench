@@ -94,6 +94,8 @@ struct Problem {
 
   Eigen::VectorXd goal;
   Eigen::VectorXd start;
+  std::vector<Eigen::VectorXd> starts; // for tdbA*
+  std::vector<Eigen::VectorXd> goals; // for tdbA*
   std::vector<int> goal_times; // use this to set the time step on which each
                                // robot should reach the goal. E.g. goal_times =
                                // [10, 20] means that the first robot should
