@@ -324,7 +324,7 @@ class Controller():
         
         self.setpoint.acceleration.x = states_d[start_idx+6]  # m/s^2 update this to be computed from model
         self.setpoint.acceleration.y = states_d[start_idx+7]  # m/s^2 update this to be computed from model
-        self.setpoint.acceleration.z = states_d[start_idx+8] + 9.81  # m/s^2 update this to be computed from model
+        self.setpoint.acceleration.z = states_d[start_idx+8]  # m/s^2 update this to be computed from model
 
         # dbg messages
         if self.payloadType == "rigid":
