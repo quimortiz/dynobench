@@ -179,7 +179,7 @@ class Visualizer():
         self.payload = self.QuadPayloadRobot.payload
         if self.payload.shape == "quad3dpayload" or self.payload.shape == "point":
             self.vis[prefix + self.payload.shape].set_object(g.Mesh(
-                g.Sphere(0.02), g.MeshLambertMaterial(DnametoColor.get(color_name, 0xff11dd))))
+                g.Sphere(0.01), g.MeshLambertMaterial(DnametoColor.get(color_name, 0xff11dd))))
         elif self.payload.shape == "rigid":
             # THIS IS FOR MULTIPLE UAVS WITH RIGID PAYLOAD
             # different state order
