@@ -585,8 +585,8 @@ def main():
         initstate = np.array(refstate[0])
         if payloadType == "point":
             ref_start_idx = 3
-            # gains = [(15, 10, 1.5), (20, 15, 6), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
-            gains = [(10, 8, 2.5), (10, 6, 3.5), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
+            gains = [(15, 10, 1.5), (20, 15, 6), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
+            # gains = [(10, 8, 2.5), (10, 6, 3.5), (0.008,0.0013, 0.0), (1000,1000,1000), (10000)]
         elif payloadType == "rigid":
             ref_start_idx = 7
             # add the payload angular velocity gains 
@@ -613,7 +613,11 @@ def main():
         refArray = np.insert(refArray, ref_start_idx+4,  a[:,1], axis=1)
         refArray = np.insert(refArray, ref_start_idx+5,  a[:,2], axis=1)
 
+        # quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/{}_{}.yaml".format(payloadType,num_robots)), [-0.8, -0.8,  0.0], [ 2.5,  2.5,  1.0])
         quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/{}_{}.yaml".format(payloadType,num_robots)), [], [])
+        quadpayload.set_position_lb([-0.8, -0.8,  0.0])
+        quadpayload.set_position_ub([ 2.5,  2.5,  1.0])
+
         mp = model_path["m_payload"]
         if payloadType == "point":
             robot = Robot(quadpayload, num_robots, payloadType, initstate, gains, dt, mp, nocableTracking=args.nocableTracking)
