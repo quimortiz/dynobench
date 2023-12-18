@@ -72,8 +72,8 @@ Model_unicycle2::Model_unicycle2(const Unicycle2_params &params,
   u_lb << -params.max_acc_abs, -params.max_angular_acc_abs;
   u_ub << params.max_acc_abs, params.max_angular_acc_abs;
 
-  x_ub << RM_max__, RM_max__, RM_max__, params.max_vel, params.max_angular_vel;
   x_lb << RM_low__, RM_low__, RM_low__, params.min_vel, params.min_angular_vel;
+  x_ub << RM_max__, RM_max__, RM_max__, params.max_vel, params.max_angular_vel;
 
   u_weight.resize(2);
   u_weight.setConstant(.5);
