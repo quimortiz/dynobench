@@ -316,6 +316,18 @@ void inline create_dir_if_necessary(const std::string file) {
   create_dir_if_necessary(file.c_str());
 }
 
+void inline delete_file_if_necessary(const char *file) {
+  // const std::filesystem::path path = std::filesystem::path(file); //.parent_path();
+  if (std::filesystem::exists(file)) {
+    std::filesystem::remove(file);
+    std::cout << "deleting the old file" << std::endl;
+  }
+}
+
+void inline delete_file_if_necessary(const std::string file) {
+  delete_file_if_necessary(file.c_str());
+}
+
 struct Loader {
 
   bool use_boost = true; // boost (true) or yaml (false)
