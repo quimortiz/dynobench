@@ -16,7 +16,7 @@ PYBIND11_MODULE(robot_python, m) {
   pybind11::class_<CollisionOut>(m, "CollisionOut")
       .def(pybind11::init())
       .def_readonly("p1", &CollisionOut::p1)
-      .def_readonly("p2", &CollisionOut::p1)
+      .def_readonly("p2", &CollisionOut::p2)
       .def_readonly("distance", &CollisionOut::distance);
 
   pybind11::class_<Model_robot>(m, "Model_robot")
