@@ -622,8 +622,9 @@ def main():
 
         # quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/{}_{}.yaml".format(payloadType,num_robots)), [-0.8, -0.8,  0.0], [ 2.5,  2.5,  1.0])
         quadpayload = robot_python.robot_factory(str(Path(__file__).parent / "../models/{}_{}.yaml".format(payloadType,num_robots)), [], [])
-        quadpayload.set_position_lb([-0.8, -0.8,  0.0])
-        quadpayload.set_position_ub([ 2.5,  2.5,  1.0])
+        # don't forget to set the env limits (hard coded)
+        # quadpayload.set_position_lb([-0.8, -0.8,  0.0])
+        # quadpayload.set_position_ub([ 2.5,  2.5,  1.0])
 
         mp = model_path["m_payload"]
         if payloadType == "point":
