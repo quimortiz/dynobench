@@ -67,6 +67,7 @@ class Controller():
         self.mi = robotparams['mi']
         self.mp = robotparams['mp']
         self.payloadType = robotparams["payloadType"]
+        self.mu_planned = []
         # start_idx: to change the updateState according to the type of payload
         self.t2t = 0.006
         arm_length = 0.046
@@ -333,7 +334,8 @@ class Controller():
             print("setpoint payload acc",self.setpoint.acceleration.x, self.setpoint.acceleration.y, self.setpoint.acceleration.z)
             print("setpoint payload quat",self.setpoint.attitudeQuaternion.x, self.setpoint.attitudeQuaternion.y, self.setpoint.attitudeQuaternion.z, self.setpoint.attitudeQuaternion.w)
             print("setpoint payload w",self.setpoint.attitudeRate.roll, self.setpoint.attitudeRate.pitch, self.setpoint.attitudeRate.yaw)
-
+        mu_planned_tmp = []
+        self.mu_planned = []
         for k,i in enumerate(self.team_ids):
             action = actions_d[4*i : 4*i + 4]
             control = self.B0@action
@@ -365,7 +367,9 @@ class Controller():
             
             tension = np.linalg.norm(ref)
             mu_planned = -tension * qc
+            mu_planned_tmp.extend(mu_planned.tolist())
             cffirmware.set_setpoint_qi_ref(self.setpoint, k, k,  mu_planned[0], mu_planned[1], mu_planned[2], qc_dot[0], qc_dot[1], qc_dot[2]) 
+        self.mu_planned.append(mu_planned_tmp)
 
     def __getUAVSt(self, state, i):
         if self.payloadType == "point":
@@ -509,6 +513,7 @@ class Robot():
         self.appU = []
         self.lambdaa = 50
         self.num_robots = num_robots
+        self.mu_planned = []
         # TODO: this is a hack; should be read from the config file; supports up to 8 robots
         self.l = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
         self.dt = dt
@@ -521,11 +526,13 @@ class Robot():
         self.__initController(gains)
    
     def step(self, xnext, x, u):
+        self.mu_planned.extend(self.controller[str(0)].mu_planned)
         self.robot.step(xnext, x, u, self.dt)
         self.state = xnext
         self.u = u
         self.appSt.append(self.state.tolist())
         self.appU.append(self.u.tolist())
+        # self.controller[str(0)].mu_planned = []
 
     def updateControllerDict(self, controller, i):
         self.controller[str(i)] = controller
@@ -661,6 +668,10 @@ def main():
             robot.step(states[k+1], states[k],u)
             # time.sleep(1)
         print("Done Simulation")
+        robot.mu_planned.append(robot.mu_planned[-1])
+        print(len(robot.appU))
+        print(len(robot.appSt))
+        print(len(robot.mu_planned))
         
         output = {}
         output["feasible"] = 0
@@ -668,8 +679,9 @@ def main():
         output["result"] = {}
         output["result"]["states"] = robot.appSt
         output["result"]["actions"] = robot.appU
-        print(len(robot.appU))
-        print(len(robot.appSt))
+        output["result"]["mu_planned"] = robot.mu_planned
+        print(type(robot.mu_planned))
+        print(type(robot.mu_planned[0]))
         if args.write:
             print('Writing')
             with open(args.out, 'w') as file:
