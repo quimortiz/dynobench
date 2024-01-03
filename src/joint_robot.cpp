@@ -87,14 +87,10 @@ Joint_robot::Joint_robot(
 
   int total_nxs = 0;
   int k_u = 0, k_x = 0;
-<<<<<<< HEAD
   for (auto &robot : jointRobot){
     if (dt != robot->ref_dt){
       ERROR_WITH_INFO("dt is not consistent for the joint robot!");
     }
-=======
-  for (auto &robot : jointRobot) {
->>>>>>> d7bf02a1874140c5455a1baa8f0ebe6c8fdbaa88
     nxs.push_back(robot->nx);
     total_nxs += robot->nx;
 

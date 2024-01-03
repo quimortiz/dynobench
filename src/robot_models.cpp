@@ -36,12 +36,9 @@
 #include "dynobench/quadrotor.hpp"
 #include "dynobench/unicycle1.hpp"
 #include "dynobench/unicycle2.hpp"
-<<<<<<< HEAD
 #include "dynobench/joint_robot.hpp"
 #include "dynobench/integrator1_2d.hpp"
 #include "dynobench/integrator2_3d.hpp"
-=======
->>>>>>> d7bf02a1874140c5455a1baa8f0ebe6c8fdbaa88
 
 // #define dynobench_models "../dynoplan/dynobench/models/"
 #include "dynobench/integrator1_2d.hpp"
