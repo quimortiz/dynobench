@@ -86,7 +86,7 @@ Model_quad2dpole::Model_quad2dpole(const Quad2dpole_params &params,
 
   u_weight = V2d(.5, .5);
   x_weightb = 10. * Vxd::Ones(8);
-  x_weightb.head<4>() = V4d::Zero();
+  x_weightb.head<4>() << 10, 10, 0, 0;
 
   if (params.shape == "box") {
     collision_geometries.push_back(
@@ -148,9 +148,9 @@ void Model_quad2dpole::calcV(Eigen::Ref<Eigen::VectorXd> v,
                              const Eigen::Ref<const Eigen::VectorXd> &x,
                              const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  CHECK_EQ(v.size(), 8, AT);
-  CHECK_EQ(x.size(), 8, AT);
-  CHECK_EQ(u.size(), 2, AT);
+  DYNO_CHECK_EQ(v.size(), 8, AT);
+  DYNO_CHECK_EQ(x.size(), 8, AT);
+  DYNO_CHECK_EQ(u.size(), 2, AT);
 
   double data[6] = {params.I, params.m, params.m_p, params.l, params.r, g};
   double out[4];
@@ -177,8 +177,8 @@ void Model_quad2dpole::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
   assert(static_cast<size_t>(x.size()) == 8);
   assert(static_cast<size_t>(u.size()) == 2);
 
-  CHECK_EQ(x.size(), 8, AT);
-  CHECK_EQ(u.size(), 2, AT);
+  DYNO_CHECK_EQ(x.size(), 8, AT);
+  DYNO_CHECK_EQ(u.size(), 2, AT);
 
   double data[6] = {params.I, params.m, params.m_p, params.l, params.r, g};
   double out[4];

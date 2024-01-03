@@ -16,7 +16,7 @@
 #include <yaml-cpp/yaml.h>
 
 #include "Eigen/Core"
-#include "dynobench/croco_macros.hpp"
+#include "dynobench/dyno_macros.hpp"
 
 #include <fcl/fcl.h>
 
@@ -41,9 +41,9 @@ namespace dynobench {
 // using namespace pinocchio;
 // using namespace crocoddyl;
 
-CompoundState2::CompoundState2(std::shared_ptr<StateQ> s1,
-                               std::shared_ptr<StateQ> s2)
-    : StateQ(s1->nx + s2->nx, s1->ndx + s2->ndx), s1(s1), s2(s2) {}
+CompoundState2::CompoundState2(std::shared_ptr<StateDyno> s1,
+                               std::shared_ptr<StateDyno> s2)
+    : StateDyno(s1->nx + s2->nx, s1->ndx + s2->ndx), s1(s1), s2(s2) {}
 
 Eigen::VectorXd CompoundState2::zero() const {
 
@@ -160,8 +160,8 @@ void RnSOn::diff(const Eigen::Ref<const Eigen::VectorXd> &x0,
                  const Eigen::Ref<const Eigen::VectorXd> &x1,
                  Eigen::Ref<Eigen::VectorXd> dxout) const {
 
-  CHECK_EQ(x0.size(), x1.size(), AT);
-  CHECK_EQ(dxout.size(), x1.size(), AT);
+  DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
+  DYNO_CHECK_EQ(dxout.size(), x1.size(), AT);
   dxout = x1 - x0;
 
   for (auto &i : so2_indices) {
@@ -224,7 +224,7 @@ void RnSOn::Jdiff(const Eigen::Ref<const Eigen::VectorXd> &x0,
 //   v << c * u[0], s * u[0], u[1];
 // }
 
-Model_robot::Model_robot(std::shared_ptr<StateQ> state, size_t nu)
+Model_robot::Model_robot(std::shared_ptr<StateDyno> state, size_t nu)
     : nx(state->nx), nu(nu), state(state) {
 
   u_ref.resize(nu);
@@ -238,6 +238,9 @@ Model_robot::Model_robot(std::shared_ptr<StateQ> state, size_t nu)
 
   u_ub.setConstant(1e8);
   u_lb.setConstant(-1e8);
+
+  u_weight.resize(nu);
+  u_weight.setConstant(.1);
 
   x_weightb.resize(nx);
   x_weightb.setZero();
@@ -274,28 +277,29 @@ Model_robot::Model_robot(std::shared_ptr<StateQ> state, size_t nu)
   r_weight.setOnes(); // default!
 }
 
-int Model_robot::number_of_r_dofs(){
-  return 2;
-}
+// int Model_robot::number_of_r_dofs(){
+//   return 2;
+// }
+//
+// int Model_robot::number_of_so2(){
+//   return 0;
+// }
 
-int Model_robot::number_of_so2(){
-  return 0;
-}
+// void Model_robot::indices_of_so2(int &k, std::vector<size_t> &vect){
+//   vect.push_back(k + 2);
+//   k += 3;
+// }
+//
+// int Model_robot::number_of_robot(){
+//   return 1;
+// }
 
-void Model_robot::indices_of_so2(int &k, std::vector<size_t> &vect){
-  // vect.push_back(k + 2);
-  // k += 3;
-}
-
-int Model_robot::number_of_robot(){
-  return 1;
-}
 // default for collision with (x,y,theta)
 void Model_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  CHECK_GEQ(x.size(), 3, "");
-  CHECK_EQ(ts.size(), 1, "");
+  DYNO_DYNO_CHECK_GEQ(x.size(), 3, "");
+  DYNO_CHECK_EQ(ts.size(), 1, "");
 
   fcl::Transform3d result;
   result = Eigen::Translation<double, 3>(fcl::Vector3d(x(0), x(1), 0));
@@ -317,9 +321,9 @@ bool Model_robot::collision_check(const Eigen::Ref<const Eigen::VectorXd> &x) {
   fcl::DefaultCollisionData<double> collision_data;
 
   transformation_collision_geometries(x, ts_data);
-  CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
+  DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
   assert(collision_geometries.size() == ts_data.size());
-  CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
+  DYNO_CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
   assert(collision_geometries.size() == col_outs.size());
 
   for (size_t i = 0; i < collision_geometries.size(); i++) {
@@ -349,9 +353,9 @@ void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
     // compute all tansforms
 
     transformation_collision_geometries(x, ts_data);
-    CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
     assert(collision_geometries.size() == ts_data.size());
-    CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
     assert(collision_geometries.size() == col_outs.size());
 
     for (size_t i = 0; i < collision_geometries.size(); i++) {
@@ -433,11 +437,14 @@ bool Model_robot::is_state_valid(const Eigen::Ref<const Eigen::VectorXd> &x) {
 
   assert(x.size() == x_lb.size());
   assert(x.size() == x_ub.size());
+  const double tol = 1e-8;
 
-  double d = check_bounds_distance(x, x_lb, x_ub);
-  const double tol = 1e-12;
-  assert(d >= 0);
-  return d < tol;
+  for (size_t i = 0; i < x.size(); i++) {
+    if (x[i] < x_lb[i] - tol || x[i] > x_ub[i] + tol) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // void Model_unicycle1_R2SO2::step(Eigen::Ref<Eigen::VectorXd> xnext,
@@ -601,12 +608,12 @@ void Model_robot::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
 //                              const Eigen::Ref<const Eigen::VectorXd> &x,
 //                              const Eigen::Ref<const Eigen::VectorXd> &u,
 //                              double dt) {
-//   CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
-//   CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
-//   CHECK_EQ(static_cast<size_t>(Fu.cols()), nu + 1, AT);
+//   DYNO_CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
+//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
+//   DYNO_CHECK_EQ(static_cast<size_t>(Fu.cols()), nu + 1, AT);
 //   calcDiffV(__Jv_x, __Jv_u, x, u);
 //   euler_diff(Fx, Fu.block(0, 0, nx, nu), dt, __Jv_x, __Jv_u);
 //   calcV(__v, x, u);
@@ -619,12 +626,12 @@ void Model_robot::stepDiff_with_v(Eigen::Ref<Eigen::MatrixXd> Fx,
                                   const Eigen::Ref<const Eigen::VectorXd> &x,
                                   const Eigen::Ref<const Eigen::VectorXd> &u,
                                   double dt) {
-  CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
-  CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
-  CHECK_EQ(static_cast<size_t>(Fu.cols()), nu, AT);
+  DYNO_CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
+  DYNO_CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Fu.cols()), nu, AT);
 
   calcV(__v, x, u);
   calcDiffV(__Jv_x, __Jv_u, x, u);
@@ -665,20 +672,103 @@ Model_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
   ERROR_WITH_INFO("not implemented");
 }
 
+void Model_robot::transform_primitive2(
+    const Eigen::Ref<const Eigen::VectorXd> &p,
+    const std::vector<Eigen::VectorXd> &xs_in,
+    const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+    // std::vector<Eigen::VectorXd> &xs_out, std::vector<Eigen::VectorXd>
+    // &us_out,
+    std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun,
+    int *num_valid_states) {
+
+  assert(traj_out.get_size());
+  assert(xs_in.size());
+  assert(traj_out.get_size() == xs_in.size());
+  DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
+
+  transform_state(p, xs_in.at(0), traj_out.get_state(0));
+
+  if (is_valid_fun) {
+    assert((*is_valid_fun)(traj_out.get_state(0)));
+  }
+
+  rollout(traj_out.get_state(0), us_in, traj_out, is_valid_fun,
+          num_valid_states);
+
+  if (num_valid_states) {
+    // std::cout << "num_valid_states: " << *num_valid_states << std::endl;
+    // std::cout << "traj_out.get_size(): " << traj_out.get_size() << std::endl;
+    assert(*num_valid_states <= traj_out.get_size());
+  }
+
+  for (size_t i = 0;
+       i < (num_valid_states ? *num_valid_states - 1 : us_in.size()); i++) {
+    traj_out.get_action(i) = us_in[i];
+  }
+}
+
+void Model_robot::transform_primitive(
+    const Eigen::Ref<const Eigen::VectorXd> &p,
+    const std::vector<Eigen::VectorXd> &xs_in,
+    const std::vector<Eigen::VectorXd> &us_in,
+    // std::vector<Eigen::VectorXd> &xs_out, std::vector<Eigen::VectorXd>
+    // &us_out,
+    TrajWrapper &traj_out,
+    std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun,
+    int *num_valid_states) {
+  DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), "");
+
+  // basic transformation is translation invariance
+  DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
+
+  DYNO_CHECK_EQ(traj_out.get_size(), xs_in.size(), AT);
+  DYNO_CHECK_EQ(traj_out.get_state(0).size(), xs_in.front().size(), AT);
+  DYNO_CHECK_EQ(traj_out.get_action(0).size(), us_in.front().size(), AT);
+
+  if (num_valid_states) {
+    *num_valid_states = xs_in.size();
+  }
+  if (translation_invariance) {
+    for (size_t i = 0; i < xs_in.size(); i++) {
+      traj_out.get_state(i) = xs_in[i];
+      traj_out.get_state(i).head(translation_invariance) += p;
+      if (is_valid_fun && !(*is_valid_fun)(traj_out.get_state(i))) {
+        *num_valid_states = i;
+        break;
+      }
+    }
+  } else {
+    for (size_t i = 0; i < xs_in.size(); i++) {
+      traj_out.get_state(i) = xs_in[i];
+    }
+  }
+
+  if (num_valid_states) {
+    assert(*num_valid_states <= xs_in.size());
+    assert(*num_valid_states - 1 <= us_in.size());
+  }
+
+  size_t num_controls = num_valid_states ? *num_valid_states - 1 : us_in.size();
+  for (size_t i = 0; i < num_controls; i++) {
+    traj_out.get_action(i) = us_in[i];
+  }
+}
+
 void linearInterpolation(const Eigen::VectorXd &times,
                          const std::vector<Eigen::VectorXd> &x, double t_query,
-                         const StateQ &state, Eigen::Ref<Eigen::VectorXd> out,
+                         const StateDyno &state,
+                         Eigen::Ref<Eigen::VectorXd> out,
                          Eigen::Ref<Eigen::VectorXd> Jx) {
 
   CHECK(x.size(), AT);
-  CHECK_EQ(x.front().size(), out.size(), AT);
+  DYNO_CHECK_EQ(x.front().size(), out.size(), AT);
 
   // double num_tolerance = 1e-8;
-  // CHECK_GEQ(t_query + num_tolerance, times.head(1)(0), AT);
+  // DYNO_DYNO_CHECK_GEQ(t_query + num_tolerance, times.head(1)(0), AT);
   assert(static_cast<size_t>(times.size()) == static_cast<size_t>(x.size()));
 
   if (times.size() == 1) {
-    CHECK_EQ(x.size(), 1, AT);
+    DYNO_CHECK_EQ(x.size(), 1, AT);
     out = x.front();
     return;
   }
@@ -711,7 +801,7 @@ void linearInterpolation(const Eigen::VectorXd &times,
           break;
         }
       }
-      CHECK_EQ(index, index2, AT);
+      DYNO_CHECK_EQ(index, index2, AT);
     }
   }
 
@@ -721,8 +811,14 @@ void linearInterpolation(const Eigen::VectorXd &times,
   // CSTR_(index);
   // CSTR_(t_query);
 
-  double factor =
-      (t_query - times(index - 1)) / (times(index) - times(index - 1));
+  if (times(index) - times(index - 1) < 1e-6) {
+    std::cout << "WARNING: " << AT << std::endl;
+    std::cout << "times(index) - times(index - 1) < 1e-6" << std::endl;
+    std::cout << times(index) << "  " << times(index - 1) << std::endl;
+  }
+
+  double factor = (t_query - times(index - 1)) /
+                  std::max(times(index) - times(index - 1), 1e-6);
 
   Eigen::VectorXd diff(state.ndx);
   Eigen::VectorXd x0 = x.at(index - 1);
@@ -738,4 +834,5 @@ void linearInterpolation(const Eigen::VectorXd &times,
 
   Jx = J2 * diff / (times(index) - times(index - 1));
 }
+
 } // namespace dynobench

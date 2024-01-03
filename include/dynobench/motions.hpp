@@ -1,6 +1,6 @@
 #pragma once
 #include "Eigen/Core"
-#include "croco_macros.hpp"
+#include "dyno_macros.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "general_utils.hpp"
 #include "math_utils.hpp"
@@ -28,13 +28,13 @@ BOOST_SERIALIZATION_SPLIT_FREE(Eigen::VectorXd)
 template <class Archive>
 void naive_eigen_vector_save(Archive &ar, const Eigen::VectorXd &v) {
   std::vector<double> vv(v.data(), v.data() + v.size());
-  ar &vv;
+  ar & vv;
 }
 
 template <class Archive>
 void naive_eigen_vector_load(Archive &ar, Eigen::VectorXd &v) {
   std::vector<double> vv;
-  ar &vv;
+  ar & vv;
   v = Eigen::VectorXd::Map(vv.data(), vv.size());
 }
 
@@ -67,6 +67,14 @@ double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out,
 double check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out,
                       std::shared_ptr<Model_robot> model, bool verbose);
 
+void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
+                         std::vector<Eigen::VectorXd> &us_out,
+                         Eigen::VectorXd &times,
+                         const std::vector<Eigen::VectorXd> &xs,
+                         const std::vector<Eigen::VectorXd> &us,
+                         const Eigen::VectorXd &ts, double ref_dt,
+                         const std::shared_ptr<StateDyno> &state);
+
 void get_states_and_actions(const YAML::Node &data,
                             std::vector<Eigen::VectorXd> &states,
                             std::vector<Eigen::VectorXd> &actions);
@@ -77,6 +85,8 @@ struct Problem {
   Problem(const std::string &t_file) : Problem(t_file.c_str()){};
   Problem(const char *t_file) : file(t_file) { read_from_yaml(t_file); }
   Problem() = default;
+
+  std::shared_ptr<Model_robot> model_robot;
 
   std::string name; // name of the proble: E.g. bugtrap-car1
   std::string file;
@@ -102,6 +112,12 @@ struct Problem {
   void read_from_yaml(const char *file);
 
   void write_to_yaml(const char *file);
+
+  void to_yaml(std::ostream &out) {
+
+    NOT_IMPLEMENTED;
+    // TODO
+  }
 };
 
 // next: time optimal linear, use so2 space, generate motion primitives
@@ -206,9 +222,9 @@ struct Trajectory {
   size_t num_time_steps = 0; // use this if we want default init guess.
   Eigen::VectorXd times;
 
-
-  std::vector<int> multi_robot_index_goal; // can be used to indicate 
-  // until which index we want to take when solving the joint problem of a multirobot problem.
+  std::vector<int> multi_robot_index_goal; // can be used to indicate
+  // until which index we want to take when solving the joint problem of a
+  // multirobot problem.
 
   void to_yaml_format(std::ostream &out, const std::string &prefix = "") const;
 
@@ -224,66 +240,7 @@ struct Trajectory {
   void check(std::shared_ptr<Model_robot> robot, bool verbose = false);
 
   std::vector<Trajectory>
-  find_discontinuities(std::shared_ptr<Model_robot> &robot) {
-
-    Eigen::VectorXd dts;
-    if (!times.size()) {
-      size_t T = actions.size();
-      dts.resize(T);
-      dts.setOnes();
-      dts.array() *= robot->ref_dt;
-    }
-
-    CHECK(states.size(), AT);
-    CHECK(actions.size(), AT);
-    CHECK(robot, AT);
-    CHECK_EQ(states.size(), actions.size() + 1, AT);
-    CHECK_EQ(static_cast<size_t>(dts.size()),
-             static_cast<size_t>(actions.size()), AT);
-
-    size_t N = actions.size();
-
-    double threshold = 1e-2;
-
-    size_t start_primitive = 0;
-    using Vxd = Eigen::VectorXd;
-    std::vector<Trajectory> trajectories;
-    for (size_t i = 0; i < N; i++) {
-      Vxd xnext(robot->nx);
-      auto &x = states.at(i);
-      auto &u = actions.at(i);
-
-      robot->step(xnext, x, u, dts(i));
-
-      double jump = robot->distance(xnext, states.at(i + 1));
-      if (jump > threshold) {
-        std::cout << "jump of " << jump << std::endl;
-        CSTR_(i);
-        CSTR_V(x);
-        CSTR_V(u);
-        CSTR_V(xnext);
-        CSTR_V(states.at(i + 1));
-
-        Trajectory traj;
-        traj.states = {states.begin() + start_primitive,
-                       states.begin() + i + 1};
-        traj.states.push_back(xnext);
-        traj.actions = {actions.begin() + start_primitive,
-                        actions.begin() + i + 1};
-        start_primitive = i + 1;
-        trajectories.push_back(traj);
-      }
-    }
-    // add the last one
-    if (start_primitive < states.size()) {
-      Trajectory traj;
-      traj.states = {states.begin() + start_primitive, states.end()};
-      traj.actions = {actions.begin() + start_primitive, actions.end()};
-      trajectories.push_back(traj);
-    }
-
-    return trajectories;
-  }
+  find_discontinuities(std::shared_ptr<Model_robot> &robot);
 
   void update_feasibility(
       const Feasibility_thresholds &thresholds = Feasibility_thresholds(),
@@ -293,14 +250,14 @@ struct Trajectory {
 
   template <class Archive>
   inline void serialize(Archive &ar, const unsigned int file_version) {
-    ar &states;
-    ar &actions;
-    ar &cost;
-    ar &feasible;
-    ar &start;
-    ar &goal;
+    ar & states;
+    ar & actions;
+    ar & cost;
+    ar & feasible;
+    ar & start;
+    ar & goal;
     if (file_version > 0) // TODO: check if I can remove the if here
-      ar &info;
+      ar & info;
   }
 
   double distance(const Trajectory &other) const;
@@ -308,6 +265,10 @@ struct Trajectory {
   void save_file_boost(const char *file) const;
 
   void load_file_boost(const char *file);
+
+  Trajectory resample(std::shared_ptr<Model_robot> &robot);
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Trajectory, states, actions);
 };
 
 struct Trajectories {
@@ -317,7 +278,7 @@ struct Trajectories {
   template <class Archive>
   inline void serialize(Archive &ar, const unsigned int file_version) {
     (void)file_version;
-    ar &data;
+    ar & data;
   }
 
   void save_file_boost(const char *file) const;
@@ -362,7 +323,52 @@ struct Trajectories {
     load_file_yaml(load_yaml_safe(file));
   }
 
+  // TODO:
+  // From json to msgpack, and compare speeds!
+
   void compute_stats(const char *filename_out) const;
+
+  void save_file_msgpack(const char *filename) {
+    std::ofstream fout(filename, std::ios::out | std::ios::binary);
+    CHECK(fout.is_open(), "");
+    std::vector<std::uint8_t> v_msgpack = json::to_msgpack(json(*this));
+    fout.write((const char *)v_msgpack.data(), v_msgpack.size());
+    fout.close();
+  }
+
+  void load_file_msgpack(const char *filename) {
+
+    std::cout << "loading file msgpack " << filename << std::endl;
+    std::ifstream fin(filename, std::ios::in | std::ios::binary);
+
+    CHECK(fin.is_open(), "");
+    assert(fin.is_open());
+
+    std::vector<uint8_t> contents;
+    fin.seekg(0, std::ios::end);
+    contents.resize(fin.tellg());
+    fin.seekg(0, std::ios::beg);
+    fin.read((char *)contents.data(), contents.size());
+    fin.close();
+
+    *this = Trajectories(json::from_msgpack(contents));
+  }
+
+  void save_file_json(const char *filename) {
+    std::ofstream out(filename);
+    CHECK(out.is_open(), "");
+    out << json(*this);
+  }
+
+  void load_file_json(const char *filename) {
+    std::ifstream in(filename);
+    CHECK(in.is_open(), "");
+    json j;
+    in >> j;
+    *this = Trajectories(j);
+  }
+
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE(Trajectories, data);
 
   //
 };
@@ -370,14 +376,6 @@ struct Trajectories {
 double max_rollout_error(std::shared_ptr<Model_robot> robot,
                          const std::vector<Eigen::VectorXd> &xs,
                          const std::vector<Eigen::VectorXd> &us);
-
-void resample_trajectory(std::vector<Eigen::VectorXd> &xs_out,
-                         std::vector<Eigen::VectorXd> &us_out,
-                         Eigen::VectorXd &times,
-                         const std::vector<Eigen::VectorXd> &xs,
-                         const std::vector<Eigen::VectorXd> &us,
-                         const Eigen::VectorXd &ts, double ref_dt,
-                         const std::shared_ptr<StateQ> &state);
 
 struct Info_out {
   bool solved = false;
@@ -388,6 +386,7 @@ struct Info_out {
   std::vector<Trajectory> trajs_opt;
   std::vector<std::map<std::string, std::string>> infos_raw;
   std::vector<std::map<std::string, std::string>> infos_opt;
+  std::map<std::string, std::string> data;
 
   Info_out() = default;
   ~Info_out() = default;
@@ -406,6 +405,38 @@ void load_env(Model_robot &robot, const Problem &problem);
 //
 //   kModel_robot &robot, const Problem &problem) {
 
+inline Trajectory trajWrapper_2_Trajectory(TrajWrapper &traj_wrap) {
+
+  Trajectory out;
+  out.states.resize(traj_wrap.get_size());
+  out.actions.resize(traj_wrap.get_size() - 1);
+
+  for (size_t i = 0; i < traj_wrap.get_size(); i++) {
+    out.states.at(i) = traj_wrap.get_state(i);
+  }
+
+  for (size_t i = 0; i < traj_wrap.get_size() - 1; i++) {
+    out.actions.at(i) = traj_wrap.get_action(i);
+  }
+  return out;
+};
+
+inline TrajWrapper Trajectory_2_trajWrapper(Trajectory &traj) {
+  TrajWrapper traj_wrap;
+
+  traj_wrap.allocate_size(traj.states.size(), traj.states.front().size(),
+                          traj.actions.front().size());
+
+  for (size_t i = 0; i < traj_wrap.get_size(); i++) {
+    traj_wrap.get_state(i) = traj.states.at(i);
+  }
+
+  for (size_t i = 0; i < traj_wrap.get_size() - 1; i++) {
+    traj_wrap.get_action(i) = traj.actions.at(i);
+  }
+  return traj_wrap;
+};
+
 Trajectory from_welf_to_quim(const Trajectory &traj_raw, double u_nominal);
 
 Trajectory from_quim_to_welf(const Trajectory &traj_raw, double u_nominal);
@@ -416,6 +447,9 @@ Trajectories cut_trajectory(const Trajectory &traj, size_t number_of_cuts,
 void make_trajs_canonical(Model_robot &robot,
                           const std::vector<Trajectory> &trajs,
                           std::vector<Trajectory> &trajs_canonical);
+
+bool is_motion_collision_free(dynobench::TrajWrapper &traj,
+                              dynobench::Model_robot &robot);
 
 } // namespace dynobench
 //

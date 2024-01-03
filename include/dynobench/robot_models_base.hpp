@@ -1,6 +1,6 @@
 #pragma once
 #include "Eigen/Core"
-#include "croco_macros.hpp"
+#include "dyno_macros.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "general_utils.hpp"
 #include "math_utils.hpp"
@@ -22,8 +22,65 @@
 
 namespace dynobench {
 
-static constexpr double low__ = -std::sqrt(std::numeric_limits<double>::max());
-static constexpr double max__ = std::sqrt(std::numeric_limits<double>::max());
+// TODO: try to allocate states and controls together, and see if there is
+// speedup due to better data locality
+struct TrajWrapper {
+
+  size_t get_size() const { return size; }
+
+  void set_size(size_t i) {
+    assert(i <= states.cols());
+    size = i;
+  }
+
+  void allocate_size(size_t i, size_t t_nx, size_t t_nu) {
+    nx = t_nx;
+    nu = t_nu;
+    size = i;
+    states = Eigen::MatrixXd::Zero(nx, i);
+    actions = Eigen::MatrixXd::Zero(nu, i - 1);
+  }
+
+  auto get_state(size_t i) {
+    assert(i < size);
+    assert(i < states.cols());
+    return states.col(i);
+  }
+
+  auto get_action(size_t i) {
+    assert(i < size - 1);
+    assert(i < states.cols());
+    return actions.col(i);
+  }
+
+  std::vector<Eigen::VectorXd> get_states() {
+    std::vector<Eigen::VectorXd> states_vec;
+    states_vec.reserve(get_size());
+    for (size_t i = 0; i < get_size(); i++) {
+      states_vec.push_back(get_state(i));
+    }
+    return states_vec;
+  }
+
+  std::vector<Eigen::VectorXd> get_actions() {
+    std::vector<Eigen::VectorXd> actions_vec;
+    actions_vec.reserve(get_size());
+    for (size_t i = 0; i < get_size() - 1; i++) {
+      actions_vec.push_back(get_action(i));
+    }
+    return actions_vec;
+  }
+
+private:
+  size_t size;
+  Eigen::MatrixXd states;
+  Eigen::MatrixXd actions;
+  size_t nx;
+  size_t nu;
+};
+
+static double low__ = -std::sqrt(std::numeric_limits<double>::max());
+static double max__ = std::sqrt(std::numeric_limits<double>::max());
 
 struct Obstacle {
   std::string type;
@@ -51,12 +108,12 @@ static std::vector<Eigen::VectorXd> DEFAULT_V;
 static Eigen::VectorXd DEFAULT_E;
 
 // next: time optimal linear, use so2 space, generate motion primitives
-struct StateQ {
+struct StateDyno {
 
   size_t nx;
   size_t ndx;
 
-  StateQ(size_t nx, size_t ndx) : nx(nx), ndx(ndx) {}
+  StateDyno(size_t nx, size_t ndx) : nx(nx), ndx(ndx) {}
 
   virtual Eigen::VectorXd zero() const { ERROR_WITH_INFO("not implemented"); }
 
@@ -117,12 +174,12 @@ struct StateQ {
   }
 };
 
-struct CompoundState2 : StateQ {
+struct CompoundState2 : StateDyno {
 
-  std::shared_ptr<StateQ> s1;
-  std::shared_ptr<StateQ> s2;
+  std::shared_ptr<StateDyno> s1;
+  std::shared_ptr<StateDyno> s2;
 
-  CompoundState2(std::shared_ptr<StateQ> s1, std::shared_ptr<StateQ> s2);
+  CompoundState2(std::shared_ptr<StateDyno> s1, std::shared_ptr<StateDyno> s2);
   virtual ~CompoundState2(){};
 
   virtual Eigen::VectorXd zero() const override;
@@ -143,14 +200,14 @@ struct CompoundState2 : StateQ {
                      Eigen::Ref<Eigen::MatrixXd> Jsecond) const override;
 };
 
-struct RnSOn : StateQ {
+struct RnSOn : StateDyno {
 
   size_t nR;
   size_t nSO2;
   const std::vector<size_t> so2_indices;
   RnSOn(size_t nR, size_t nSO2, const std::vector<size_t> &so2_indices)
-      : StateQ(nR + nSO2, nR + nSO2), so2_indices(so2_indices) {
-    CHECK_EQ(so2_indices.size(), nSO2, AT);
+      : StateDyno(nR + nSO2, nR + nSO2), so2_indices(so2_indices) {
+    DYNO_CHECK_EQ(so2_indices.size(), nSO2, AT);
   }
 
   virtual ~RnSOn(){};
@@ -178,10 +235,10 @@ struct RnSOn : StateQ {
                      Eigen::Ref<Eigen::MatrixXd> Jsecond) const override;
 };
 
-struct Rn : StateQ {
+struct Rn : StateDyno {
 
   size_t nR;
-  Rn(size_t nR) : StateQ(nR, nR) {}
+  Rn(size_t nR) : StateDyno(nR, nR) {}
   virtual ~Rn() {}
 
   virtual Eigen::VectorXd zero() const override;
@@ -220,6 +277,11 @@ struct Model_robot {
 
   bool invariance_reuse_col_shape = true;
   bool is_2d;
+
+  bool transform_primitive_last_state_available = true;
+  // true means that we can know the last state of the transformed primitive
+  // without doing the full rollout
+
   size_t translation_invariance = 0; // e.g. 1, 2 , 3, ...
   std::vector<std::string> x_desc;
   std::vector<std::string> u_desc;
@@ -235,10 +297,18 @@ struct Model_robot {
   Eigen::VectorXd x_lb;
   bool uniform_sampling_u = true;
 
-  virtual int number_of_r_dofs();
-  virtual int number_of_so2();
-  virtual void indices_of_so2(int &k, std::vector<size_t> &vect);
-  virtual int number_of_robot();
+  // virtual int number_of_r_dofs() = 0 ;
+  // virtual int number_of_so2() = 0 ;
+  // virtual void indices_of_so2(int &k, std::vector<size_t> &vect) = 0 ;
+  // virtual int number_of_robot() = 0 ;
+
+  virtual int number_of_r_dofs() { NOT_IMPLEMENTED; }
+  virtual int number_of_so2() { NOT_IMPLEMENTED; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) {
+    NOT_IMPLEMENTED
+  }
+  virtual int number_of_robot() { NOT_IMPLEMENTED; }
+
   // TODO: transition towards this API. The robot model should include
   // regularization features/ineqs...
   virtual void regularization_cost(Eigen::Ref<Eigen::VectorXd> r,
@@ -269,8 +339,10 @@ struct Model_robot {
     xout = xin;
   }
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) { (void)xinout; }
+
   // State
-  std::shared_ptr<StateQ> state;
+  std::shared_ptr<StateDyno> state;
 
   // crocoddyl::StateAbstractTpl> state;
 
@@ -292,20 +364,20 @@ struct Model_robot {
   //
   //
   Model_robot() = default;
-  Model_robot(std::shared_ptr<StateQ> state, size_t nu);
+  Model_robot(std::shared_ptr<StateDyno> state, size_t nu);
 
   // Returns x_0 for optimization. Can depend on a reference point. Default:
   // return the ref point. Reasoning: in some systems, it is better to set the
   // orientation/velocities of x0 to zero
   virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) { return x; }
 
-  void set_position_ub(const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
-    CHECK_EQ(static_cast<size_t>(p_ub.size()), translation_invariance, AT);
+  virtual void set_position_ub(const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
+    DYNO_CHECK_EQ(static_cast<size_t>(p_ub.size()), translation_invariance, AT);
     x_ub.head(translation_invariance) = p_ub;
   }
 
-  void set_position_lb(const Eigen::Ref<const Eigen::VectorXd> &p_lb) {
-    CHECK_EQ(static_cast<size_t>(p_lb.size()), translation_invariance, AT);
+  virtual void set_position_lb(const Eigen::Ref<const Eigen::VectorXd> &p_lb) {
+    DYNO_CHECK_EQ(static_cast<size_t>(p_lb.size()), translation_invariance, AT);
     x_lb.head(translation_invariance) = p_lb;
   }
 
@@ -332,7 +404,7 @@ struct Model_robot {
   virtual void
   setPositionBounds(const Eigen::Ref<const Eigen::VectorXd> &p_lb,
                     const Eigen::Ref<const Eigen::VectorXd> &p_ub) {
-    CHECK_EQ(p_lb.size(), p_ub.size(), AT);
+    DYNO_CHECK_EQ(p_lb.size(), p_ub.size(), AT);
     CHECK((static_cast<size_t>(p_lb.size()) == 2 ||
            static_cast<size_t>(p_lb.size()) == 3),
           AT);
@@ -420,80 +492,143 @@ struct Model_robot {
   virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                           const Eigen::Ref<const Eigen::VectorXd> &y);
 
-  virtual void rollout(const Eigen::Ref<const Eigen::VectorXd> &x0,
-                       const std::vector<Eigen::VectorXd> &us,
-                       std::vector<Eigen::VectorXd> &xs) {
-    CHECK_EQ(us.size() + 1, xs.size(), AT);
+  virtual void rollout(
+      const Eigen::Ref<const Eigen::VectorXd> &x0,
+      const std::vector<Eigen::VectorXd> &us, std::vector<Eigen::VectorXd> &xs,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
 
+    DYNO_CHECK_EQ(us.size() + 1, xs.size(), AT);
+    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
+    if (num_valid_states) {
+      *num_valid_states = xs.size();
+    }
     xs.at(0) = x0;
     for (size_t i = 0; i < us.size(); i++) {
       step(xs.at(i + 1), xs.at(i), us.at(i), ref_dt);
+      if (is_valid_fun && !(*is_valid_fun)(xs.at(i + 1))) {
+        if (num_valid_states) {
+          *num_valid_states = i + 1;
+        }
+        break;
+      }
+    }
+  }
+
+  virtual void rollout(
+      const Eigen::Ref<const Eigen::VectorXd> &x0,
+      const std::vector<Eigen::VectorXd> &us, TrajWrapper &traj,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    DYNO_CHECK_EQ(bool(is_valid_fun), bool(num_valid_states), AT);
+    if (num_valid_states) {
+      *num_valid_states = traj.get_size();
+    }
+    traj.get_state(0) = x0;
+    for (size_t i = 0; i < us.size(); i++) {
+      step(traj.get_state(i + 1), traj.get_state(i), us.at(i), ref_dt);
+      if (is_valid_fun && !(*is_valid_fun)(traj.get_state(i + 1))) {
+        if (num_valid_states) {
+          *num_valid_states = i + 1;
+        }
+        break;
+      }
     }
   }
 
   virtual void transform_state(const Eigen::Ref<const Eigen::VectorXd> &p,
                                const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) {
-
     xout = xin;
     xout.head(translation_invariance) += p;
   }
 
   virtual void canonical_state(const Eigen::Ref<const Eigen::VectorXd> &xin,
                                Eigen::Ref<Eigen::VectorXd> xout) {
-
     xout = xin;
     xout.head(translation_invariance).setZero();
   }
 
   virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
                       Eigen::Ref<Eigen::VectorXd> p) {
-
-    CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, AT);
     p = xin.head(translation_invariance);
   }
 
   virtual size_t get_offset_dim() { return translation_invariance; }
 
-  virtual void transform_primitive(const Eigen::Ref<const Eigen::VectorXd> &p,
-                                   const std::vector<Eigen::VectorXd> &xs_in,
-                                   const std::vector<Eigen::VectorXd> &us_in,
-                                   std::vector<Eigen::VectorXd> &xs_out,
-                                   std::vector<Eigen::VectorXd> &us_out) {
+  virtual void
+  transform_primitive_last_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                                 const std::vector<Eigen::VectorXd> &xs_in,
+                                 const std::vector<Eigen::VectorXd> &us_in,
+                                 Eigen::Ref<Eigen::VectorXd> x_out) {
 
-    // basic transformation is translation invariance
-    CHECK_EQ(static_cast<size_t>(p.size()), translation_invariance, "");
-    // TODO: avoid memory allocation inside this function!!
-
-    CHECK_EQ(us_out.size(), us_in.size(), AT);
-    CHECK_EQ(xs_out.size(), xs_in.size(), AT);
-    CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
-    CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
-
-    for (size_t i = 0; i < us_in.size(); i++) {
-      us_out[i] = us_in[i];
-    }
-
+    assert(xs_in.size());
+    assert(us_in.size() == xs_in.size() - 1);
     if (translation_invariance) {
-      for (size_t i = 0; i < xs_in.size(); i++) {
-        xs_out[i] = xs_in[i];
-        xs_out[i].head(translation_invariance) += p;
-      }
+      x_out = xs_in.back();
+      x_out.head(translation_invariance) += p;
     } else {
-      for (size_t i = 0; i < xs_in.size(); i++) {
-        xs_out[i] = xs_in[i];
-      }
+      x_out = xs_in.back();
     }
   }
+
+  virtual void transform_primitive_last_state_backward(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in,
+      Eigen::Ref<Eigen::VectorXd> x_out) {
+
+    assert(xs_in.size());
+    assert(us_in.size() == xs_in.size() - 1);
+    if (translation_invariance) {
+      x_out = xs_in.back();
+      x_out.head(translation_invariance) += p;
+    } else {
+      x_out = xs_in.back();
+    }
+  }
+
+  virtual bool check_state(const Eigen::Ref<const Eigen::VectorXd> &x,
+                           double tolerance = 1e-2) {
+    bool verbose = false;
+    double d = check_bounds_distance(x, get_x_lb(), get_x_ub());
+    if (d > tolerance && verbose) {
+      std::cout << "X BOUND VIOLATION " << std::endl;
+      CSTR_(d);
+      CSTR_V(x);
+      CSTR_V(get_x_lb());
+      CSTR_V(get_x_ub());
+    }
+    return d < tolerance;
+  }
+
+  virtual void transform_primitive2(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr);
+
+  virtual void transform_primitive(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr);
 
   // x1 - x0
   virtual void state_diff(Eigen::Ref<Eigen::VectorXd> r,
                           const Eigen::Ref<const Eigen::VectorXd> &x0,
                           const Eigen::Ref<const Eigen::VectorXd> &x1) {
-
     // lets just use state
-    CHECK_EQ(r_weight.size(), r.size(), AT);
-    CHECK_EQ(x0.size(), x1.size(), AT);
+    DYNO_CHECK_EQ(r_weight.size(), r.size(), AT);
+    DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
     state->diff(x0, x1, r);
     r.array() *= r_weight.array();
   }
@@ -502,10 +637,9 @@ struct Model_robot {
                               Eigen::Ref<Eigen::MatrixXd> Jx1,
                               const Eigen::Ref<const Eigen::VectorXd> &x0,
                               const Eigen::Ref<const Eigen::VectorXd> &x1) {
-
-    CHECK_EQ(x0.size(), x1.size(), AT);
-    CHECK_EQ(Jx0.cols(), Jx1.cols(), AT);
-    CHECK_EQ(Jx0.rows(), Jx1.rows(), AT);
+    DYNO_CHECK_EQ(x0.size(), x1.size(), AT);
+    DYNO_CHECK_EQ(Jx0.cols(), Jx1.cols(), AT);
+    DYNO_CHECK_EQ(Jx0.rows(), Jx1.rows(), AT);
 
     state->Jdiff(x0, x1, Jx0, Jx1);
     Jx0.diagonal().array() *= r_weight.array();
@@ -527,7 +661,6 @@ struct Model_robot {
   virtual double
   lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                        const Eigen::Ref<const Eigen::VectorXd> &y) {
-
     (void)x;
     (void)y;
     NOT_IMPLEMENTED;
@@ -536,7 +669,6 @@ struct Model_robot {
   virtual double
   lower_bound_time_pr(const Eigen::Ref<const Eigen::VectorXd> &x,
                       const Eigen::Ref<const Eigen::VectorXd> &y) {
-
     (void)x;
     (void)y;
     NOT_IMPLEMENTED;
@@ -567,14 +699,15 @@ struct Model_robot {
 
 void linearInterpolation(const Eigen::VectorXd &times,
                          const std::vector<Eigen::VectorXd> &x, double t_query,
-                         const StateQ &state, Eigen::Ref<Eigen::VectorXd> out,
+                         const StateDyno &state,
+                         Eigen::Ref<Eigen::VectorXd> out,
                          Eigen::Ref<Eigen::VectorXd> Jx);
 
 struct Interpolator {
 
   Eigen::VectorXd times;
   std::vector<Eigen::VectorXd> x;
-  std::shared_ptr<StateQ> state;
+  std::shared_ptr<StateDyno> state;
 
   Interpolator(const Eigen::VectorXd &times,
                const std::vector<Eigen::VectorXd> &x)
@@ -582,9 +715,9 @@ struct Interpolator {
 
   Interpolator(const Eigen::VectorXd &times,
                const std::vector<Eigen::VectorXd> &x,
-               const std::shared_ptr<StateQ> &state)
+               const std::shared_ptr<StateDyno> &state)
       : times(times), x(x), state(state) {
-    CHECK_EQ(static_cast<size_t>(times.size()), x.size(), AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(times.size()), x.size(), AT);
   }
 
   void inline interpolate(double t_query, Eigen::Ref<Eigen::VectorXd> out,

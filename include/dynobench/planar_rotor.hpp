@@ -91,6 +91,13 @@ struct Model_quad2d : Model_robot {
                const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
+  virtual int number_of_r_dofs() override { NOT_IMPLEMENTED; }
+  virtual int number_of_so2() override { NOT_IMPLEMENTED; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
+    NOT_IMPLEMENTED
+  }
+  virtual int number_of_robot() override { NOT_IMPLEMENTED; }
+
   virtual void write_params(std::ostream &out) override { params.write(out); }
 
   virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
@@ -100,6 +107,10 @@ struct Model_quad2d : Model_robot {
     xout(2) = wrap_angle(xin(2));
   }
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
+    xinout(2) = wrap_angle(xinout(2));
+  }
+
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
     x(3) = 0;
     x(4) = 0;
@@ -107,7 +118,7 @@ struct Model_quad2d : Model_robot {
   }
 
   virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) override {
-    CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+    DYNO_CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
     Eigen::VectorXd out(nx);
     out.setZero();
     out.head(2) = x.head(2);
@@ -170,32 +181,101 @@ struct Model_quad2d : Model_robot {
 
   virtual size_t get_offset_dim() override { return 4; }
 
+  virtual void transform_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                               const Eigen::Ref<const Eigen::VectorXd> &xin,
+                               Eigen::Ref<Eigen::VectorXd> xout) override {
+
+    CHECK((p.size() == 2 || p.size() == 4), AT);
+    if (p.size() == 2) {
+      Model_robot::transform_state(p, xin, xout);
+    } else if (p.size() == 4) {
+      xout = xin;
+      xout.head<2>() += p.head<2>();
+      xout.segment<2>(3) += p.tail<2>();
+    }
+  }
+
   virtual void
-  transform_primitive(const Eigen::Ref<const Eigen::VectorXd> &p,
-                      const std::vector<Eigen::VectorXd> &xs_in,
-                      const std::vector<Eigen::VectorXd> &us_in,
-                      std::vector<Eigen::VectorXd> &xs_out,
-                      std::vector<Eigen::VectorXd> &us_out) override {
+  transform_primitive_last_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                                 const std::vector<Eigen::VectorXd> &xs_in,
+                                 const std::vector<Eigen::VectorXd> &us_in,
+                                 Eigen::Ref<Eigen::VectorXd> x_out) override {
 
     CHECK((p.size() == 2 || 4), AT);
 
-    CHECK_EQ(us_out.size(), us_in.size(), AT);
-    CHECK_EQ(xs_out.size(), xs_in.size(), AT);
-    CHECK_EQ(xs_out.front().size(), xs_in.front().size(), AT);
-    CHECK_EQ(us_out.front().size(), us_in.front().size(), AT);
+    if (p.size() == 2) {
+      Model_robot::transform_primitive_last_state(p, xs_in, us_in, x_out);
+
+    } else {
+      x_out = xs_in.back();
+      x_out.head<2>() +=
+          p.head<2>() + us_in.size() * ref_dt * p.tail<2>(); // position
+      x_out.segment<2>(3) += p.tail<2>();                    // velocity
+    }
+  }
+
+  virtual void transform_primitiveDirect(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    assert(is_valid_fun == nullptr);
+    assert(num_valid_states == nullptr);
+
+    for (size_t i = 0; i < traj_out.get_size(); i++) {
+      traj_out.get_state(i).head<2>() += p.head<2>() + i * ref_dt * p.tail<2>();
+      traj_out.get_state(i).segment<2>(3) += p.tail<2>();
+    }
+  }
+
+  virtual void transform_primitiveDirectReverse(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) {
+
+    assert(is_valid_fun == nullptr);
+    assert(num_valid_states == nullptr);
+    assert(xs_in.size());
+    assert(xs_in.size() == us_in.size() + 1);
+
+    for (size_t i = 0; i < traj_out.get_size(); i++) {
+      traj_out.get_state(i) = xs_in[i];
+      traj_out.get_state(i).head<2>() +=
+          p.head<2>() -
+          i * ref_dt *
+              p.tail<2>(); // minus here because we go backwards in time
+      traj_out.get_state(i).segment<2>(3) += p.tail<2>();
+      if (i < traj_out.get_size() - 1) {
+        traj_out.get_action(i) = us_in[i];
+      }
+    }
+  }
+
+  virtual void transform_primitive(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) override {
+
+    CHECK((p.size() == 2 || 4), AT);
 
     if (p.size() == 2) {
-      Model_robot::transform_primitive(p, xs_in, us_in, xs_out, us_out);
+      Model_robot::transform_primitive(p, xs_in, us_in, traj_out,
+                                       // xs_out, us_out,
+                                       is_valid_fun, num_valid_states);
     } else {
-
-      for (size_t i = 0; i < us_in.size(); i++) {
-        us_out[i] = us_in[i];
-      }
-
-      xs_out.front() = xs_in.front();
-      xs_out.front().head(2) += p.head(2);
-      xs_out.front().segment(3, 2) += p.tail(2);
-      rollout(xs_out.front(), us_in, xs_out);
+      Model_robot::transform_primitive2(p, xs_in, us_in, traj_out,
+                                        // xs_out, us_out,
+                                        is_valid_fun, num_valid_states);
     }
   }
 };

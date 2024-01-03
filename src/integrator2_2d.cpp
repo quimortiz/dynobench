@@ -19,9 +19,7 @@
 
 namespace dynobench {
 
-void
-
-Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
+void Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(shape));
   set_from_yaml(node, VAR_WITH_NAME(dt));
   set_from_yaml(node, VAR_WITH_NAME(max_vel));
@@ -78,6 +76,9 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
   x_lb << low__, low__, -params.max_vel, -params.max_vel;
   x_ub << max__, max__, params.max_vel, params.max_vel;
 
+  u_weight << 1., 1.;
+  x_weightb << 100, 100, 100, 100; // TODO: change!!
+
   // add bounds on position if provided
   if (p_lb.size() && p_ub.size()) {
     set_position_lb(p_lb);
@@ -95,9 +96,7 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
     ERROR_WITH_INFO("not implemented");
   }
 }
-int Integrator2_2d::number_of_r_dofs(){
-  return 4;
-}
+int Integrator2_2d::number_of_r_dofs() { return 4; }
 // DISTANCE AND TIME (cost) - BOUNDS
 
 double

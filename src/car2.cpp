@@ -67,13 +67,13 @@ Model_car2::Model_car2(const Car2_params &params, const Eigen::VectorXd &p_lb,
 double Model_car2::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                             const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  CHECK_EQ(x.size(), 5, AT);
-  CHECK_EQ(y.size(), 5, AT);
-  CHECK_LEQ(y(2), M_PI, AT);
-  CHECK_GEQ(y(2), -M_PI, AT);
-  CHECK_LEQ(x(2), M_PI, AT);
-  CHECK_GEQ(x(2), -M_PI, AT);
-  CHECK_EQ(params.distance_weights.size(), 4, AT);
+  DYNO_CHECK_EQ(x.size(), 5, AT);
+  DYNO_CHECK_EQ(y.size(), 5, AT);
+  DYNO_CHECK_LEQ(y(2), M_PI, AT);
+  DYNO_DYNO_CHECK_GEQ(y(2), -M_PI, AT);
+  DYNO_CHECK_LEQ(x(2), M_PI, AT);
+  DYNO_DYNO_CHECK_GEQ(x(2), -M_PI, AT);
+  DYNO_CHECK_EQ(params.distance_weights.size(), 4, AT);
   double d = params.distance_weights(0) * (x.head<2>() - y.head<2>()).norm() +
              params.distance_weights(1) * so2_distance(x(2), y(2)) +
              params.distance_weights(2) * std::abs(x(3) - y(3)) +
@@ -115,14 +115,14 @@ void Model_car2::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                            const Eigen::Ref<const Eigen::VectorXd> &x,
                            const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  CHECK_EQ(static_cast<size_t>(Jv_x.rows()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_u.rows()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_x.rows()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_u.rows()), nx, AT);
 
-  CHECK_EQ(static_cast<size_t>(Jv_x.cols()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_u.cols()), nu, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_x.cols()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_u.cols()), nu, AT);
 
-  CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(u.size()), nu, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(u.size()), nu, AT);
 
   const double &v = x(3);
   const double &phi = x(4);

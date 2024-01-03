@@ -95,19 +95,24 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
 
     if args.store:
         if is_3d:
+            ax.xaxis.set_ticklabels([])
+            ax.yaxis.set_ticklabels([])
+            ax.zaxis.set_ticklabels([])
+
             # for line in ax.xaxis.get_ticklines():
             #     line.set_visible(False)
             # for line in ax.yaxis.get_ticklines():
             #     line.set_visible(False)
             # for line in ax.zaxis.get_ticklines():
             #     line.set_visible(False)
-
-            ax.set_axis_off()
+            #
+            # ax.set_axis_off()
 
             # ax.set_xticks([])
             # ax.set_yticks([])
             # ax.set_zticks([])
 
+            pass
         if not is_3d:
             fig.tight_layout()
 
@@ -249,8 +254,8 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
 
         filename_video = ""
 
-        # Path("/tmp/dbastar").mkdir(parents=True, exist_ok=True)
-        # viewer = viewer.make_video(env, result, "/tmp/dbastar/tmp.mp4")
+        # Path("/tmp/dynoplan").mkdir(parents=True, exist_ok=True)
+        # viewer = viewer.make_video(env, result, "/tmp/dynoplan/tmp.mp4")
 
         if args.store:
             if args.out == "auto":
@@ -258,7 +263,7 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
             else:
                 filename_video = args.out.replace(".pdf", "-solution.mp4")
 
-            # print("copy from /tmp/dbastar/tmp.mp4 to", name_out)
-            # shutil.copy("/tmp/dbastar/tmp.mp4", name_out)
+            # print("copy from /tmp/dynoplan/tmp.mp4 to", name_out)
+            # shutil.copy("/tmp/dynoplan/tmp.mp4", name_out)
 
         viewer.make_video(env, result, filename_video, interactive=args.interactive)

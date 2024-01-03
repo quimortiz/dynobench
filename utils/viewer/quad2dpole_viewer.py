@@ -53,7 +53,9 @@ class Robot:
 
         print(**kwargs)
         # ax.plot([p[0] for p in ps], [p[1] for p in ps], **kwargs)
-        color = plt.gca().lines[-1].get_color()
+        # color = plt.gca().lines[-1].get_color()
+        # color = "blue"
+        color = "C0"
         ax.plot([p[0] for p in ps], [p[1] for p in ps], color=color)
 
     def draw_basic(self, ax, X, fill=None, color="k", l=0.05, alpha=1.0, **kwargs):

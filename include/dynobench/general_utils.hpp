@@ -13,7 +13,7 @@
 #include <boost/program_options.hpp>
 #include <boost/smart_ptr.hpp>
 
-#include "croco_macros.hpp"
+#include "dyno_macros.hpp"
 #include "math_utils.hpp"
 #include "yaml-cpp/yaml.h"
 #include <chrono>
@@ -25,6 +25,9 @@ template <class T> using ptrs = std::shared_ptr<T>;
 template <typename T, typename... Args> auto mk(Args &&...args) {
   return boost::make_shared<T>(std::forward<Args>(args)...);
 }
+
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
 
 inline std::string gen_random(const int len) {
   static const char alphanum[] = "0123456789"
@@ -76,6 +79,13 @@ auto timed_fun(Fun fun, Args &&...args) {
   auto tac = std::chrono::high_resolution_clock::now();
   return std::make_pair(
       out, std::chrono::duration<double, std::milli>(tac - tic).count());
+}
+
+template <typename Fun> auto timed_fun_void(Fun fun) {
+  auto tic = std::chrono::high_resolution_clock::now();
+  fun();
+  auto tac = std::chrono::high_resolution_clock::now();
+  return std::chrono::duration<double, std::milli>(tac - tic).count();
 }
 
 namespace po = boost::program_options;
@@ -335,3 +345,21 @@ struct Loader {
     }
   }
 };
+
+namespace Eigen {
+
+void inline from_json(const json &j, Eigen::VectorXd &vector) {
+  vector.resize(j.size());
+  for (std::size_t row = 0; row < j.size(); ++row) {
+    const auto &jrow = j.at(row);
+    vector(row) = jrow.get<double>();
+  }
+}
+
+void inline to_json(json &j, const Eigen::VectorXd &vector) {
+  for (int i = 0; i < vector.size(); ++i) {
+    j.push_back(vector(i));
+  }
+}
+
+} // namespace Eigen

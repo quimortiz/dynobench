@@ -16,7 +16,7 @@ int get_robot_num(const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
   return num;
 }
 std::vector<size_t> inline get_so2_indices(
-                    const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
+    const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
   std::vector<size_t> out;
   int k = 0;
   for (auto robot : jointRobot) {
@@ -41,38 +41,60 @@ int get_s(const std::vector<int> &v_s) {
   return std::accumulate(v_s.begin(), v_s.end(), 0);
 }
 
-int get_number_of_r_dofs(const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
+int get_number_of_r_dofs(
+    const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
   int counter = 0;
   for (auto &robot : jointRobot) {
-      counter += robot->number_of_r_dofs();
-    }
+    counter += robot->number_of_r_dofs();
+  }
   return counter;
 }
-int get_number_of_us(const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
+int get_number_of_us(
+    const std::vector<std::shared_ptr<Model_robot>> &jointRobot) {
   int counter = 0;
   for (auto &robot : jointRobot) {
-      counter += robot->nu;
-    }
+    counter += robot->nu;
+  }
   return counter;
 }
 
-Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointRobot,
-                         const Eigen::VectorXd &p_lb, 
-                         const Eigen::VectorXd &p_ub)
+Joint_robot::Joint_robot(
+    const std::vector<std::shared_ptr<Model_robot>> &jointRobot,
+    const Eigen::VectorXd &p_lb, const Eigen::VectorXd &p_ub)
     : Model_robot(std::make_shared<RnSOn>(get_number_of_r_dofs(jointRobot),
                                           get_so2(jointRobot),
                                           get_so2_indices(jointRobot)),
                   get_number_of_us(jointRobot)) {
+
+  bool all_equal;
+  double first_dt = jointRobot[0]->ref_dt;
+  for (auto &robot : jointRobot) {
+    all_equal = (std::abs(robot->ref_dt - first_dt) < 1e-12);
+    if (!all_equal) {
+      break;
+    }
+  }
+
+  if (!all_equal) {
+    throw std::runtime_error("Warning: the robots have different dt");
+  }
+
+  ref_dt = first_dt;
+
   so2_indices = get_so2_indices(jointRobot);
   v_jointRobot = jointRobot;
   int robot_num = get_robot_num(jointRobot);
 
   int total_nxs = 0;
   int k_u = 0, k_x = 0;
+<<<<<<< HEAD
   for (auto &robot : jointRobot){
     if (dt != robot->ref_dt){
       ERROR_WITH_INFO("dt is not consistent for the joint robot!");
     }
+=======
+  for (auto &robot : jointRobot) {
+>>>>>>> d7bf02a1874140c5455a1baa8f0ebe6c8fdbaa88
     nxs.push_back(robot->nx);
     total_nxs += robot->nx;
 
@@ -80,28 +102,30 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
     u_desc.insert(u_desc.end(), robot->u_desc.begin(), robot->u_desc.end());
 
     size_t size_u = robot->u_lb.size();
-    u_lb.segment(k_u, size_u) = robot->u_lb; 
-    u_ub.segment(k_u, size_u) = robot->u_ub; 
+    u_lb.segment(k_u, size_u) = robot->u_lb;
+    u_ub.segment(k_u, size_u) = robot->u_ub;
     k_u += size_u;
 
     size_t size_x = robot->x_ub.size();
     x_lb.segment(k_x, size_x) = robot->x_lb;
     x_ub.segment(k_x, size_x) = robot->x_ub;
     k_x += size_x;
-    
-    collision_geometries.insert(collision_geometries.end(), robot->collision_geometries.begin(), robot->collision_geometries.end());
+
+    collision_geometries.insert(collision_geometries.end(),
+                                robot->collision_geometries.begin(),
+                                robot->collision_geometries.end());
     // needed or automatically called by default ?
     robot->set_position_lb(p_lb);
     robot->set_position_ub(p_ub);
   }
-  
+
   col_mng_robots_ = std::make_shared<fcl::DynamicAABBTreeCollisionManagerd>();
   col_mng_robots_->setup();
   is_2d = true;
-  ts_data.resize(robot_num); 
+  ts_data.resize(robot_num);
   col_outs.resize(robot_num);
 
-  nx_col = nx; 
+  nx_col = nx;
   nx_pr = nx_col;
   ref_dt = dt;
   // translation_invariance = 3; 
@@ -111,9 +135,9 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
   u_weight.setConstant(.2);
   x_weightb.resize(total_nxs);
   int k_xw = 0;
-  for (auto &robot : jointRobot){
+  for (auto &robot : jointRobot) {
     size_t size_xw = robot->x_weightb.size();
-    x_weightb.segment(k_xw, size_xw); // fix Quim's weights
+    x_weightb.segment(k_xw, size_xw) = robot->x_weightb;
     k_xw += size_xw;
   }
   part_objs_.clear();
@@ -125,23 +149,24 @@ Joint_robot::Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointR
 
 void Joint_robot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
   int k_su = 0;
-  for (auto &robot : v_jointRobot){
+  for (auto &robot : v_jointRobot) {
     size_t size_nx = robot->nx;
-    robot->sample_uniform(x.segment(k_su, size_nx)); 
+    robot->sample_uniform(x.segment(k_su, size_nx));
     k_su += size_nx;
   }
 }
 
 void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
                         const Eigen::Ref<const Eigen::VectorXd> &x,
-                        const Eigen::Ref<const Eigen::VectorXd> &u){
+                        const Eigen::Ref<const Eigen::VectorXd> &u) {
   int k_v = 0, k_x = 0, k_u = 0;
   size_t size_nx, size_nu, size_v;
-  for (auto &robot : v_jointRobot){
+  for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
     size_nu = robot->nu;
     size_v = size_nx;
-    robot->calcV(v.segment(k_v, size_nx), x.segment(k_x, size_nx), u.segment(k_u, size_nu)); 
+    robot->calcV(v.segment(k_v, size_nx), x.segment(k_x, size_nx),
+                 u.segment(k_u, size_nu));
     k_v += size_nx;
     k_x += size_nx;
     k_u += size_nu;
@@ -164,22 +189,23 @@ void Joint_robot::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 
   int k_x = 0, k_u = 0;
   size_t size_nx, size_nu;
-  for (auto &robot : v_jointRobot){
+  for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
     size_nu = robot->nu;
-    robot->calcDiffV(Jv_x.block(k_x,k_x,size_nx,size_nx), Jv_u.block(k_x,k_u,size_nx,size_nu),
-                      x.segment(k_x, size_nx), u.segment(k_u, size_nu)); 
+    robot->calcDiffV(Jv_x.block(k_x, k_x, size_nx, size_nx),
+                     Jv_u.block(k_x, k_u, size_nx, size_nu),
+                     x.segment(k_x, size_nx), u.segment(k_u, size_nu));
     k_x += size_nx;
     k_u += size_nu;
   }
 }
 
 double Joint_robot::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                             const Eigen::Ref<const Eigen::VectorXd> &y){
+                             const Eigen::Ref<const Eigen::VectorXd> &y) {
   double sum = 0;
   size_t size_nx;
   int k_x = 0;
-  for (auto &robot : v_jointRobot){
+  for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
     sum += robot->distance(x.segment(k_x, size_nx), y.segment(k_x, size_nx));
     k_x += size_nx;
@@ -195,33 +221,35 @@ void Joint_robot::interpolate(Eigen::Ref<Eigen::VectorXd> xt,
   assert(dt >= 0);
   size_t size_nx;
   int k_x = 0;
-  for (auto &robot : v_jointRobot){
+  for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
-    robot->interpolate(xt.segment(k_x, size_nx), from.segment(k_x, size_nx), to.segment(k_x, size_nx), dt);
+    robot->interpolate(xt.segment(k_x, size_nx), from.segment(k_x, size_nx),
+                       to.segment(k_x, size_nx), dt);
     k_x += size_nx;
   }
 }
 
-double Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
-                              const Eigen::Ref<const Eigen::VectorXd> &y){
+double
+Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
+                              const Eigen::Ref<const Eigen::VectorXd> &y) {
   size_t size_nx;
   int k_x = 0;
-  for (auto &robot : v_jointRobot){
+  for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
     robot->lower_bound_time(x.segment(k_x, size_nx), y.segment(k_x, size_nx));
     k_x += size_nx;
   }
 }
 
-
 void Joint_robot::transformation_collision_geometries(
-    const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts){
-  size_t size_nx, size_ts = 1;
+    const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
+  size_t size_nx, size_ts;
   int k_x = 0, k_ts = 0;
   std::vector<Transform3d> tmp;
-  for (auto &robot : v_jointRobot){
+  for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
-    if(robot->name == "car_with_trailers"){
+    size_ts = 1;
+    if (robot->name == "car_with_trailers") {
       size_ts = 2;
     }
     std::vector<Transform3d> tmp_ts(size_ts);
@@ -239,9 +267,9 @@ void Joint_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
   bool check_parts = true;
   if (env) {
     transformation_collision_geometries(x, ts_data);
-    CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
     assert(collision_geometries.size() == ts_data.size());
-    CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
+    DYNO_CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
     assert(collision_geometries.size() == col_outs.size());
     robot_objs_.clear();
     col_mng_robots_->clear();

@@ -64,6 +64,7 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
   u_weight.resize(2);
   u_weight.setConstant(.2);
   x_weightb = V3d::Zero();
+  x_weightb << 100, 100, 0;
 
   std::cout << "in " << __FILE__ << ": " << __LINE__ << std::endl;
   std::cout << STR_V(u_lb) << std::endl;
@@ -85,15 +86,11 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
   }
 }
 // get number of dof for the constructor
-int Model_unicycle1::number_of_r_dofs(){
-  return 2;
-}
+int Model_unicycle1::number_of_r_dofs() { return 2; }
 // get the number of so2 for the constructor
-int Model_unicycle1::number_of_so2(){
-  return 1;
-}
+int Model_unicycle1::number_of_so2() { return 1; }
 
-void Model_unicycle1::indices_of_so2(int &k, std::vector<size_t> &vect){
+void Model_unicycle1::indices_of_so2(int &k, std::vector<size_t> &vect) {
   vect.push_back(k + 2);
   k += 3;
 }
@@ -112,6 +109,9 @@ void Model_unicycle1::calcV(Eigen::Ref<Eigen::VectorXd> v,
   // CHECK_EQ(v.size(), 3, AT);
   // CHECK_EQ(x.size(), 3, AT);
   // CHECK_EQ(u.size(), 2, AT);
+  DYNO_CHECK_EQ(v.size(), 3, AT);
+  DYNO_CHECK_EQ(x.size(), 3, AT);
+  DYNO_CHECK_EQ(u.size(), 2, AT);
 
   const double c = cos(x[2]);
   const double s = sin(x[2]);

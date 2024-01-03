@@ -1,2 +1,2 @@
-dynamics: "Integrator2_2d"
+dynamics: "integrator2_2d"
 # use default parameters

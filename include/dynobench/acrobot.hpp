@@ -88,6 +88,12 @@ struct Model_acrobot : Model_robot {
     xout(1) = wrap_angle(xin(1));
   }
 
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
+
+    xinout(0) = wrap_angle(xinout(0));
+    xinout(1) = wrap_angle(xinout(1));
+  }
+
   double calcEnergy(const Eigen::Ref<const Eigen::VectorXd> &x);
 
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> f,
@@ -106,6 +112,13 @@ struct Model_acrobot : Model_robot {
                            const Eigen::Ref<const Eigen::VectorXd> &from,
                            const Eigen::Ref<const Eigen::VectorXd> &to,
                            double dt) override;
+
+  virtual int number_of_r_dofs() override { NOT_IMPLEMENTED; }
+  virtual int number_of_so2() override { NOT_IMPLEMENTED; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
+    NOT_IMPLEMENTED;
+  }
+  virtual int number_of_robot() override { NOT_IMPLEMENTED; }
 
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,

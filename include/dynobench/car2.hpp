@@ -63,6 +63,12 @@ struct Model_car2 : Model_robot {
     ERROR_WITH_INFO("not implemented");
   };
 
+  virtual int number_of_r_dofs() override { NOT_IMPLEMENTED; }
+  virtual int number_of_so2() override { NOT_IMPLEMENTED; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
+    NOT_IMPLEMENTED
+  }
+  virtual int number_of_robot() override { NOT_IMPLEMENTED; }
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> f,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;

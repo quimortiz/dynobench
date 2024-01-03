@@ -1,6 +1,10 @@
 #pragma once
 
 #include <iostream>
+#include <sstream>
+
+#define BOOST_STACKTRACE_USE_ADDR2LINE
+#include <boost/stacktrace.hpp>
 
 #define NAMEOF(variable) #variable
 
@@ -30,11 +34,17 @@
 
 #define CSTR_V(x) std::cout << STR_V(x) << std::endl;
 
+std::string inline add_stacktrace(const std::string &msg) {
+
+  return "\nMSG: " + msg + "\n" + "STACKTRACE: \n" +
+         boost::stacktrace::to_string(boost::stacktrace::stacktrace()) + "\n";
+}
+
 #define CHECK(A, msg)                                                          \
   if (!A) {                                                                    \
     std::cout << "CHECK failed: '" << #A << " " << A << " '"                   \
-              << " -- " << msg << "AT: " << AT << std::endl;                   \
-    throw std::runtime_error(msg);                                             \
+              << " -- " << add_stacktrace(msg) << "AT: " << AT << std::endl;   \
+    throw std::runtime_error(add_stacktrace(msg));                             \
   }
 
 #define WARN(A, msg)                                                           \
@@ -43,70 +53,72 @@
               << " -- " << msg << std::endl;                                   \
   }
 
-#define CHECK_EQ(A, B, msg)                                                    \
+#define DYNO_CHECK_EQ(A, B, msg)                                               \
   if (!(A == B)) {                                                             \
-    std::cout << "CHECK_EQ failed: '" << #A << "'=" << A << " '" << #B         \
-              << "'=" << B << " -- " << msg << std::endl                       \
+    std::cout << "DYNO_CHECK_EQ failed: '" << #A << "'=" << A << " '" << #B    \
+              << "'=" << B << " -- " << add_stacktrace(msg) << std::endl       \
               << "AT: " << AT << std::endl;                                    \
-    throw std::runtime_error(msg);                                             \
+    throw std::runtime_error(add_stacktrace(msg));                             \
   }
 
 #define CHECK_NEQ(A, B, msg)                                                   \
   if (A == B) {                                                                \
     std::cout << "CHECK_NEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << std::endl                       \
+              << "'=" << B << " -- " << add_stacktrace(msg) << std::endl       \
               << "AT: " << AT << std::endl;                                    \
-    throw std::runtime_error(msg);                                             \
+    throw std::runtime_error(add_stacktrace(msg));                             \
   }
 
-#define CHECK_GEQ(A, B, msg)                                                   \
+#define DYNO_DYNO_CHECK_GEQ(A, B, msg)                                         \
   if (!(A >= B)) {                                                             \
-    std::cout << "CHECK_GEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << std::endl                       \
+    std::cout << "DYNO_DYNO_CHECK_GEQ failed: '" << #A << "'=" << A << " '"    \
+              << #B << "'=" << B << " -- " << add_stacktrace(msg) << std::endl \
               << "AT: " << AT << std::endl;                                    \
-    throw std::runtime_error(msg);                                             \
+    throw std::runtime_error(add_stacktrace(msg));                             \
   }
 
-#define WARN_GEQ(A, B, msg)                                                    \
+#define DYNO_WARN_GEQ(A, B, msg)                                               \
   if (!(A >= B)) {                                                             \
-    std::cout << "WARN_GEQ failed: '" << #A << "'=" << A << " '" << #B         \
+    std::cout << "DYNO_WARN_GEQ failed: '" << #A << "'=" << A << " '" << #B    \
               << "'=" << B << " -- " << msg << std::endl                       \
               << AT << std::endl;                                              \
-    std::cerr << "WARN_GEQ failed: '" << #A << "'=" << A << " '" << #B         \
+    std::cerr << "DYNO_WARN_GEQ failed: '" << #A << "'=" << A << " '" << #B    \
               << "'=" << B << " -- " << msg << std::endl                       \
               << AT << std::endl;                                              \
   }
 
-#define CHECK_LEQ(A, B, msg)                                                   \
+#define DYNO_CHECK_LEQ(A, B, msg)                                              \
   if (!(A <= B)) {                                                             \
-    std::cout << "CHECK_LEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << std::endl                       \
+    std::cout << "DYNO_CHECK_LEQ failed: '" << #A << "'=" << A << " '" << #B   \
+              << "'=" << B << " -- " << add_stacktrace(msg) << std::endl       \
               << "AT: " << AT << std::endl;                                    \
-    throw std::runtime_error(msg);                                             \
+    throw std::runtime_error(add_stacktrace(msg));                             \
   }
 
-#define CHECK_GE(A, B, msg)                                                    \
+#define DYNO_CHECK_GE(A, B, msg)                                               \
   if (!(A > B)) {                                                              \
-    std::cout << "CHECK_GE failed: '" << #A << "'=" << A << " '" << #B         \
-              << "'=" << B << " -- " << msg << "AT: " << AT << std::endl;      \
-    throw std::runtime_error(msg);                                             \
+    std::cout << "DYNO_CHECK_GE failed: '" << #A << "'=" << A << " '" << #B    \
+              << "'=" << B << " -- " << add_stacktrace(msg) << "AT: " << AT    \
+              << std::endl;                                                    \
+    throw std::runtime_error(add_stacktrace(msg));                             \
   }
 
-#define CHECK_SEQ(A, B, msg)                                                   \
+#define DYNO_CHECK_SEQ(A, B, msg)                                              \
   if (!(A <= B)) {                                                             \
-    std::cout << "CHECK_SEQ failed: '" << #A << "'=" << A << " '" << #B        \
-              << "'=" << B << " -- " << msg << "AT: " << AT << std::endl;      \
-    throw std::runtime_error(msg);                                             \
+    std::cout << "DYNO_CHECK_SEQ failed: '" << #A << "'=" << A << " '" << #B   \
+              << "'=" << B << " -- " << add_stacktrace(msg) << "AT: " << AT    \
+              << std::endl;                                                    \
+    throw std::runtime_error(add_stacktrace(msg));                             \
   }
 
 #define ERROR_WITH_INFO(msg)                                                   \
   throw std::runtime_error(std::string("--ERROR-- ") + __FILE__ +              \
                            std::string(":") + std::to_string(__LINE__) +       \
-                           " \"" + std::string(msg) + "\"\n");
+                           " \"" + add_stacktrace(msg) + "\"\n");
 
 #define NOT_IMPLEMENTED ERROR_WITH_INFO("not implemented")
 
 #define WARN_WITH_INFO(msg)                                                    \
   std::cout << __FILE__ + std::string(":") + std::to_string(__LINE__) + "\"" + \
-                   std::string(msg) + "\"\n"                                   \
+                   msg + "\"\n"                                                \
             << std::endl;

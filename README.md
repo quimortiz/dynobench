@@ -9,7 +9,41 @@ Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop
 <img src="assets/dynobench.png" width=50% height=50%>
 </p >
 
+
 You will find multiple planners in [Dynoplan](https://github.com/quimortiz/dynoplan) 🦖
+
+## Robots and Problem Description
+
+TODO
+
+## Motion Primitives
+
+
+Acrobot
+<p align="center">
+<img src="assets/motions/primitives-acrobot.png" width=50% height=auto>
+</p >
+
+Planar Rotor
+<p align="center">
+<img src="assets/motions/primitives-quad2d.png" width=50% height=auto>
+</p >
+
+Planar Rotor Pole
+<p align="center">
+<img src="assets/motions/primitives-quad2dpole.png" width=50% height=auto>
+</p >
+
+Quadrotor
+<p align="center">
+<img src="assets/motions/primitives-quad3d.png" width=50% height=auto>
+</p >
+
+Unicycle1
+<p align="center">
+<img src="assets/motions/primitives-unicycle1.png" width=50% height=auto>
+</p >
+
 
 # Using Dynobench
 
@@ -23,7 +57,7 @@ Using `cmake`, import the library with:
 ```cmake
 add_subdirectory(dynobench EXCLUDE_FROM_ALL) # use EXCLUDE_FROM_ALL to avoid
                                              # building the tests
-...cmake
+...
 target_link_libraries(
   my_target
   PRIVATE dynobench::dynobench )
@@ -99,12 +133,12 @@ target_link_libraries(main PRIVATE dynobench::dynobench yaml-cpp)
 ### Python Viewer
 
 Check the viewers with:
-```
+```bash
  python3 ../utils/viewer/viewer_test.py
 ```
 and
 
-```
+```bash
 VISUALIZE=1 python3 ../utils/viewer/viewer_test.py
 ```
 
@@ -131,10 +165,8 @@ In this short tutorial, we summarize the steps we followed to add the model
 
 `Integrator2_2d` is a double integrator in 2d:
 
-State: $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$
-Control:  $\mathbf{u} = [\ddot{x} , \ddot{y}]$
-Second order dynamics: $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$
-Step function $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
+The state is $\mathbf{x} = [x,y, \dot{x}, \dot{y}]$, control is $\mathbf{u} = [\ddot{x} , \ddot{y}]$.
+Second order dynamics are $\frac{d}{d t}[ \dot{x}, \dot{y} ]  =  \mathbf{u}$. Thus, the step function is $\mathbf{x}_{k+1} = A \mathbf{x} + B \mathbf{u} $
 with:
 
 ```math
@@ -155,12 +187,10 @@ B =
 \end{bmatrix}
 ```
 
-Control Bounds:  $|u_x| \leq 1$,  $|u_y| \leq 1$
-
-State Bounds: $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $
+Control Bounds are $|u_x| \leq 1$,  $|u_y| \leq 1$, and state bounds on velocity $|\dot{x}| \leq 1 $,  $|\dot{y}| \leq 1 $.
 
 First, we have implemented a new class in `src/integrator2_2d.cpp` and `include/dynobench/integrator2_2d.hpp`. We store all parameters in a separate class, `Integrator2_2d_params`.
-A robot model implements 4 big functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision . Check the code!
+A robot model implements 4 main functionalities: distance and cost bounds between states, a dynamics function, bounds on state and control, and collision against obstacles. Check the code!
 
 ```cpp
 // dynobench/double_integrator_2d.hpp and src/double_integrator_2d.hpp
@@ -228,6 +258,7 @@ class Robot :
 
 class Integrator2_2dViewer (RobotViewer):
 ```
+
 `RobotViewer` is a base class that provides default functionality. `Robot` is the class that draws the robot (e.g. using a rectangle )
 
 
@@ -279,6 +310,53 @@ BOOST_AUTO_TEST_CASE(t_opti_integrator2) {
 
 
 The planners in Dynoplan that depend on OMPL require to implement a small wrapper to interace with OMPL.
+
+
+
+## More Motion Primitives
+
+You will find a small set of motion primitives for each system in  [dynobench](https://github.com/quimortiz/dynobench).
+
+A large set of primitives for each system can be downloaded from Google Drive. This can be done manually with a web browser or using the command line with [gdown](https://github.com/wkentaro/gdown). For example:
+
+```bash
+gdown --fuzzy "https://drive.google.com/file/d/1r_ecGwdfvWnVWxPsvR4d8Hjcayxg5PsB/view?usp=drive_link"
+```
+
+All primitive in two ZIP files:  https://drive.google.com/drive/folders/1-Nvctva17I8aFsWvHfdQFWTIDUNWwgcM?usp=drive_link
+
+Primitves per system:
+
+* unicycle1_v0
+https://drive.google.com/file/d/15dXqC_OdrI8KjaHRNakYgk9IXLtTeMtt/view?usp=drive_link
+
+* quadrotor_v1 (OMPL-style)
+https://drive.google.com/file/d/1r_ecGwdfvWnVWxPsvR4d8Hjcayxg5PsB/view?usp=drive_link
+
+* quadrotor_v0
+https://drive.google.com/file/d/1j57kwE5hFgO-46LjStv_zqm6S5BFUsY8/view?usp=drive_link
+
+* Acrobot_v0
+  https://drive.google.com/file/d/1mLiTgcpXSI9UHHss4Qt7AIsRwJPbPC2H/view?usp=drive_link
+
+* Roto_Pole_v0
+https://drive.google.com/file/d/1KMb4IDgucHN8uWI9YN_W07AhX59tkph_/view?usp=drive_link
+
+* Planar Rotor_v0
+https://drive.google.com/file/d/18kI3qXweA4RgvDxtV3vfxnfc_BhX52j8/view?usp=drive_link
+
+* Car1_v0
+https://drive.google.com/file/d/1TPX3c8RvMOy9hiaKL-kUE8M61OknDrDK/view?usp=drive_link
+
+* Unicycle 2 _v0
+  https://drive.google.com/file/d/1PoK1kbiLRFq_hkv3pVWU0csNr4hap0WX/view?usp=drive_link
+
+* Unicycle 1 v2
+https://drive.google.com/file/d/1IvwN-e1jn5P0P1ILaVwSrUnIeBlFxhHI/view?usp=drive_link
+
+* Unicycle 1 v1
+https://drive.google.com/file/d/1OLuw5XICTueoZuleXOuD6vNh3PCWfHif/view?usp=drive_link
+
 
 
 

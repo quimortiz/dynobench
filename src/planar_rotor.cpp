@@ -13,7 +13,6 @@ Model_quad2d::Model_quad2d(const Quad2d_params &params,
       params(params) {
 
   using V2d = Eigen::Vector2d;
-  using V3d = Eigen::Vector3d;
   using Vxd = Eigen::VectorXd;
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;
@@ -49,7 +48,7 @@ Model_quad2d::Model_quad2d(const Quad2d_params &params,
 
   u_weight = V2d(.5, .5);
   x_weightb = 10. * Vxd::Ones(6);
-  x_weightb.head<3>() = V3d::Zero();
+  x_weightb.head<3>() << 10, 10, 0;
 
   if (params.shape == "box") {
     collision_geometries.push_back(
@@ -77,9 +76,9 @@ void Model_quad2d::calcV(Eigen::Ref<Eigen::VectorXd> v,
                          const Eigen::Ref<const Eigen::VectorXd> &x,
                          const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  CHECK_EQ(v.size(), 6, AT);
-  CHECK_EQ(x.size(), 6, AT);
-  CHECK_EQ(u.size(), 2, AT);
+  DYNO_CHECK_EQ(v.size(), 6, AT);
+  DYNO_CHECK_EQ(x.size(), 6, AT);
+  DYNO_CHECK_EQ(u.size(), 2, AT);
 
   const double &f1 = u_nominal * u(0);
   const double &f2 = u_nominal * u(1);

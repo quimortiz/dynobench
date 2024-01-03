@@ -25,7 +25,7 @@ class Robot:
     def draw(self, ax, X, **kwargs):
         self.ax = ax
         center = X[:2]
-        angle = 0 
+        angle = 0
         self.o1 = viewer_utils.draw_box_patch(ax, center, self.size, angle, **kwargs)
         self.o2 = viewer_utils.draw_box_patch_front(
             ax, center, self.size, angle, color="black"

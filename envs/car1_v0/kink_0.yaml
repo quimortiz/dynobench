@@ -1,4 +1,4 @@
-name: kink_0
+name: car-kink_0
 environment:
   min: [-1.0, 0.0]
   max: [6.0, 6.0]

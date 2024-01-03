@@ -57,6 +57,7 @@ Model_car_with_trailers::Model_car_with_trailers(const Car_params &params,
   distance_weights = params.distance_weights;
 
   u_weight = V2d(.5, .5);
+  x_weightb << 10, 10, 0, 0;
 
   x_desc = {"x [m]", "y [m]", "yaw [rad]"};
   u_desc = {"v [m/s]", "phi [rad]"};
@@ -94,16 +95,13 @@ Model_car_with_trailers::Model_car_with_trailers(const Car_params &params,
   }
 }
 
-int Model_car_with_trailers::number_of_r_dofs(){
-  return 2;
-}
-int Model_car_with_trailers::number_of_so2(){
-  return 2;
-}
-int Model_car_with_trailers::number_of_robot(){
+int Model_car_with_trailers::number_of_r_dofs() { return 2; }
+int Model_car_with_trailers::number_of_so2() { return 2; }
+int Model_car_with_trailers::number_of_robot() {
   return 1 + params.num_trailers;
 }
-void Model_car_with_trailers::indices_of_so2(int &k, std::vector<size_t> &vect){
+void Model_car_with_trailers::indices_of_so2(int &k,
+                                             std::vector<size_t> &vect) {
   vect.push_back(k + 2);
   vect.push_back(k + 3);
   k += 4;
@@ -114,7 +112,7 @@ void Model_car_with_trailers::constraintsIneq(
     const Eigen::Ref<const Eigen::VectorXd> &u) {
 
   (void)u;
-  CHECK_EQ(r.size(), 2, AT);
+  DYNO_CHECK_EQ(r.size(), 2, AT);
   double diff = x(2) - x(3);
 
   if (diff > M_PI) {
@@ -138,8 +136,8 @@ void Model_car_with_trailers::constraintsIneqDiff(
   (void)u;
   (void)Ju;
   (void)x;
-  CHECK_EQ(static_cast<size_t>(Jx.cols()), nx, "");
-  CHECK_EQ(static_cast<size_t>(Jx.rows()), 2, "");
+  DYNO_CHECK_EQ(static_cast<size_t>(Jx.cols()), nx, "");
+  DYNO_CHECK_EQ(static_cast<size_t>(Jx.rows()), 2, "");
 
   Jx(0, 2) = 1;
   Jx(0, 3) = -1;
@@ -205,7 +203,7 @@ void Model_car_with_trailers::calcV(
   f(2) = v / params.l * std::tan(phi);
 
   if (params.num_trailers) {
-    CHECK_EQ(params.num_trailers, 1, AT);
+    DYNO_CHECK_EQ(params.num_trailers, 1, AT);
     double d = params.hitch_lengths(0);
     double theta_dot = v / d;
     theta_dot *= std::sin(x(2) - x(3));
@@ -217,7 +215,7 @@ void Model_car_with_trailers::regularization_cost(
     Eigen::Ref<Eigen::VectorXd> r, const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &u) {
   (void)x;
-  CHECK_EQ(r.size(), 2, "");
+  DYNO_CHECK_EQ(r.size(), 2, "");
   r = u;
 }
 
@@ -236,14 +234,14 @@ void Model_car_with_trailers::calcDiffV(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  CHECK_EQ(static_cast<size_t>(Jv_x.rows()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_u.rows()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_x.rows()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_u.rows()), nx, AT);
 
-  CHECK_EQ(static_cast<size_t>(Jv_x.cols()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(Jv_u.cols()), nu, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_x.cols()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(Jv_u.cols()), nu, AT);
 
-  CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
-  CHECK_EQ(static_cast<size_t>(u.size()), nu, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(x.size()), nx, AT);
+  DYNO_CHECK_EQ(static_cast<size_t>(u.size()), nu, AT);
 
   const double &v = u(0);
   const double &phi = u(1);
@@ -261,7 +259,7 @@ void Model_car_with_trailers::calcDiffV(
   Jv_u(2, 1) = 1. * v / params.l / (std::cos(phi) * std::cos(phi));
 
   if (params.num_trailers) {
-    CHECK_EQ(params.num_trailers, 1, AT);
+    DYNO_CHECK_EQ(params.num_trailers, 1, AT);
     double d = params.hitch_lengths(0);
     // double theta_dot = v / d;
     // double theta_dot =  v / d * std::sin(x(2) - x(3));
@@ -275,8 +273,8 @@ void Model_car_with_trailers::calcDiffV(
 double
 Model_car_with_trailers::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                   const Eigen::Ref<const Eigen::VectorXd> &y) {
-  CHECK_EQ(x.size(), 4, AT);
-  CHECK_EQ(y.size(), 4, AT);
+  DYNO_CHECK_EQ(x.size(), 4, AT);
+  DYNO_CHECK_EQ(y.size(), 4, AT);
   assert(y(2) <= M_PI && y(2) >= -M_PI);
   assert(x(2) <= M_PI && x(2) >= -M_PI);
   double d = params.distance_weights(0) * (x.head<2>() - y.head<2>()).norm() +

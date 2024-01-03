@@ -57,7 +57,18 @@ struct Model_unicycle2 : Model_robot {
     xout = xin;
     xout(2) = wrap_angle(xin(2));
   }
-  virtual int number_of_r_dofs();
+  virtual int number_of_r_dofs() override;
+  virtual int number_of_so2() override { return 1; }
+  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
+    vect.push_back(k + 2);
+    k += 5;
+  }
+  virtual int number_of_robot() override { return 1; }
+
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
+    xinout(2) = wrap_angle(xinout(2));
+  }
+
   virtual void write_params(std::ostream &out) override { params.write(out); }
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;

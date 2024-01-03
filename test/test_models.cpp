@@ -1,7 +1,10 @@
 #include "dynobench/math_utils.hpp"
+#include "dynobench/multirobot_trajectory.hpp"
 #include "dynobench/robot_models.hpp"
+
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -44,8 +47,10 @@
 #include "dynobench/unicycle2.hpp"
 
 #include "dynobench/acrobot.hpp"
-#include "dynobench/integrator2_2d.hpp"
+#include "dynobench/car.hpp"
 #include "dynobench/integrator1_2d.hpp"
+#include "dynobench/integrator2_2d.hpp"
+#include "dynobench/joint_robot.hpp"
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
@@ -56,6 +61,220 @@ using namespace dynobench;
 Eigen::VectorXd default_vector;
 
 #define base_path "../../"
+
+struct Fake_opt {
+  Fake_opt() = default;
+  std::string filename = "tmp.yaml";
+  int max_it = 10;
+
+  // NLOHMANN_DEFINE_TYPE_INTRUSIVE(Fake_opt, filename, max_it);
+  NLOHMANN_DEFINE_TYPE_INTRUSIVE_WITH_DEFAULT(Fake_opt, filename, max_it);
+};
+
+// for string delimiter
+std::vector<std::string> split(std::string s, std::string delimiter) {
+  size_t pos_start = 0, pos_end, delim_len = delimiter.length();
+  std::string token;
+  std::vector<std::string> res;
+
+  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+    token = s.substr(pos_start, pos_end - pos_start);
+    pos_start = pos_end + delim_len;
+    if (token.size())
+      res.push_back(token);
+  }
+
+  if (s.substr(pos_start).size())
+    res.push_back(s.substr(pos_start));
+  for (auto &r : res) {
+    std::cout << "- " << r << std::endl;
+  }
+  return res;
+}
+
+void tokenize(std::string const &str, const char delim,
+              std::vector<std::string> &out) {
+  // construct a stream from the string
+  std::stringstream ss(str);
+
+  std::string s;
+  while (std::getline(ss, s, delim)) {
+    if (s.size())
+      out.push_back(s);
+  }
+}
+
+Fake_opt fakeCLIParser(const std::string &argv) {
+
+  auto outs = split(argv, "--");
+
+  std::ofstream o(base_path "fake_cli.json");
+  o << "{\n";
+
+  for (size_t i = 0; i < outs.size(); i++) {
+    auto out = outs[i];
+
+    std::vector<std::string> _out;
+    tokenize(out, ' ', _out);
+    DYNO_CHECK_EQ(_out.size(), 2, "");
+    // if (i < outs.size() - 1)
+    o << "  \"" << _out[0] << "\": ";
+
+    try {
+      double d = std::stod(_out[1]);
+      o << _out[1];
+    } catch (const std::exception &e) {
+      o << "\"" << _out[1] << "\"";
+    }
+
+    if (i < outs.size() - 1) {
+      o << ",\n";
+    } else {
+      o << "\n";
+    }
+  }
+
+  o << "}\n";
+  o.close();
+
+  std::ifstream ii(base_path "fake_cli.json");
+  json j = json::parse(ii); //
+
+  Fake_opt opt = j;
+  return opt;
+}
+
+BOOST_AUTO_TEST_CASE(t_traj_to_json) {
+
+  Trajectory traj;
+
+  traj.states.push_back(Eigen::VectorXd::Zero(3));
+  traj.states.push_back(Eigen::VectorXd::Ones(3));
+  traj.states.push_back(-1 * Eigen::VectorXd::Zero(3));
+
+  traj.actions.push_back(Eigen::VectorXd::Zero(2));
+  traj.actions.push_back(Eigen::VectorXd::Ones(2));
+
+  json j = traj;
+  std::cout << j.dump(2) << std::endl;
+
+  auto filename = "/tmp/dynobench/traj.json";
+  create_dir_if_necessary(filename);
+  std::ofstream out(filename);
+  out << j;
+  out.close();
+
+  std::ifstream in(filename);
+  json j2;
+  in >> j2;
+
+  Trajectory traj2 = j2;
+  BOOST_TEST(traj.states == traj2.states);
+  BOOST_TEST(traj.actions == traj2.actions);
+
+  {
+    Trajectories trajs;
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+    trajs.data.push_back(traj);
+
+    auto filename = "/tmp/dynobench/trajs.json";
+    create_dir_if_necessary(filename);
+    std::ofstream out(filename);
+    out << json(trajs);
+    out.close();
+
+    {
+      std::vector<std::uint8_t> v_msgpack = json::to_msgpack(json(trajs));
+
+      ofstream fout("data.dat", ios::out | ios::binary);
+      fout.write((const char *)v_msgpack.data(), v_msgpack.size());
+      fout.close();
+
+      // Open in Python with
+      // >>> import msgpack
+      // >>> with open("data.dat", "rb") as f:
+      // ...     a = msgpack.unpackb(f.read())
+
+      ifstream fin("data.dat", ios::in | ios::binary);
+
+      // std::vector<uint8_t> contents((std::istreambuf_iterator<char>(fin)),
+      //                               std::istreambuf_iterator<char>());
+
+      std::vector<uint8_t> contents;
+      fin.seekg(0, std::ios::end);
+      contents.resize(fin.tellg());
+      fin.seekg(0, std::ios::beg);
+      fin.read((char *)contents.data(), contents.size());
+      in.close();
+
+      json j = json::from_msgpack(contents);
+      std::cout << j.dump(2) << std::endl;
+      Trajectories trajsX = j;
+    }
+
+    // lets load from msgpack
+
+    std::ifstream in(filename);
+    json j;
+    in >> j;
+    Trajectories trajs2 = j;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_jsonX) {}
+
+BOOST_AUTO_TEST_CASE(t_fakeCLIParser) {
+  Fake_opt opt =
+      fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it   100");
+  std::cout << opt.max_it << " " << opt.filename << std::endl;
+
+  {
+    Fake_opt opt =
+        fakeCLIParser("--filename ../models/quad2d_v0.yaml     --max_it   100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+
+  {
+    Fake_opt opt =
+        fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it 100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+
+  {
+    Fake_opt opt = fakeCLIParser("--max_it 100");
+    std::cout << opt.max_it << " " << opt.filename << std::endl;
+  }
+}
+
+BOOST_AUTO_TEST_CASE(yaml_json) {
+
+  YAML::Node node = YAML::LoadFile(base_path "tets_yaml_json.yaml");
+
+  json j = tojson::detail::yaml2json(node);
+  std::cout << j.dump() << std::endl;
+
+  std::cout << tojson::emitters::toyaml(j) << std::endl;
+  std::ofstream o(base_path "tmp.yaml");
+  std::ofstream o2(base_path "tmp2.yaml");
+  o << tojson::emitters::toyaml(j) << std::endl;
+
+  YAML::Emitter ee;
+  ee << node;
+  o2 << ee.c_str() << std::endl;
+  // how to test that they are the same?
+}
+
+BOOST_AUTO_TEST_CASE(t_load_json) {
+  Unicycle1_paramsJ aa;
+
+  aa.read_from_yaml(
+      (std::string(base_path) + "models/unicycle1_v0.yaml").c_str());
+
+  aa.write_yaml(std::cout);
+}
 
 BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
 
@@ -75,7 +294,8 @@ BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
 //   std::shared_ptr<Model_robot> robot =
 //       std::make_shared<Model_quad2d>("../models/quad2d_v0.yaml");
 //
-//   std::vector<Trajectory> primitives = traj.find_discontinuities(robot);
+//   std::vector<Trajectory> primitives =
+//   traj.find_discontinuities(robot);
 //
 //   // lets write the trajectories
 //   std::ofstream out("fileout_primitives.yaml");
@@ -175,8 +395,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
     BOOST_TEST(std::abs(original_energy - last_energy) < 1e-2);
   }
 
-  // std::cout << "final state" << xs.back().format(FMT) <<
-  // std::endl;
+  // std::cout << "final state" << xs.back().format(FMT)
+  // << std::endl;
 
   // dyn->max_torque =
 }
@@ -689,7 +909,8 @@ BOOST_AUTO_TEST_CASE(col_acrobot) {
 
 // BOOST_AUTO_TEST_CASE(col_quad3d_v2) {
 //
-//   Problem problem("../benchmark/quadrotor_0/obstacle_flight.yaml");
+//   Problem
+//   problem("../benchmark/quadrotor_0/obstacle_flight.yaml");
 //
 //   std::shared_ptr<Model_robot> robot =
 //       robot_factory(robot_type_to_path(problem.robotType).c_str());
@@ -778,7 +999,7 @@ BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
   auto model = mk<Integrator1_2d>();
 
   Eigen::VectorXd x0(2), u0(2);
-  x0 << .1, .2 ;
+  x0 << .1, .2;
   u0 << -.1, .2;
 
   Eigen::MatrixXd Jx_diff(2, 2), Ju_diff(2, 2), Jx(2, 2), Ju(2, 2);
@@ -805,4 +1026,345 @@ BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
 
+BOOST_AUTO_TEST_CASE(t_joint_robot) {
 
+  std::vector<std::shared_ptr<Model_robot>> robots;
+  robots.push_back(std::make_unique<Model_unicycle1>());
+  robots.push_back(std::make_unique<Model_unicycle2>());
+  robots.push_back(std::make_unique<Model_car_with_trailers>());
+  robots.push_back(std::make_unique<Integrator2_2d>());
+  robots.push_back(std::make_unique<Integrator1_2d>());
+
+  auto model =
+      mk<Joint_robot>(robots, Eigen::Vector2d(2, 2), Eigen::Vector2d(2, 2));
+
+  int nx = model->nx;
+  int nu = model->nu;
+  Eigen::VectorXd x0(nx), u0(nu);
+  x0.setRandom();
+  u0.setRandom();
+  // x0 << .1, .2 ;
+  //
+  // u0 << -.1, .2;
+
+  Eigen::MatrixXd Jx_diff(nx, nx), Ju_diff(nx, nu), Jx(nx, nx), Ju(nx, nu);
+  Jx.setZero();
+  Ju.setZero();
+  Jx_diff.setZero();
+  Ju_diff.setZero();
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x, u0);
+      },
+      x0, nx, Jx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x0, u);
+      },
+      u0, nx, Ju_diff);
+
+  BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
+  BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(t_joint_robot_env) {
+
+  std::string env = "../../envs/multirobot/example/gen_p10_n2_6_hetero.yaml";
+
+  Problem problem(env);
+
+  std::string robot_type = problem.robotType;
+
+  std::string _base_path = "../../models/";
+  std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
+      problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
+
+  load_env(*joint_robot, problem);
+
+  // check that start and goal are collision free.
+  //
+
+  std::cout << "start " << problem.start.format(FMT) << std::endl;
+  std::cout << "goal " << problem.goal.format(FMT) << std::endl;
+
+  CollisionOut out;
+  joint_robot->collision_distance(problem.start, out);
+
+  BOOST_TEST(out.distance > 0);
+
+  CollisionOut out2;
+  joint_robot->collision_distance(problem.goal, out);
+
+  BOOST_TEST(out.distance > 0);
+
+  {
+    // Modify the state. Now the two car are one on top of each other.
+    Eigen::VectorXd x = problem.start;
+
+    x(3) = x(0) + .01;
+    x(4) = x(1) + .01;
+
+    CollisionOut out3;
+    joint_robot->collision_distance(x, out);
+    BOOST_TEST(out.distance < 0);
+  }
+
+  {
+    // Modify the state. Put on car on top of one obstacle
+    Eigen::VectorXd x = problem.start;
+
+    x(3) = problem.obstacles.at(0).center(0) + .001;
+    x(4) = problem.obstacles.at(0).center(1) + .001;
+
+    CollisionOut out3;
+    joint_robot->collision_distance(x, out);
+    BOOST_TEST(out.distance < 0);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
+
+  std::string env = "../../envs/multirobot/example/swap2_trailer.yaml";
+
+  Problem problem(env);
+  std::string robot_type = problem.robotType;
+
+  std::string _base_path = "../../models/";
+
+  problem.models_base_path = _base_path;
+  std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
+      problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
+
+  load_env(*joint_robot, problem);
+
+  {
+    std::string result_file =
+        "../../envs/multirobot/results/swap2_trailer_solution.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible);
+  }
+
+  {
+
+    std::string result_file =
+        "../../envs/multirobot/results/swap2_trailer_db.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible == false);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
+
+  std::string env = "../../envs/multirobot/example/swap4_unicycle.yaml";
+
+  Problem problem(env);
+  std::string robot_type = problem.robotType;
+
+  std::string _base_path = "../../models/";
+
+  problem.models_base_path = _base_path;
+  std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
+      problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
+
+  load_env(*joint_robot, problem);
+
+  {
+    std::string result_file =
+        "../../envs/multirobot/results/swap4_unicycle_solution.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible);
+  }
+
+  {
+
+    std::string result_file =
+        "../../envs/multirobot/results/swap4_unicycle_db.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible == false);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
+
+  std::string env = "../../envs/multirobot/example/swap2_unicycle2.yaml";
+
+  Problem problem(env);
+  std::string robot_type = problem.robotType;
+
+  std::string _base_path = "../../models/";
+
+  problem.models_base_path = _base_path;
+  std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
+      problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
+
+  load_env(*joint_robot, problem);
+
+  {
+    std::string result_file =
+        "../../envs/multirobot/results/swap2_unicycle2_solution.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible);
+  }
+
+  {
+
+    std::string result_file =
+        "../../envs/multirobot/results/swap2_unicycle2_db.yaml";
+    MultiRobotTrajectory multirobot_traj;
+
+    multirobot_traj.read_from_yaml(result_file.c_str());
+
+    Trajectory traj;
+
+    traj = multirobot_traj.transform_to_joint_trajectory();
+    traj.start = problem.start;
+    traj.goal = problem.goal;
+
+    std::vector<std::string> robotTypes = problem.robotTypes;
+
+    std::cout << "robot types are " << std::endl;
+
+    std::shared_ptr<Model_robot> robot = joint_robot_factory(
+        robotTypes, problem.models_base_path, problem.p_lb, problem.p_ub);
+
+    load_env(*robot, problem);
+
+    bool verbose = true;
+
+    Feasibility_thresholds feasibility_thresholds;
+
+    traj.check(robot, verbose);
+    traj.update_feasibility(feasibility_thresholds);
+
+    BOOST_TEST(traj.feasible == false);
+  }
+}
