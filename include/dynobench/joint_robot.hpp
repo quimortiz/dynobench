@@ -1,3 +1,5 @@
+#pragma once
+
 #include "dynobench/for_each_macro.hpp"
 #include "dynobench/robot_models_base.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
