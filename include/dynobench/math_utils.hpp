@@ -35,16 +35,28 @@ double inline check_bounds_distance(const Eigen::VectorXd &v,
   DYNO_CHECK_EQ(v.size(), v_lb.size(), AT);
   size_t n = v.size();
   double max_distance = 0;
+  int worse_index = -1;
   for (size_t i = 0; i < n; i++) {
     double d1 = std::max(v(i) - v_ub(i), 0.);
     double d2 = std::max(v_lb(i) - v(i), 0.);
     if (d1 > max_distance) {
       max_distance = d1;
+      worse_index = i;
     }
     if (d2 > max_distance) {
       max_distance = d2;
+      worse_index = i;
     }
   }
+
+  if (max_distance > 1e-2) {
+    std::cout << "Worse index: " << worse_index << std::endl;
+    std::cout << v(worse_index) << " " << v_lb(worse_index) << " "
+              << v_ub(worse_index) << std::endl;
+
+  }
+
+
   return max_distance;
 }
 

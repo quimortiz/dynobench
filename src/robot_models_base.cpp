@@ -308,7 +308,6 @@ void Model_robot::transformation_collision_geometries(
 }
 
 void Model_robot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
-  std::cout << nx << std::endl;
   x = x_lb + (x_ub - x_lb)
                  .cwiseProduct(.5 * (Eigen::VectorXd::Random(nx) +
                                      Eigen::VectorXd::Ones(nx)));

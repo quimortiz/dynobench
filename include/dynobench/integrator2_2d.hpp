@@ -69,7 +69,7 @@ struct Integrator2_2d : public Model_robot {
 
   virtual int number_of_so2() override { return 0; }
   virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
-    k += 2;
+    k += 4;
   }
   virtual int number_of_robot() override { return 1; }
 
