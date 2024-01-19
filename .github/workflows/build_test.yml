@@ -67,7 +67,7 @@ jobs:
 
     - name: Test Python Package on PIP
       run:  |
-          pip3 dynobench
+          pip3 install dynobench
           mkdir tmp && cd tmp
           python3 -c 'import dynobench'
           python3 ../example/test_robot.py
