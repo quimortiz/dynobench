@@ -204,7 +204,6 @@ def draw_problem_2d(ax, env, Robot):
             else:
                 print("ERROR: unknown obstacle type")
 
-
     only_env = True
     if not only_env:
         for robot in env.get("robots", []):

@@ -53,9 +53,7 @@ double inline check_bounds_distance(const Eigen::VectorXd &v,
     std::cout << "Worse index: " << worse_index << std::endl;
     std::cout << v(worse_index) << " " << v_lb(worse_index) << " "
               << v_ub(worse_index) << std::endl;
-
   }
-
 
   return max_distance;
 }

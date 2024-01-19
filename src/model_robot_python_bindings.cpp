@@ -73,16 +73,8 @@ PYBIND11_MODULE(robot_python, m) {
   m.def("robot_factory", &robot_factory);
   m.def("robot_factory_with_env", &robot_factory_with_env);
 
-  m.def("clock_seed" , []{
-        std::srand(std::time(nullptr));
-    });
-  m.def("seed" , [](int seed){
-        std::srand(seed);
-    });
-  m.def("rand" , []{
-        return std::rand();
-    });
-    m.def("rand01" , []{
-            return (double)std::rand() / RAND_MAX;
-        });
+  m.def("clock_seed", [] { std::srand(std::time(nullptr)); });
+  m.def("seed", [](int seed) { std::srand(seed); });
+  m.def("rand", [] { return std::rand(); });
+  m.def("rand01", [] { return (double)std::rand() / RAND_MAX; });
 }
