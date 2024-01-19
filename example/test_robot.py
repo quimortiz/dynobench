@@ -9,14 +9,17 @@ sys.path.insert(0, "")
 print(sys.path)
 
 
-import robot_python
+try:
+    import dynobench
+except ImportError:
+    import pydynobench as dynobench
 import numpy as np
 
 
 class TestRobot(unittest.TestCase):
     def test_all(self):
-        r = robot_python.robot_factory("../models/unicycle1_v0.yaml", [], [])
-        r2 = robot_python.robot_factory_with_env(
+        r = dynobench.robot_factory("../models/unicycle1_v0.yaml", [], [])
+        r2 = dynobench.robot_factory_with_env(
             "../models/unicycle1_v0.yaml", "../envs/unicycle1_v0/parallelpark_0.yaml"
         )
 
@@ -70,7 +73,7 @@ class TestRobot(unittest.TestCase):
         print(xt)
         r.lower_bound_time(x1, x2)
 
-        c = robot_python.CollisionOut()
+        c = dynobench.CollisionOut()
 
         r.collision_distance(x1, c)
         print(c.distance, c.p1, c.p2)

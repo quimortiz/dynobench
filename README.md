@@ -359,6 +359,13 @@ https://drive.google.com/file/d/1OLuw5XICTueoZuleXOuD6vNh3PCWfHif/view?usp=drive
 
 
 
+## Pytho Dev
+
+Create a Python Package with:
+
+```
+pip3 wheel . --verbose
+```
 
 ## Roadmap
 

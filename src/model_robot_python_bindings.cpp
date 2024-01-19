@@ -11,7 +11,7 @@
 #include "dynobench/robot_models_base.hpp"
 
 using namespace dynobench;
-PYBIND11_MODULE(robot_python, m) {
+PYBIND11_MODULE(pydynobench, m) {
 
   pybind11::class_<CollisionOut>(m, "CollisionOut")
       .def(pybind11::init())
