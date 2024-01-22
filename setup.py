@@ -163,6 +163,7 @@ class CMakeBuild(build_ext):
             # "-DCMAKE_CXX_COMPILER=clang++-13",
             "-DBUILD_DYNOBENCH_TOOLS=0",
             "-DBUILD_DYNOBENCH_PYBINDINGS=1",
+            "-DCMAKE_PREFIX_PATH=/home/quim/local/",
         ]
 
         subprocess.run(
@@ -184,7 +185,7 @@ class CMakeBuild(build_ext):
 # long_description = (this_directory / "README.md").read_text()
 setup(
     name="dynobench",
-    version="0.0.1",
+    version="0.0.2",
     author="Joaquim Ortiz-Haro",
     author_email="quimortiz21@gmail.com",
     description="C++/Python Dynamics Models",
@@ -201,7 +202,10 @@ setup(
     cmdclass=dict(build_ext=CMakeBuild),
     # package_data={"pydynobench": ["pydynobench.pyi"]},
     # test_suite="tests",
-    # include_package_data=True,
-    # package_data={"": ["data/*.urdf", "data/*.srdf", "data/*.toml"]},
+    include_package_data=True,
+    package_data={"": ["models/*.yaml"]},
     zip_safe=False,
+    # package_data={'': [
+    #     'models/*.yaml',
+    # ]}
 )

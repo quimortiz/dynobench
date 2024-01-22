@@ -60,6 +60,13 @@ PYBIND11_MODULE(pydynobench, m) {
            })
       .def("calcV", &Model_robot::calcV)
       .def("step", &Model_robot::step)
+      .def("stepOut",
+           [](Model_robot &robot, Eigen::Ref<Eigen::VectorXd> x,
+              Eigen::Ref<Eigen::VectorXd> u, double dt) {
+             Eigen::VectorXd x_next = Eigen::VectorXd::Zero(robot.get_nx());
+             robot.step(x_next, x, u, dt);
+             return x_next;
+           })
       .def("stepR4", &Model_robot::stepR4)
       .def("distance", &Model_robot::distance)
       .def("sample_uniform", &Model_robot::sample_uniform)

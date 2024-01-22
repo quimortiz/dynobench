@@ -1,0 +1,5 @@
+dynamics: "integrator2_2d"
+max_vel: 0.5
+max_acc: 2.0 # for quadrotor
+radius: 0.1
+shape: "sphere"
