@@ -235,11 +235,12 @@ Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
 
 void Joint_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
-  size_t size_nx, size_ts = 1;
+  size_t size_nx, size_ts;
   int k_x = 0, k_ts = 0;
   std::vector<Transform3d> tmp;
   for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
+    size_ts = 1;
     if (robot->name == "car_with_trailers") {
       size_ts = 2;
     }
