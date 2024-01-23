@@ -69,11 +69,16 @@ Create Wheels
 bash /io/build_wheels.sh
 ```
 
+this will create wheels in wheelhouse_audit
+
+
+
 Upload to PIP
 
 ```
 python3 -m twine upload v002/*
 ```
+Change v002 for folder where the wheels are!
 
 
 
