@@ -70,4 +70,6 @@ jobs:
           pip3 install dynobench
           mkdir tmp && cd tmp
           python3 -c 'import dynobench'
+          python3 -c 'import dynobench; import numpy as np; print(dynobench.robot_factory(dynobench.PKGDIR + "models/unicycle1_v0.yaml", [], []).stepOut(np.zeros(3), np.ones(2),.1))'
+          python3 -m  dynobench.test.test_1
           python3 ../example/test_robot.py

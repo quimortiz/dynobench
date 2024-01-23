@@ -183,17 +183,34 @@ class CMakeBuild(build_ext):
 
 # this_directory = Path(__file__).parent
 # long_description = (this_directory / "README.md").read_text()
+
+datadir1 = Path(__file__).parent / "dynobench/" / "envs"
+files1 = ["envs/" + str(p.relative_to(datadir1)) for p in datadir1.rglob("*.yaml")]
+
+datadir2 = Path(__file__).parent / "dynobench/" / "models"
+files2 = ["models/" + str(p.relative_to(datadir2)) for p in datadir2.rglob("*.yaml")]
+
+files = files1 + files2
+print("files is", files)
+# setup(
+#     ...,
+#     packages=['mypkg'],
+#     package_data={'mypkg': files},
+# )
+
+
 setup(
     name="dynobench",
-    version="0.0.2",
+    version="0.0.3",
     author="Joaquim Ortiz-Haro",
     author_email="quimortiz21@gmail.com",
     description="C++/Python Dynamics Models",
     long_description="",
-    packages=find_packages(
-        "src/python"
-    ),  # where the folder dynobench is. Inside the dynobench I should have a __init__.py
-    package_dir={"": "src/python"},
+    # packages=find_packages(
+    #     "."
+    # ),  # where the folder dynobench is. Inside the dynobench I should have a __init__.py
+    packages=["dynobench"],
+    package_dir={"": "."},
     ext_modules=[CMakeExtension("dynobench/dynobench")],
     # if ext_modules=[CMakeExtension("bar/foo")],
     # build directory will be bar/foo
@@ -203,7 +220,12 @@ setup(
     # package_data={"pydynobench": ["pydynobench.pyi"]},
     # test_suite="tests",
     include_package_data=True,
-    package_data={"": ["models/*.yaml"]},
+    package_data={
+        "": files
+    },  # NOTE: i have to find files by hand because this does not support recursive globs
+    # ["models/*.yaml"] + files},
+    # "envs/*.yaml",
+    # ]},
     zip_safe=False,
     # package_data={'': [
     #     'models/*.yaml',

@@ -26,7 +26,11 @@ One line check
 python3 -c 'import dynobench; import numpy as np; print(dynobench.robot_factory(dynobench.PKGDIR + "models/unicycle1_v0.yaml", [], []).stepOut(np.zeros(3), np.ones(2),.1))'
 ```
 
-Run simple test
+Run a simple test (it loads an environment, checks collisions...)
+
+```
+python3 -m  dynobench.test.test_1
+```
 
 
 ## Dev

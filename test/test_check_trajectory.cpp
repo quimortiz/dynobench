@@ -2,7 +2,7 @@
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
-#define BASE_PATH "../../"
+#define BASE_PATH "../../dynobench/"
 
 BOOST_AUTO_TEST_CASE(t_check_infeasible) {
 
