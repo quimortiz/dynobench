@@ -204,14 +204,15 @@ def draw_problem_2d(ax, env, Robot):
             else:
                 print("ERROR: unknown obstacle type")
 
-    for robot in env.get("robots", []):
-        # if robot["type"] in ["unicycle_first_order_0"]:
-        #     size = np.array([0.5, 0.25])
-        r = Robot()
-        state = robot["start"]
-        r.draw(ax, state, facecolor="green", edgecolor="green")
-        state = robot["goal"]
-        r.draw(ax, state, facecolor="red", edgecolor="red")
+
+    only_env = True
+    if not only_env:
+        for robot in env.get("robots", []):
+            r = Robot()
+            state = robot["start"]
+            r.draw(ax, state, facecolor="green", edgecolor="green")
+            state = robot["goal"]
+            r.draw(ax, state, facecolor="red", edgecolor="red")
         # else:
         #     raise Exception("Unknown robot type!")
 
