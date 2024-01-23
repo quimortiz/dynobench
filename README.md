@@ -53,8 +53,7 @@ pip3 install NAME_OF_WHEEL
 Docker Container
 
 ```
-docker run -it --network common  -v  (pwd):/io   quay.io/pypa/manylinux
-2014_x86_64
+docker run -it --network common  -v  (pwd):/io   quay.io/pypa/manylinux2014_x86_64
 ```
 
 Install Dependencies
@@ -70,6 +69,13 @@ bash /io/build_wheels.sh
 ```
 
 this will create wheels in wheelhouse_audit
+
+
+In one line:
+
+```
+docker run -it --network common -v $(pwd):/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c "bash /io/install_all_docker.sh && bash /io/build_wheels.sh"
+```
 
 
 

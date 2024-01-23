@@ -201,7 +201,7 @@ print("files is", files)
 
 setup(
     name="dynobench",
-    version="0.0.3",
+    version="0.0.4",
     author="Joaquim Ortiz-Haro",
     author_email="quimortiz21@gmail.com",
     description="C++/Python Dynamics Models",
@@ -209,7 +209,7 @@ setup(
     # packages=find_packages(
     #     "."
     # ),  # where the folder dynobench is. Inside the dynobench I should have a __init__.py
-    packages=["dynobench"],
+    packages=["dynobench", "dynobench.test", "dynobench.utils"],
     package_dir={"": "."},
     ext_modules=[CMakeExtension("dynobench/dynobench")],
     # if ext_modules=[CMakeExtension("bar/foo")],

@@ -18,9 +18,10 @@ import numpy as np
 
 class TestRobot(unittest.TestCase):
     def test_all(self):
-        r = dynobench.robot_factory("../models/unicycle1_v0.yaml", [], [])
+        r = dynobench.robot_factory("../dynobench/models/unicycle1_v0.yaml", [], [])
         r2 = dynobench.robot_factory_with_env(
-            "../models/unicycle1_v0.yaml", "../envs/unicycle1_v0/parallelpark_0.yaml"
+            "../dynobench/models/unicycle1_v0.yaml",
+            "../dynobench/envs/unicycle1_v0/parallelpark_0.yaml",
         )
 
         print(r.get_translation_invariance())
@@ -64,6 +65,7 @@ class TestRobot(unittest.TestCase):
 
         r.calcV(x1_n, np.zeros(3), np.zeros(2))
         r.step(x1_n, np.zeros(3), np.zeros(2), 0.1)
+        r.stepOut(np.zeros(3), np.zeros(2), 0.1)
         r.stepR4(x1_n, np.zeros(3), np.zeros(2), 0.1)
 
         r.distance(np.zeros(3), np.ones(3))
