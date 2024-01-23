@@ -11,17 +11,21 @@ print(sys.path)
 
 try:
     import dynobench
+
+    base_path = dynobench.PKGDIR
 except ImportError:
     import pydynobench as dynobench
+
+    base_path = "../dynobench/"  # this is for local development and testing
 import numpy as np
 
 
 class TestRobot(unittest.TestCase):
     def test_all(self):
-        r = dynobench.robot_factory("../dynobench/models/unicycle1_v0.yaml", [], [])
+        r = dynobench.robot_factory(base_path + "models/unicycle1_v0.yaml", [], [])
         r2 = dynobench.robot_factory_with_env(
-            "../dynobench/models/unicycle1_v0.yaml",
-            "../dynobench/envs/unicycle1_v0/parallelpark_0.yaml",
+            base_path + "models/unicycle1_v0.yaml",
+            base_path + "envs/unicycle1_v0/parallelpark_0.yaml",
         )
 
         print(r.get_translation_invariance())
