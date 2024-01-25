@@ -26,8 +26,7 @@ cmake_print_variables(${Boost_LIBRARIES})
 
 # Now simply link against gtest as needed. Eg
 add_executable(test_dynobench test_hello_world.cpp test_base.cpp
-                              test_models.cpp
-                              test_quadrotor_payload.cpp)
+                              test_models.cpp test_quadrotor_payload.cpp)
 
 add_executable(test_check_trajectory test_check_trajectory.cpp)
 
