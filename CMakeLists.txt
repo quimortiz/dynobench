@@ -35,7 +35,15 @@ add_library(
   ./src/car2.cpp
   ./src/integrator2_2d.cpp
   ./src/joint_robot.cpp
-  ./src/integrator1_2d.cpp)
+  ./src/integrator1_2d.cpp
+  ./src/quadrotor_payload.cpp
+  ./src/quadrotor_payload_n.cpp
+  ./src/quadrotor_payload_n.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n2_p.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n3_p.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n4_p.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n5_p.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n6_p.cpp)
 
 add_library(dynobench::dynobench ALIAS dynobench)
 
@@ -101,11 +109,13 @@ target_link_libraries(
 option(BUILD_DYNOBENCH_TESTS "build test" OFF)
 option(BUILD_DYNOBENCH_PYBINDINGS "build bindings" OFF)
 option(BUILD_DYNOBENCH_TOOLS "build dyno bench tools" ON)
+option(BUILD_ALL "build all modules" OFF)
 message(STATUS "BUILD_DYNOBENCH_TESTS: ${BUILD_DYNOBENCH_TESTS}")
 message(STATUS "BUILD_DYNOBENCH_PYBINDINGS: ${BUILD_DYNOBENCH_PYBINDINGS}")
 message(STATUS "BUILD_DYNOBENCH_TOOLS: ${BUILD_DYNOBENCH_TOOLS}")
+message(STATUS "BUILD_ALL: ${BUILD_ALL}")
 
-if(BUILD_DYNBENCH_TOOLS)
+if(BUILD_DYNBENCH_TOOLS OR BUILD_ALL)
   add_executable(check_trajectory ./src/check_trajectory.cpp)
   add_executable(check_trajectory_multirobot
                  ./src/check_trajectory_multirobot.cpp)
@@ -120,14 +130,14 @@ if(BUILD_DYNBENCH_TOOLS)
     PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
 endif()
 
-if(BUILD_DYNOBENCH_PYBINDINGS)
+if(BUILD_DYNOBENCH_PYBINDINGS OR BUILD_ALL)
   add_subdirectory(deps/pybind11)
   pybind11_add_module(pydynobench src/model_robot_python_bindings.cpp)
   set_property(TARGET pydynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
   target_link_libraries(pydynobench PUBLIC Eigen3::Eigen dynobench fcl)
 endif()
 
-if(BUILD_DYNOBENCH_TESTS)
+if(BUILD_DYNOBENCH_TESTS OR BUILD_ALL)
   enable_testing()
   add_subdirectory(test)
 endif()

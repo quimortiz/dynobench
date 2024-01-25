@@ -156,20 +156,13 @@ struct Model_unicycle1 : Model_robot {
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
-
-    xout = xin;
-    xout(2) = wrap_angle(xin(2));
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
+    xout(2) = wrap_angle(xout(2));
   }
   virtual int number_of_r_dofs() override;
   virtual int number_of_so2() override;
   virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override;
   virtual int number_of_robot() override { return 1; }
-
-  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
-    xinout(2) = wrap_angle(xinout(2));
-  }
 
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
                      const Eigen::Ref<const Eigen::VectorXd> &x,

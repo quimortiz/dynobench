@@ -169,8 +169,13 @@ def cuboid_data(pos, size=(1, 1, 1)):
     return np.array(x), np.array(y), np.array(z)
 
 
-def plot_traj_default(axs, result, labels_x, labels_u, **kwargs):
+def plot_traj_default(axs, result, labels_x=None, labels_u=None, **kwargs):
     xs = result["states"]
+
+    if labels_x is None:
+        labels_x = ["x" + str(i) for i in range(len(xs[0]))]
+    if labels_u is None:
+        labels_u = ["u" + str(i) for i in range(len(result["actions"][0]))]
 
     for i, l in enumerate(labels_x):
         xi = [x[i] for x in xs]

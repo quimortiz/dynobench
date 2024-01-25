@@ -60,15 +60,6 @@ struct Model_car_with_trailers : Model_robot {
 
   virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
-
-    xout = xin;
-    xout(2) = wrap_angle(xin(2));
-    if (params.num_trailers) {
-      xout(3) = wrap_angle(xin(3));
-    }
-  }
   virtual int number_of_r_dofs() override;
   virtual int number_of_so2() override;
   virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override;

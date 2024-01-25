@@ -15,6 +15,7 @@ import integrator2_2d_viewer
 import integrator1_2d_viewer
 import robot_viewer
 import sys
+import quad3dpayload_viewer
 
 
 def get_robot_viewer(robot: str) -> robot_viewer.RobotViewer:
@@ -54,10 +55,16 @@ if __name__ == "__main__":
     )
     args, unk = parser.parse_known_args()
     #
-    viewer = get_robot_viewer(args.robot)
 
-    # viewer_utils.check_viewer(
-    # viewer, ["--env", args.env, "--result", args.result, "--result2",
-    # args.result2])
+    if args.robot == "quad3dpayload" or args.robot == "point":
+        quad3dpayload_viewer.quad3dpayload_meshcatViewer()
+        sys.exit(0)
 
-    robot_viewer.check_viewer(viewer, unk)
+    else:
+        viewer = get_robot_viewer(args.robot)
+
+        # viewer_utils.check_viewer(
+        # viewer, ["--env", args.env, "--result", args.result, "--result2",
+        # args.result2])
+
+        robot_viewer.check_viewer(viewer, unk)
