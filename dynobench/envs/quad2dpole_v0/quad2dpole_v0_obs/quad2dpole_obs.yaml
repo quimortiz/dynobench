@@ -1,0 +1,12 @@
+name: quad2dtest
+environment:
+  min: [-2.5, -2.5] # what to use here?
+  max: [2.5, 2.5]
+  obstacles:
+    - type: box
+      center: [0, 0]
+      size: [1, .1]
+robots:
+  - type: quad2dpole_v0
+    start: [0,-1.5,0,3.14,0,0,0,0]
+    goal:  [0, 1.5,0,0,0,0,0,0]

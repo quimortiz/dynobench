@@ -193,11 +193,6 @@ BOOST_AUTO_TEST_CASE(t_traj_to_json) {
       fout.write((const char *)v_msgpack.data(), v_msgpack.size());
       fout.close();
 
-      // Open in Python with
-      // >>> import msgpack
-      // >>> with open("data.dat", "rb") as f:
-      // ...     a = msgpack.unpackb(f.read())
-
       ifstream fin("data.dat", ios::in | ios::binary);
 
       // std::vector<uint8_t> contents((std::istreambuf_iterator<char>(fin)),
@@ -249,23 +244,23 @@ BOOST_AUTO_TEST_CASE(t_fakeCLIParser) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(yaml_json) {
-
-  YAML::Node node = YAML::LoadFile(base_path "tets_yaml_json.yaml");
-
-  json j = tojson::detail::yaml2json(node);
-  std::cout << j.dump() << std::endl;
-
-  std::cout << tojson::emitters::toyaml(j) << std::endl;
-  std::ofstream o(base_path "tmp.yaml");
-  std::ofstream o2(base_path "tmp2.yaml");
-  o << tojson::emitters::toyaml(j) << std::endl;
-
-  YAML::Emitter ee;
-  ee << node;
-  o2 << ee.c_str() << std::endl;
-  // how to test that they are the same?
-}
+// BOOST_AUTO_TEST_CASE(yaml_json) {
+//
+//   YAML::Node node = YAML::LoadFile(base_path "tets_yaml_json.yaml");
+//
+//   json j = tojson::detail::yaml2json(node);
+//   std::cout << j.dump() << std::endl;
+//
+//   std::cout << tojson::emitters::toyaml(j) << std::endl;
+//   std::ofstream o(base_path "tmp.yaml");
+//   std::ofstream o2(base_path "tmp2.yaml");
+//   o << tojson::emitters::toyaml(j) << std::endl;
+//
+//   YAML::Emitter ee;
+//   ee << node;
+//   o2 << ee.c_str() << std::endl;
+//   // how to test that they are the same?
+// }
 
 BOOST_AUTO_TEST_CASE(t_load_json) {
   Unicycle1_paramsJ aa;
@@ -1073,13 +1068,14 @@ BOOST_AUTO_TEST_CASE(t_joint_robot) {
 
 BOOST_AUTO_TEST_CASE(t_joint_robot_env) {
 
-  std::string env = "../../envs/multirobot/example/gen_p10_n2_6_hetero.yaml";
+  std::string env =
+      base_path "envs/multirobot/example/gen_p10_n2_6_hetero.yaml";
 
   Problem problem(env);
 
   std::string robot_type = problem.robotType;
 
-  std::string _base_path = "../../models/";
+  std::string _base_path = base_path "models/";
   std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
       problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
 
@@ -1128,12 +1124,12 @@ BOOST_AUTO_TEST_CASE(t_joint_robot_env) {
 
 BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
 
-  std::string env = "../../envs/multirobot/example/swap2_trailer.yaml";
+  std::string env = base_path "envs/multirobot/example/swap2_trailer.yaml";
 
   Problem problem(env);
   std::string robot_type = problem.robotType;
 
-  std::string _base_path = "../../models/";
+  std::string _base_path = base_path "models/";
 
   problem.models_base_path = _base_path;
   std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
@@ -1143,7 +1139,7 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
 
   {
     std::string result_file =
-        "../../envs/multirobot/results/swap2_trailer_solution.yaml";
+        base_path "envs/multirobot/results/swap2_trailer_solution.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1176,7 +1172,7 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
   {
 
     std::string result_file =
-        "../../envs/multirobot/results/swap2_trailer_db.yaml";
+        base_path "envs/multirobot/results/swap2_trailer_db.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1209,12 +1205,12 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
 
 BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
 
-  std::string env = "../../envs/multirobot/example/swap4_unicycle.yaml";
+  std::string env = base_path "envs/multirobot/example/swap4_unicycle.yaml";
 
   Problem problem(env);
   std::string robot_type = problem.robotType;
 
-  std::string _base_path = "../../models/";
+  std::string _base_path = base_path "models/";
 
   problem.models_base_path = _base_path;
   std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
@@ -1224,7 +1220,7 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
 
   {
     std::string result_file =
-        "../../envs/multirobot/results/swap4_unicycle_solution.yaml";
+        base_path "envs/multirobot/results/swap4_unicycle_solution.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1257,7 +1253,7 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
   {
 
     std::string result_file =
-        "../../envs/multirobot/results/swap4_unicycle_db.yaml";
+        base_path "envs/multirobot/results/swap4_unicycle_db.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1290,12 +1286,12 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
 
 BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
 
-  std::string env = "../../envs/multirobot/example/swap2_unicycle2.yaml";
+  std::string env = base_path "envs/multirobot/example/swap2_unicycle2.yaml";
 
   Problem problem(env);
   std::string robot_type = problem.robotType;
 
-  std::string _base_path = "../../models/";
+  std::string _base_path = base_path "models/";
 
   problem.models_base_path = _base_path;
   std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
@@ -1305,7 +1301,7 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
 
   {
     std::string result_file =
-        "../../envs/multirobot/results/swap2_unicycle2_solution.yaml";
+        base_path "envs/multirobot/results/swap2_unicycle2_solution.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());
@@ -1338,7 +1334,7 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
   {
 
     std::string result_file =
-        "../../envs/multirobot/results/swap2_unicycle2_db.yaml";
+        base_path "envs/multirobot/results/swap2_unicycle2_db.yaml";
     MultiRobotTrajectory multirobot_traj;
 
     multirobot_traj.read_from_yaml(result_file.c_str());

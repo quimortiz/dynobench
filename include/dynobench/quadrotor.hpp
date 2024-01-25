@@ -136,12 +136,6 @@ struct Model_quad3d : Model_robot {
   }
   virtual int number_of_robot() override { NOT_IMPLEMENTED; }
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
-    xout = xin;
-    xout.segment<4>(3).normalize();
-  }
-
   virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
     xinout.segment<4>(3).normalize();
   }

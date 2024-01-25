@@ -1,4 +1,4 @@
-name: quadrotor_v1-window
+name: quadrotor_ompl-window
 environment:
   min: [1, 0.5, 1]
   max: [5, 5.5, 3]

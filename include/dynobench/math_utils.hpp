@@ -58,6 +58,29 @@ double inline check_bounds_distance(const Eigen::VectorXd &v,
   return max_distance;
 }
 
+bool inline approx_equal_report(const Eigen::MatrixXd &A,
+                                const Eigen::MatrixXd &B, double tol = 1e-6) {
+
+  bool are_equal = true;
+
+  DYNO_CHECK_EQ(A.rows(), B.rows(), "");
+  DYNO_CHECK_EQ(A.cols(), B.cols(), "");
+
+  for (int i = 0; i < A.rows(); i++) {
+    for (int j = 0; j < A.cols(); j++) {
+      if (std::fabs(A(i, j) - B(i, j)) > tol) {
+        std::cout << "Error entry: " << i << " " << j << std::endl;
+        std::cout << "A:" << A(i, j) << std::endl;
+        std::cout << "B:" << B(i, j) << std::endl;
+        std::cout << "d:" << A(i, j) - B(i, j) << std::endl;
+        are_equal = false;
+      }
+    }
+  }
+
+  return are_equal;
+}
+
 Eigen::VectorXd inline enforce_bounds(const Eigen::VectorXd &us,
                                       const Eigen::VectorXd &lb,
                                       const Eigen::VectorXd &ub) {
@@ -83,6 +106,7 @@ bool inline check_equal(Eigen::MatrixXd A, Eigen::MatrixXd B, double rtol,
     std::cout << "**\nERROR" << std::endl;
     std::cout << "A\n" << A << std::endl;
     std::cout << "B\n" << B << std::endl;
+    std::cout << "TOTAL ERROR " << (A - B).cwiseAbs().sum() << std::endl;
     std::cout << "A-B\n" << A - B << std::endl;
     std::cout << "**" << std::endl;
   }

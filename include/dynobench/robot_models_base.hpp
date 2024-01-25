@@ -267,6 +267,14 @@ struct Rn : StateDyno {
 
 struct Model_robot {
 
+  virtual std::map<std::string, std::vector<double>>
+  get_info(const Eigen::Ref<const Eigen::VectorXd> &x) {
+    return {};
+  }
+
+  double k_acc = 0; // weight on acceleration cost, if any (some models will
+                    // never use this)
+
   size_t nx;
   size_t nu;
   size_t nx_pr; // the first nx_pr components are about position/orientation
@@ -274,6 +282,8 @@ struct Model_robot {
 
   size_t nr_reg;
   size_t nr_ineq;
+  Eigen::VectorXd goal_weight; // overload this to set the goal weight --
+                               // ohterwise, vector of ones
 
   bool invariance_reuse_col_shape = true;
   bool is_2d;
@@ -334,12 +344,7 @@ struct Model_robot {
     NOT_IMPLEMENTED;
   }
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) {
-    xout = xin;
-  }
-
-  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) { (void)xinout; }
+  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) { (void)xout; }
 
   // State
   std::shared_ptr<StateDyno> state;
@@ -676,6 +681,9 @@ struct Model_robot {
 
   std::vector<std::shared_ptr<fcl::CollisionGeometryd>> collision_geometries;
   std::shared_ptr<fcl::BroadPhaseCollisionManagerd> env;
+  std::vector<fcl::CollisionObjectd *>
+      obstacles; // this is owning, replace by unique_ptr
+  // TODO: also store the geometry shapes.
 
   virtual void collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                   CollisionOut &cout);

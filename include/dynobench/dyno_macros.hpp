@@ -118,6 +118,8 @@ std::string inline add_stacktrace(const std::string &msg) {
 
 #define NOT_IMPLEMENTED ERROR_WITH_INFO("not implemented")
 
+#define NOT_IMPLEMENTED_TODO ERROR_WITH_INFO("not implemented -- todo")
+
 #define WARN_WITH_INFO(msg)                                                    \
   std::cout << __FILE__ + std::string(":") + std::to_string(__LINE__) + "\"" + \
                    msg + "\"\n"                                                \
