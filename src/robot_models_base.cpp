@@ -726,9 +726,13 @@ void Model_robot::transform_primitive(
     }
   }
 
-  if (num_valid_states) {
+  if (num_valid_states && *num_valid_states > 0) {
     assert(*num_valid_states <= xs_in.size());
     assert(*num_valid_states - 1 <= us_in.size());
+  }
+
+  if (num_valid_states && *num_valid_states < 1) {
+    return;
   }
 
   size_t num_controls = num_valid_states ? *num_valid_states - 1 : us_in.size();
