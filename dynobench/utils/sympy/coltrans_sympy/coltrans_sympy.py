@@ -269,9 +269,9 @@ def computef(*data):
 
         f[0:start_idx, :] = payload_f
         f[start_idx : start_idx + 6 * num_uavs, :] = qwcdot
-        f[
-            start_idx + 6 * num_uavs : start_idx + 7 * num_uavs + 6 * num_uavs, :
-        ] = uavSt_dot
+        f[start_idx + 6 * num_uavs : start_idx + 7 * num_uavs + 6 * num_uavs, :] = (
+            uavSt_dot
+        )
 
     if payloadType == "rigid":
         ## NOT IMPLEMENTED ###
