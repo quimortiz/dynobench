@@ -131,6 +131,20 @@ void Trajectory::to_yaml_format(std::ostream &out,
   }
 };
 
+void Trajectory::to_yaml_format_short(std::ostream &out,
+                                const std::string &prefix) const {
+
+  out << prefix << STR_(cost) << std::endl;
+
+  out << prefix << "num_states: " << states.size() << std::endl;
+  out << prefix << "states:" << std::endl;
+  out << prefix << "  - " << states.at(0).format(FMT) << std::endl;
+
+  out << prefix << "num_actions: " << actions.size() << std::endl;
+  out << prefix << "actions:" << std::endl;
+  out << prefix << "  - " << actions.at(0).format(FMT) << std::endl;
+};
+
 void Trajectory::update_feasibility(const Feasibility_thresholds &thresholds,
                                     bool verbose) {
   traj_feas = max_jump < thresholds.traj_tol;

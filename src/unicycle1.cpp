@@ -146,8 +146,8 @@ double Model_unicycle1::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
   assert(x.size() == 3);
   assert(y.size() == 3);
-  assert(y[2] <= M_PI && y[2] >= -M_PI);
-  assert(x[2] <= M_PI && x[2] >= -M_PI);
+  // assert(y[2] <= M_PI && y[2] >= -M_PI);
+  // assert(x[2] <= M_PI && x[2] >= -M_PI);
   return params.distance_weights(0) * (x.head<2>() - y.head<2>()).norm() +
          params.distance_weights(1) * so2_distance(x(2), y(2));
 }

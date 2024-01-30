@@ -235,6 +235,8 @@ struct Trajectory {
     to_yaml_format(filename.c_str());
   }
 
+  void to_yaml_format_short(std::ostream &out, const std::string &prefix = "") const;
+
   void read_from_yaml(const YAML::Node &node);
 
   void read_from_yaml(const char *file);

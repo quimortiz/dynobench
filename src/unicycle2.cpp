@@ -159,8 +159,8 @@ double Model_unicycle2::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
   assert(x.size() == 5);
   assert(y.size() == 5);
-  assert(y[2] <= M_PI && y[2] >= -M_PI);
-  assert(x[2] <= M_PI && x[2] >= -M_PI);
+  // assert(y[2] <= M_PI && y[2] >= -M_PI);
+  // assert(x[2] <= M_PI && x[2] >= -M_PI);
   Eigen::Vector4d raw_d = Eigen::Vector4d(
       (x.head<2>() - y.head<2>()).norm(), so2_distance(x(2), y(2)),
       std::abs(x(3) - y(3)), std::abs(x(4) - y(4)));

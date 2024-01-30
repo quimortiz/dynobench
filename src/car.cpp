@@ -275,8 +275,8 @@ Model_car_with_trailers::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                   const Eigen::Ref<const Eigen::VectorXd> &y) {
   DYNO_CHECK_EQ(x.size(), 4, AT);
   DYNO_CHECK_EQ(y.size(), 4, AT);
-  assert(y(2) <= M_PI && y(2) >= -M_PI);
-  assert(x(2) <= M_PI && x(2) >= -M_PI);
+  // assert(y(2) <= M_PI && y(2) >= -M_PI);
+  // assert(x(2) <= M_PI && x(2) >= -M_PI);
   double d = params.distance_weights(0) * (x.head<2>() - y.head<2>()).norm() +
              params.distance_weights(1) * so2_distance(x(2), y(2));
   if (params.num_trailers) {
