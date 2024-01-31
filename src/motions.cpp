@@ -140,9 +140,9 @@ void Trajectory::to_yaml_format_short(std::ostream &out,
   out << prefix << "states:" << std::endl;
   out << prefix << "  - " << states.at(0).format(FMT) << std::endl;
 
-  out << prefix << "num_actions: " << actions.size() << std::endl;
-  out << prefix << "actions:" << std::endl;
-  out << prefix << "  - " << actions.at(0).format(FMT) << std::endl;
+  // out << prefix << "num_actions: " << actions.size() << std::endl;
+  // out << prefix << "actions:" << std::endl;
+  // out << prefix << "  - " << actions.at(0).format(FMT) << std::endl;
 };
 
 void Trajectory::update_feasibility(const Feasibility_thresholds &thresholds,
