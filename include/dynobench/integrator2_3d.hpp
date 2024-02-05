@@ -23,29 +23,24 @@
 
 namespace dynobench {
 
-struct Integrator2_2d_params {
+struct Integrator2_3d_params {
 
-  Integrator2_2d_params(const char *file) { read_from_yaml(file); };
+  Integrator2_3d_params(const char *file) { read_from_yaml(file); };
 
-  Integrator2_2d_params() = default;
+  Integrator2_3d_params() = default;
 
   // time step for discrete-time dynamics
   double dt = .1;
 
   // Control and state bounds
-  double max_vel = 1;
-  double max_acc = 1;
-
-  // filenam used to load the paratemers, it is set by read_from_yaml
+  double max_vel = 0.5;
+  double min_vel = -0.5;
+  double max_acc = 2.0;
+  double min_acc = -2.0;
   std::string filename = "";
-
-  // shape for collision
   std::string shape = "box";
   double radius = 0.1;
-  // For computing distance between states
   Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
-
-  // Size for collision shape
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
 
   void read_from_yaml(const char *file);
@@ -54,25 +49,23 @@ struct Integrator2_2d_params {
   void write(std::ostream &out);
 };
 
-struct Integrator2_2d : public Model_robot {
+struct Integrator2_3d : public Model_robot {
 
-  virtual ~Integrator2_2d() = default;
+  virtual ~Integrator2_3d() = default;
 
-  Integrator2_2d_params params;
+  Integrator2_3d_params params;
 
-  Integrator2_2d(const Integrator2_2d_params &params = Integrator2_2d_params(),
+  Integrator2_3d(const Integrator2_3d_params &params = Integrator2_3d_params(),
                  const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                  const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
-  virtual int number_of_r_dofs() override;
-
+  virtual int number_of_r_dofs() override {return 6;};
   virtual int number_of_so2() override { return 0; }
   virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
-    k += 4;
-  }
+    k += 6;
+   }
   virtual int number_of_robot() override { return 1; }
-
   // DISTANCE AND TIME (cost) - BOUNDS
   // Distances and bounds are useuful in search/motion planning algorithms.
 

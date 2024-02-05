@@ -39,6 +39,7 @@
 
 // #define dynobench_models "../dynoplan/dynobench/models/"
 #include "dynobench/integrator1_2d.hpp"
+#include "dynobench/integrator2_3d.hpp"
 
 namespace dynobench {
 
@@ -78,6 +79,8 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     return std::make_unique<Integrator2_2d>(file, p_lb, p_ub);
   } else if (dynamics == "integrator1_2d") {
     return std::make_unique<Integrator1_2d>(file, p_lb, p_ub);
+  } else if (dynamics == "integrator2_3d") {
+    return std::make_unique<Integrator2_3d>(file, p_lb, p_ub);
   } else {
     ERROR_WITH_INFO("dynamics not implemented: " + dynamics);
   }
