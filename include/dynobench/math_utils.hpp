@@ -32,7 +32,7 @@ double inline check_bounds_distance(const Eigen::VectorXd &v,
                                     const Eigen::VectorXd &v_ub) {
 
   DYNO_CHECK_EQ(v.size(), v_lb.size(), AT);
-  DYNO_CHECK_EQ(v.size(), v_lb.size(), AT);
+  DYNO_CHECK_EQ(v.size(), v_ub.size(), AT);
   size_t n = v.size();
   double max_distance = 0;
   for (size_t i = 0; i < n; i++) {

@@ -120,7 +120,7 @@ Joint_robot::Joint_robot(
 
   nx_col = nx;
   nx_pr = nx_col;
-  translation_invariance = 2;
+  // translation_invariance = 2;
   name = "joint_robot";
 
   u_weight.resize(nu);
