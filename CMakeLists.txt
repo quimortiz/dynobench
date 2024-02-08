@@ -20,6 +20,18 @@ add_subdirectory(deps/json)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
+
+set(COMPILE_N56 false)
+if (COMPILE_N56)
+    set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p.cpp
+                  ./src/quadrotor_payload_dynamics_autogen_n5_p.cpp)
+
+else()
+    set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p_fake.cpp
+          ./src/quadrotor_payload_dynamics_autogen_n5_p_fake.cpp)
+endif()
+
+
 add_library(
   dynobench
   ./src/robot_models.cpp
@@ -42,8 +54,7 @@ add_library(
   ./src/quadrotor_payload_dynamics_autogen_n2_p.cpp
   ./src/quadrotor_payload_dynamics_autogen_n3_p.cpp
   ./src/quadrotor_payload_dynamics_autogen_n4_p.cpp
-  ./src/quadrotor_payload_dynamics_autogen_n5_p.cpp
-  ./src/quadrotor_payload_dynamics_autogen_n6_p.cpp)
+  ${SOURCE_n56} )
 
 add_library(dynobench::dynobench ALIAS dynobench)
 
@@ -115,7 +126,7 @@ message(STATUS "BUILD_DYNOBENCH_PYBINDINGS: ${BUILD_DYNOBENCH_PYBINDINGS}")
 message(STATUS "BUILD_DYNOBENCH_TOOLS: ${BUILD_DYNOBENCH_TOOLS}")
 message(STATUS "BUILD_ALL: ${BUILD_ALL}")
 
-if(BUILD_DYNBENCH_TOOLS OR BUILD_ALL)
+if(BUILD_DYNOBENCH_TOOLS OR BUILD_ALL)
   add_executable(check_trajectory ./src/check_trajectory.cpp)
   add_executable(check_trajectory_multirobot
                  ./src/check_trajectory_multirobot.cpp)

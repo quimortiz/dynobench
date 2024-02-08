@@ -9,7 +9,7 @@ BOOST_AUTO_TEST_CASE(t_check_infeasible) {
   std::vector<std::string> _cmd = {
       "../check_trajectory",
       "--models_base_path",
-      "../../models/",
+      BASE_PATH "models/",
       "--env_file",
       BASE_PATH "envs/unicycle1_v0/bugtrap_0.yaml",
       "--result_file",
