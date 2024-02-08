@@ -20,17 +20,15 @@ add_subdirectory(deps/json)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
-
 set(COMPILE_N56 false)
-if (COMPILE_N56)
-    set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p.cpp
-                  ./src/quadrotor_payload_dynamics_autogen_n5_p.cpp)
+if(COMPILE_N56)
+  set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p.cpp
+                 ./src/quadrotor_payload_dynamics_autogen_n5_p.cpp)
 
 else()
-    set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p_fake.cpp
-          ./src/quadrotor_payload_dynamics_autogen_n5_p_fake.cpp)
+  set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p_fake.cpp
+                 ./src/quadrotor_payload_dynamics_autogen_n5_p_fake.cpp)
 endif()
-
 
 add_library(
   dynobench
@@ -54,7 +52,7 @@ add_library(
   ./src/quadrotor_payload_dynamics_autogen_n2_p.cpp
   ./src/quadrotor_payload_dynamics_autogen_n3_p.cpp
   ./src/quadrotor_payload_dynamics_autogen_n4_p.cpp
-  ${SOURCE_n56} )
+  ${SOURCE_n56})
 
 add_library(dynobench::dynobench ALIAS dynobench)
 

@@ -995,8 +995,7 @@ Trajectory Trajectory::resample(std::shared_ptr<Model_robot> &robot) {
                       times, robot->ref_dt, robot->state);
 
   if (startsWith(robot->name, "quad3d")) {
-    std::cout << "warning "
-              << "normalize_quaternion" << std::endl;
+    std::cout << "warning " << "normalize_quaternion" << std::endl;
     for (auto &s : out.states) {
       s.segment<4>(3).normalize();
     }
