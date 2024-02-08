@@ -192,6 +192,7 @@ struct Trajectory {
   double time_stamp; // when it was generated?
   double cost = 1e8;
   bool feasible = 0;
+  float fmin; // tdbA*-epsilon
 
   bool traj_feas = 0;
   bool goal_feas = 0;
