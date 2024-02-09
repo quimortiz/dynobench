@@ -137,7 +137,7 @@ bool inline is_diagonal(const Eigen::Ref<const Eigen::MatrixXd> &mat,
 }
 
 template <class T> T inside_bounds(const T &i, const T &lb, const T &ub) {
-  DYNO_DYNO_CHECK_GEQ(ub, lb, AT);
+  DYNO_CHECK_GEQ(ub, lb, AT);
 
   if (i < lb)
     return lb;

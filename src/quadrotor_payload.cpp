@@ -57,6 +57,7 @@ Model_quad3dpayload::Model_quad3dpayload(const Quad3dpayload_params &params,
 
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;
+  translation_invariance = 3;
 
   using V4d = Eigen::Vector4d;
   using Vxd = Eigen::VectorXd;

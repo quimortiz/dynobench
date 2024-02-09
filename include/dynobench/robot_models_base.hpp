@@ -382,6 +382,8 @@ struct Model_robot {
   }
 
   virtual void set_position_lb(const Eigen::Ref<const Eigen::VectorXd> &p_lb) {
+    std::cout << p_lb << std::endl;
+    std::cout << "trans " << translation_invariance << std::endl;
     DYNO_CHECK_EQ(static_cast<size_t>(p_lb.size()), translation_invariance, AT);
     x_lb.head(translation_invariance) = p_lb;
   }

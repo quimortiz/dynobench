@@ -1,8 +1,8 @@
 name: quad3d_payload_empty_0
 environment:
   # WHAT TO PUT HERE?
-  min: [-1000,1000]
-  max: [-1000,1000]
+  min: [-1000,-1000,-1000]
+  max: [1000,1000,1000]
   obstacles: []
 robots:
   - type: quad3dpayload

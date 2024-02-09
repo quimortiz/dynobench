@@ -298,7 +298,7 @@ Model_robot::Model_robot(std::shared_ptr<StateDyno> state, size_t nu)
 void Model_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  DYNO_DYNO_CHECK_GEQ(x.size(), 3, "");
+  DYNO_CHECK_GEQ(x.size(), 3, "");
   DYNO_CHECK_EQ(ts.size(), 1, "");
 
   fcl::Transform3d result;

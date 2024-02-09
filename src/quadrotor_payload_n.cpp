@@ -66,6 +66,8 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 {
   // NOT_IMPLEMENTED_TODO; // @KHALED TODO
 
+  translation_invariance = 3;
+
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;
 
