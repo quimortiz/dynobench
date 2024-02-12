@@ -169,7 +169,7 @@ class CMakeBuild(build_ext):
         subprocess.run(
             ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
         )
-        build_args += ["-j"]
+        build_args += ["-j4"]
         print("build_args", build_args)
         subprocess.run(
             ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
@@ -184,10 +184,10 @@ class CMakeBuild(build_ext):
 # this_directory = Path(__file__).parent
 # long_description = (this_directory / "README.md").read_text()
 
-datadir1 = Path(__file__).parent / "dynobench/" / "envs"
+datadir1 = Path(__file__).parent / "envs"
 files1 = ["envs/" + str(p.relative_to(datadir1)) for p in datadir1.rglob("*.yaml")]
 
-datadir2 = Path(__file__).parent / "dynobench/" / "models"
+datadir2 = Path(__file__).parent / "models"
 files2 = ["models/" + str(p.relative_to(datadir2)) for p in datadir2.rglob("*.yaml")]
 
 files = files1 + files2
@@ -206,11 +206,14 @@ setup(
     author_email="quimortiz21@gmail.com",
     description="C++/Python Dynamics Models",
     long_description="",
-    # packages=find_packages(
+    # packages=find_packages(mypkg
     #     "."
     # ),  # where the folder dynobench is. Inside the dynobench I should have a __init__.py
-    packages=["dynobench", "dynobench.test", "dynobench.utils"],
-    package_dir={"": "."},
+    # packages=["dynobench","models", "envs"],
+    packages=["dynobench", "dynobench.models", "dynobench.envs"],
+    # "dynobench.test", "dynobench.utils"],
+    # package_dir={"": "."},
+    package_dir={"dynobench.models": "models", "dynobench.envs": "envs"},
     ext_modules=[CMakeExtension("dynobench/dynobench")],
     # if ext_modules=[CMakeExtension("bar/foo")],
     # build directory will be bar/foo
@@ -220,9 +223,9 @@ setup(
     # package_data={"pydynobench": ["pydynobench.pyi"]},
     # test_suite="tests",
     include_package_data=True,
-    package_data={
-        "": files
-    },  # NOTE: i have to find files by hand because this does not support recursive globs
+    # package_data={
+    #     "models": ["*.yaml"]
+    # },  # NOTE: i have to find files by hand because this does not support recursive globs
     # ["models/*.yaml"] + files},
     # "envs/*.yaml",
     # ]},
