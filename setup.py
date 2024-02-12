@@ -199,6 +199,9 @@ print("files is", files)
 # )
 
 
+# SOURCE:
+# https://stackoverflow.com/questions/63131139/python-setuptools-pip-packing-data-files-into-your-package
+
 setup(
     name="dynobench",
     version="0.0.4",
