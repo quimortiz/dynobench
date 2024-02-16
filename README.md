@@ -12,6 +12,82 @@ Dynobench 🦖 is a universal benchmark for kinodynamic motion planning. Develop
 
 You will find multiple planners in [Dynoplan](https://github.com/quimortiz/dynoplan) 🦖
 
+
+## Try out the Python Package!
+
+Install with
+```
+pip3 install dynobench
+```
+
+One line check
+
+```
+python3 -c 'import dynobench; import numpy as np; print(dynobench.robot_factory(dynobench.PKGDIR + "models/unicycle1_v0.yaml", [], []).stepOut(np.zeros(3), np.ones(2),.1))'
+```
+
+Run a simple test (it loads an environment, checks collisions...)
+
+```
+python3 -m  dynobench.test.test_1
+```
+
+
+## Dev
+
+
+### Create a Python Package for your local computer:
+
+```
+pip3 wheel . --verbose
+```
+
+and now install,
+```
+pip3 install NAME_OF_WHEEL
+```
+
+### How to create the python package to upload to PIP
+
+
+Docker Container
+
+```
+docker run -it --network common  -v  (pwd):/io   quay.io/pypa/manylinux2014_x86_64
+```
+
+Install Dependencies
+
+```
+bash /io/install_all_docker.sh
+```
+
+Create Wheels
+
+```
+bash /io/build_wheels.sh
+```
+
+this will create wheels in wheelhouse_audit
+
+
+In one line:
+
+```
+docker run -it --network common -v $(pwd):/io quay.io/pypa/manylinux2014_x86_64 /bin/bash -c "bash /io/install_all_docker.sh && bash /io/build_wheels.sh"
+```
+
+
+
+Upload to PIP
+
+```
+python3 -m twine upload v002/*
+```
+Change v002 for folder where the wheels are!
+
+
+
 ## Robots and Problem Description
 
 TODO
@@ -359,6 +435,13 @@ https://drive.google.com/file/d/1OLuw5XICTueoZuleXOuD6vNh3PCWfHif/view?usp=drive
 
 
 
+## Pytho Dev
+
+Create a Python Package with:
+
+```
+pip3 wheel . --verbose
+```
 
 ## Roadmap
 

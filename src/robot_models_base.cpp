@@ -281,7 +281,7 @@ Model_robot::Model_robot(std::shared_ptr<StateDyno> state, size_t nu)
 void Model_robot::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  DYNO_DYNO_CHECK_GEQ(x.size(), 3, "");
+  DYNO_CHECK_GEQ(x.size(), 3, "");
   DYNO_CHECK_EQ(ts.size(), 1, "");
 
   fcl::Transform3d result;
@@ -291,7 +291,6 @@ void Model_robot::transformation_collision_geometries(
 }
 
 void Model_robot::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
-  std::cout << nx << std::endl;
   x = x_lb + (x_ub - x_lb)
                  .cwiseProduct(.5 * (Eigen::VectorXd::Random(nx) +
                                      Eigen::VectorXd::Ones(nx)));
@@ -329,9 +328,7 @@ bool Model_robot::collision_check(const Eigen::Ref<const Eigen::VectorXd> &x) {
 void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                      CollisionOut &cout) {
 
-  if (env) {
-
-    fcl::DefaultDistanceData<double> distance_data;
+  if (env && env->size()) {
 
     // compute all tansforms
 
@@ -342,6 +339,7 @@ void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
     assert(collision_geometries.size() == col_outs.size());
 
     for (size_t i = 0; i < collision_geometries.size(); i++) {
+      fcl::DefaultDistanceData<double> distance_data;
 
       fcl::Transform3d &result = ts_data[i];
       assert(collision_geometries[i]);

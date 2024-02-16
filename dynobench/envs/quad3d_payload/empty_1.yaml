@@ -1,0 +1,15 @@
+name: quad3d_payload_empty_0
+environment:
+  # WHAT TO PUT HERE?
+  min: [-1000,-1000,-1000]
+  max: [1000,1000,1000]
+  obstacles: []
+robots:
+  - type: quad3dpayload
+    l: [0.5] # This must be a list
+    quadsNum: 1 # number of robots
+    # TODO: khaled: change the start and use a goal that is easy to reach,
+    # such that the trajectory can be optimized using only as initial guess the initial position,
+    # without planner
+    start: [0, 0, 0, 0, 0, -1, 0, 0, 0, 0 ,0 ,0, 0, 0, 0, 1, 0, 0, 0]
+    goal:  [0, 0, 0.5, 0, 0, -1, 0, 0, 0, 0 ,0 ,0, 0, 0, 0, 1, 0, 0, 0]

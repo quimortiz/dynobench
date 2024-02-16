@@ -70,9 +70,9 @@ double Model_car2::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
   DYNO_CHECK_EQ(x.size(), 5, AT);
   DYNO_CHECK_EQ(y.size(), 5, AT);
   DYNO_CHECK_LEQ(y(2), M_PI, AT);
-  DYNO_DYNO_CHECK_GEQ(y(2), -M_PI, AT);
+  DYNO_CHECK_GEQ(y(2), -M_PI, AT);
   DYNO_CHECK_LEQ(x(2), M_PI, AT);
-  DYNO_DYNO_CHECK_GEQ(x(2), -M_PI, AT);
+  DYNO_CHECK_GEQ(x(2), -M_PI, AT);
   DYNO_CHECK_EQ(params.distance_weights.size(), 4, AT);
   double d = params.distance_weights(0) * (x.head<2>() - y.head<2>()).norm() +
              params.distance_weights(1) * so2_distance(x(2), y(2)) +

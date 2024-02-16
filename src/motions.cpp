@@ -275,7 +275,8 @@ void Problem::read_from_yaml(const YAML::Node &env) {
 
   robotType = env["robots"][0]["type"].as<std::string>();
 
-  if (startsWith(robotType, "quad3d")) {
+  if (startsWith(robotType, "quad3d") &&
+      !startsWith(robotType, "quad3dpayload")) {
     start.segment<4>(3).normalize();
     goal.segment<4>(3).normalize();
   }
@@ -653,7 +654,6 @@ void Trajectories::load_file_boost(const char *file) {
 }
 
 void load_env(Model_robot &robot, const Problem &problem) {
-  std::vector<fcl::CollisionObjectd *> obstacles;
   double ref_pos = 0;
   double ref_size = 1.;
   for (const auto &obs : problem.obstacles) {
@@ -669,7 +669,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->setTranslation(fcl::Vector3d(center(0), center(1),
                                        size.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
-      obstacles.push_back(co);
+      robot.obstacles.push_back(co);
     } else if (obs_type == "sphere") {
       std::shared_ptr<fcl::CollisionGeometryd> geom;
       geom.reset(new fcl::Sphered(size(0)));
@@ -677,13 +677,13 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->setTranslation(fcl::Vector3d(
           center(0), center(1), center.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
-      obstacles.push_back(co);
+      robot.obstacles.push_back(co);
     } else {
       throw std::runtime_error("Unknown obstacle type! --" + obs_type);
     }
   }
   robot.env.reset(new fcl::DynamicAABBTreeCollisionManagerd());
-  robot.env->registerObjects(obstacles);
+  robot.env->registerObjects(robot.obstacles);
   robot.env->setup();
 }
 
@@ -1013,8 +1013,7 @@ Trajectory Trajectory::resample(std::shared_ptr<Model_robot> &robot) {
                       times, robot->ref_dt, robot->state);
 
   if (startsWith(robot->name, "quad3d")) {
-    std::cout << "warning "
-              << "normalize_quaternion" << std::endl;
+    std::cout << "warning " << "normalize_quaternion" << std::endl;
     for (auto &s : out.states) {
       s.segment<4>(3).normalize();
     }

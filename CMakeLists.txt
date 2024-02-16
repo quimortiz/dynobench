@@ -15,15 +15,20 @@ find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 # find_package(pybind11 REQUIRED)
 
-add_subdirectory(deps/pybind11)
 add_subdirectory(deps/json)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
-add_executable(check_trajectory ./src/check_trajectory.cpp)
-add_executable(check_trajectory_multirobot
-               ./src/check_trajectory_multirobot.cpp)
+set(COMPILE_N56 false)
+if(COMPILE_N56)
+  set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p.cpp
+                 ./src/quadrotor_payload_dynamics_autogen_n5_p.cpp)
+
+else()
+  set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p_fake.cpp
+                 ./src/quadrotor_payload_dynamics_autogen_n5_p_fake.cpp)
+endif()
 
 add_library(
   dynobench
@@ -41,13 +46,17 @@ add_library(
   ./src/integrator2_2d.cpp
   ./src/joint_robot.cpp
   ./src/integrator1_2d.cpp
-  ./src/integrator2_3d.cpp)
+  ./src/integrator2_3d.cpp
+  ./src/quadrotor_payload.cpp
+  ./src/quadrotor_payload_n.cpp
+  ./src/quadrotor_payload_n.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n2_p.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n3_p.cpp
+  ./src/quadrotor_payload_dynamics_autogen_n4_p.cpp
+  ${SOURCE_n56})
 
 add_library(dynobench::dynobench ALIAS dynobench)
 
-pybind11_add_module(robot_python src/model_robot_python_bindings.cpp)
-
-set_property(TARGET robot_python PROPERTY POSITION_INDEPENDENT_CODE ON)
 set_property(TARGET dynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(
@@ -64,18 +73,6 @@ target_link_libraries(
   PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization
          Boost::stacktrace_basic ${CMAKE_DL_LIBS}
   PUBLIC nlohmann_json::nlohmann_json)
-
-target_link_libraries(
-  check_trajectory
-  PUBLIC dynobench
-  PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
-
-target_link_libraries(
-  check_trajectory_multirobot
-  PUBLIC dynobench
-  PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
-
-target_link_libraries(robot_python PUBLIC Eigen3::Eigen dynobench fcl)
 
 # Installation instructions
 
@@ -119,7 +116,38 @@ target_link_libraries(robot_python PUBLIC Eigen3::Eigen dynobench fcl)
 
 # Add test
 
-if(NOT DEFINED DISABLE_DYNOBENCH_TESTS)
+option(BUILD_DYNOBENCH_TESTS "build test" OFF)
+option(BUILD_DYNOBENCH_PYBINDINGS "build bindings" OFF)
+option(BUILD_DYNOBENCH_TOOLS "build dyno bench tools" ON)
+option(BUILD_ALL "build all modules" OFF)
+message(STATUS "BUILD_DYNOBENCH_TESTS: ${BUILD_DYNOBENCH_TESTS}")
+message(STATUS "BUILD_DYNOBENCH_PYBINDINGS: ${BUILD_DYNOBENCH_PYBINDINGS}")
+message(STATUS "BUILD_DYNOBENCH_TOOLS: ${BUILD_DYNOBENCH_TOOLS}")
+message(STATUS "BUILD_ALL: ${BUILD_ALL}")
+
+if(BUILD_DYNOBENCH_TOOLS OR BUILD_ALL)
+  add_executable(check_trajectory ./src/check_trajectory.cpp)
+  add_executable(check_trajectory_multirobot
+                 ./src/check_trajectory_multirobot.cpp)
+  target_link_libraries(
+    check_trajectory
+    PUBLIC dynobench
+    PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
+
+  target_link_libraries(
+    check_trajectory_multirobot
+    PUBLIC dynobench
+    PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
+endif()
+
+if(BUILD_DYNOBENCH_PYBINDINGS OR BUILD_ALL)
+  add_subdirectory(deps/pybind11)
+  pybind11_add_module(pydynobench src/model_robot_python_bindings.cpp)
+  set_property(TARGET pydynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
+  target_link_libraries(pydynobench PUBLIC Eigen3::Eigen dynobench fcl)
+endif()
+
+if(BUILD_DYNOBENCH_TESTS OR BUILD_ALL)
   enable_testing()
   add_subdirectory(test)
 endif()

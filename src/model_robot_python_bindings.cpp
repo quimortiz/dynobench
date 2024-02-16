@@ -11,7 +11,7 @@
 #include "dynobench/robot_models_base.hpp"
 
 using namespace dynobench;
-PYBIND11_MODULE(robot_python, m) {
+PYBIND11_MODULE(pydynobench, m) {
 
   pybind11::class_<CollisionOut>(m, "CollisionOut")
       .def(pybind11::init())
@@ -60,6 +60,13 @@ PYBIND11_MODULE(robot_python, m) {
            })
       .def("calcV", &Model_robot::calcV)
       .def("step", &Model_robot::step)
+      .def("stepOut",
+           [](Model_robot &robot, Eigen::Ref<Eigen::VectorXd> x,
+              Eigen::Ref<Eigen::VectorXd> u, double dt) {
+             Eigen::VectorXd x_next = Eigen::VectorXd::Zero(robot.get_nx());
+             robot.step(x_next, x, u, dt);
+             return x_next;
+           })
       .def("stepR4", &Model_robot::stepR4)
       .def("distance", &Model_robot::distance)
       .def("sample_uniform", &Model_robot::sample_uniform)
@@ -67,9 +74,15 @@ PYBIND11_MODULE(robot_python, m) {
       .def("lower_bound_time", &Model_robot::lower_bound_time)
       .def("collision_distance", &Model_robot::collision_distance)
       .def("collision_distance_diff", &Model_robot::collision_distance_diff)
+      .def("get_info", &Model_robot::get_info)
       .def("transformation_collision_geometries",
            &Model_robot::transformation_collision_geometries);
 
   m.def("robot_factory", &robot_factory);
   m.def("robot_factory_with_env", &robot_factory_with_env);
+
+  m.def("clock_seed", [] { std::srand(std::time(nullptr)); });
+  m.def("seed", [](int seed) { std::srand(seed); });
+  m.def("rand", [] { return std::rand(); });
+  m.def("rand01", [] { return (double)std::rand() / RAND_MAX; });
 }

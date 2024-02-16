@@ -100,13 +100,6 @@ struct Model_quad2d : Model_robot {
 
   virtual void write_params(std::ostream &out) override { params.write(out); }
 
-  virtual void ensure(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> xout) override {
-
-    xout = xin;
-    xout(2) = wrap_angle(xin(2));
-  }
-
   virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override {
     xinout(2) = wrap_angle(xinout(2));
   }

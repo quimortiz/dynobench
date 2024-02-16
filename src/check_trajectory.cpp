@@ -56,13 +56,13 @@ int main(int argc, char *argv[]) {
   traj.goal = problem.goal;
   traj.check(robot, verbose);
 
-  Feasibility_thresholds thresholds;
-
-  traj.update_feasibility(thresholds);
+  traj.update_feasibility(feasibility_thresholds);
 
   if (traj.feasible) {
+    std::cout << "OK" << std::endl;
     return 0;
   } else {
+    std::cout << "FAIL" << std::endl;
     return 1;
   }
 }
