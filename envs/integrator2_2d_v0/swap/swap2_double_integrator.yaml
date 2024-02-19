@@ -9,4 +9,3 @@ robots:
   - type: integrator2_2d_v0
     start: [4,2.5,0,0]
     goal: [1,2.5,0,0]
-
