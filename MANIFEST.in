@@ -1,0 +1,2 @@
+recursive-include envs *.yaml
+recursive-include models *.yaml

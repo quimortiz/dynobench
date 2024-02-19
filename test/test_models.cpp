@@ -60,7 +60,8 @@ using namespace dynobench;
 
 Eigen::VectorXd default_vector;
 
-#define base_path "../../dynobench/"
+// #define base_path "../../dynobench/"
+#define base_path "../../"
 
 struct Fake_opt {
   Fake_opt() = default;
