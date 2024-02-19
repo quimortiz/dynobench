@@ -328,6 +328,17 @@ void inline delete_file_if_necessary(const std::string file) {
   delete_file_if_necessary(file.c_str());
 }
 
+void inline create_folder_if_necessary(const char *full_path) {
+  const std::filesystem::path path = std::filesystem::path(full_path);
+  if (!path.empty()) {
+    std::filesystem::create_directories(path);
+  }
+}
+
+void inline create_folder_if_necessary(const std::string full_path) {
+  create_folder_if_necessary(full_path.c_str());
+}
+
 struct Loader {
 
   bool use_boost = true; // boost (true) or yaml (false)

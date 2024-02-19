@@ -1,0 +1,13 @@
+robot_type:
+        unicycle2
+robot_id:
+        1
+constraints:
+  - states:
+        [2.84525,2.5439,3.04984,0.4,0.1]
+    time:
+        2.4
+  - states:
+        [2.11773,2.44196,-0.097644,0.258927,-0.20453]
+    time:
+        3.2
