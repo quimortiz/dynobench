@@ -553,8 +553,8 @@ double inline so3_distance(const Eigen::Vector4d &x, const Eigen::Vector4d &y) {
 }
 
 double inline so2_distance(double x, double y) {
-  // assert(y <= M_PI && y >= -M_PI);
-  // assert(x <= M_PI && x >= -M_PI);
+  assert(y <= M_PI && y >= -M_PI);
+  assert(x <= M_PI && x >= -M_PI);
   double d = std::fabs(x - y);
   return (d > M_PI) ? 2.0 * M_PI - d : d;
 }
