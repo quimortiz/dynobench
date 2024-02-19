@@ -8,6 +8,9 @@ sys.path.append(str(Path(__file__).parent))
 
 import viewer_utils
 import argparse
+
+import matplotlib
+matplotlib.use('TkAgg')  # Or 'Qt5Agg', 'GTK3Agg', etc.
 import matplotlib.pyplot as plt
 import yaml
 import numpy as np
@@ -87,9 +90,11 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
     else:
         fig, ax = plt.subplots()
 
+    # plt.show()
     with open(filename_env) as env_file:
         env = yaml.safe_load(env_file)
 
+    print("helll")
     viewer.view_problem(ax, env, env_name=filename_env)
     ax.set_title(env["name"])
 
@@ -129,6 +134,7 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
         fig.savefig(name_out, dpi=300)
 
     if args.interactive:
+        print("interactive")
         plt.show()
 
     # Load Env
@@ -173,8 +179,10 @@ def check_viewer(viewer: RobotViewer, argv=None, show_single_state=False):
 
         if "states" in __result and "actions" in __result:
             result = __result
-        else:
+        elif "result" in __result:
             result = __result["result"][0]
+        elif "trajs_opt" in __result:
+            result = __result["trajs_opt"][0]
 
         if is_3d:
             # fig = plt.figure()

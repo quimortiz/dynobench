@@ -390,10 +390,9 @@ double check_trajectory(const std::vector<Vxd> &xs_out,
       CSTR_V(u);
       CSTR_V(xnext);
       CSTR_V(xs_out.at(i + 1));
-
-      if (jump > max_jump_distance)
-        max_jump_distance = jump;
     }
+    if (jump > max_jump_distance)
+      max_jump_distance = jump;
   }
 
   return max_jump_distance;
@@ -539,12 +538,17 @@ void Info_out::to_yaml(std::ostream &out, const std::string &be,
   STRY(solved_raw, out, be, af);
   STRY(cost, out, be, af);
 
-  out << be << "trajs_opt_size: " << trajs_opt.size() << std::endl;
+  out << be << "trajs_opt_size" << af << trajs_opt.size() << std::endl;
   out << be << "trajs_opt" << af << std::endl;
   std::string prefix = "   ";
   for (size_t i = 0; i < trajs_opt.size(); i++) {
     out << be << "  -" << std::endl;
     trajs_opt.at(i).to_yaml_format(out, be + prefix);
+  }
+
+  out << be << "data" << af << std::endl;
+  for (const auto &[k, v] : data) {
+    out << be + prefix << k << ": " << v << std::endl;
   }
 
   out << be << "trajs_raw_size: " << trajs_raw.size() << std::endl;
@@ -995,7 +999,8 @@ Trajectory Trajectory::resample(std::shared_ptr<Model_robot> &robot) {
                       times, robot->ref_dt, robot->state);
 
   if (startsWith(robot->name, "quad3d")) {
-    std::cout << "warning " << "normalize_quaternion" << std::endl;
+    std::cout << "warning "
+              << "normalize_quaternion" << std::endl;
     for (auto &s : out.states) {
       s.segment<4>(3).normalize();
     }

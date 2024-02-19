@@ -216,6 +216,7 @@ class Quad3dViewer(RobotViewer):
             if o["type"] == "sphere":
                 viewer_utils.plt_sphere(ax, [o["center"]], [o["size"]])
 
+        print("drawing!")
         r = Robot()
         r.draw(ax, start, color="green")
 
