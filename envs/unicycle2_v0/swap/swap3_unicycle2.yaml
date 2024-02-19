@@ -10,8 +10,8 @@ environment:
     #   size: [0.5, 0.25]
 robots:
   - type: unicycle2_v0
-    start: [1,2.5,0,0,0] 
-    goal: [4,2.5,0,0,0] 
+    start: [1,2.5,0,0,0]
+    goal: [4,2.5,0,0,0]
   - type: unicycle2_v0
     start: [4,2.5,3.14,0,0]
     goal: [1,2.5,3.14,0,0]

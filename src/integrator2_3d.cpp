@@ -56,10 +56,10 @@ Integrator2_3d::Integrator2_3d(const Integrator2_3d_params &params,
   x_desc = {"x[m]", "y[m]", "z[m]", "vx[m/s]", "vy[m/s]", "vz[m/s]"};
   u_desc = {"ax[m/s^2]", "ay[m/s^2]", "az[m/s^2]"};
 
-  is_2d = false; 
-  nx_col = 3;  
-  nx_pr = 3;    
-  translation_invariance = 3; 
+  is_2d = false;
+  nx_col = 3;
+  nx_pr = 3;
+  translation_invariance = 3;
 
   distance_weights = params.distance_weights; // necessary for ompl wrapper
   name = "Integrator2_3d";
@@ -73,7 +73,7 @@ Integrator2_3d::Integrator2_3d(const Integrator2_3d_params &params,
   x_ub << max__, max__, max__, params.max_vel, params.max_vel, params.max_vel;
 
   u_weight << 1., 1., 1.;
-  x_weightb << 100, 100, 100, 100, 100, 100; 
+  x_weightb << 100, 100, 100, 100, 100, 100;
   // add bounds on position if provided
   if (p_lb.size() && p_ub.size()) {
     set_position_lb(p_lb);

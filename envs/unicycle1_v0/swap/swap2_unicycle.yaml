@@ -4,9 +4,9 @@ environment:
   obstacles: []
 robots:
   - type: unicycle1_v0
-    start: [1,2.5,0] 
-    goal: [4,2.5,0] 
+    start: [1,2.5,0]
+    goal: [4,2.5,0]
   - type: unicycle1_v0
-    start: [4,2.5,3.14] 
-    goal: [1,2.5,3.14] 
- 
+    start: [4,2.5,3.14]
+    goal: [1,2.5,3.14]
+
