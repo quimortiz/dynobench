@@ -1,0 +1,49 @@
+name: quadrotor_v1-recovery_with_obstacles4
+environment:
+  min: [-4, -2, -2] # TODO: add position bounds as constraints?
+  max: [4, 2, 6]
+  obstacles:
+    - type: box
+      center: [0, -1.2, 3]
+      size: [4, 1.5, .4]
+
+    - type: box
+      center: [0, 1.2, 3]
+      size: [4, 1.5, .4]
+
+
+    - type: box
+      center: [0, 0, 4]
+      size: [.4, 4 , 6]
+
+
+    # - type: box
+    #   center: [1, -1, 4]
+    #   size: [1.5, 1.5, .4]
+
+
+    #
+    # - type: box
+    #   center: [1, 0, 4.]
+    #   size: [.2, 4, .4]
+
+
+    # - type: box
+    #   center: [-0.5, -0.5, 4]
+    #   size: [2., 2., .3]
+
+robots:
+  - type: quad3d_omplapp
+    # self.x0 = np.array([0., 0., 1.,
+    #                     0., 0., 0.,
+    #                     0.0436194, -0.9990482, 0., 0.,
+    #                     0., 0., 0.],
+    #                     dtype=np.float64)
+    #
+    # self.xf = np.array([0., 0.15 , 1.,
+    #                     0., 0., 0.,
+    #                     1., 0., 0., 0.,
+    #                     0., 0., 0.], dtype=np.float64)
+    start:
+      [1.0, 0.0, 5, -0.9990482, 0., 0., 0.0436194, 0., 0., 0., 0., 0., 0.]
+    goal: [-1, 0, 5, 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.]

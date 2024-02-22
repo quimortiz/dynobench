@@ -1,0 +1,29 @@
+name: quadrotor_v0-narrow_recovery
+environment:
+  min: [-2, -2, -2] # TODO: add position bounds as constraints?
+  max: [2, 2, 3]
+  obstacles:
+    - type: box
+      center: [.0, .0, 1.5]
+      size: [2, 4, .3]
+    # - type: box
+    #   center: [.5, .5, 3]
+    #   size: [2., 2., .3]
+    - type: box
+      center: [0, 0, 1]
+      size: [.2, 4, 4]
+
+robots:
+  - type: quad3d_v0
+    # self.x0 = np.array([0., 0., 1.,
+    #                     0., 0., 0.,
+    #                     0.0436194, -0.9990482, 0., 0.,
+    #                     0., 0., 0.],
+    #                     dtype=np.float64)
+    #
+    # self.xf = np.array([0., 0.15 , 1.,
+    #                     0., 0., 0.,
+    #                     1., 0., 0., 0.,
+    #                     0., 0., 0.], dtype=np.float64)
+    start: [1.7,0,  2, -0.9990482, 0., 0., 0.0436194, 0., 0., 0., 0., 0., 0.]
+    goal: [-1., 0., 2.5, 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.]
