@@ -1,4 +1,4 @@
-name: quadrotor_v0-window
+name: quadrotor_v0-window2
 environment:
   min: [1, 0.5, 1]
   max: [5, 7, 3]
@@ -20,19 +20,19 @@ environment:
 
     # second window
     - type: box
-      center: [4, 5, 2]
+      center: [2, 5, 2]
       size: [2, .3, 2]
     - type: box
-      center: [1.1, 5, 1.9]
+      center: [5, 5, 1.9]
       size: [.2, .3, 1]
     # horizontal
     - type: box
-      center: [2, 5, 2.7]
-      size: [2, .3, .6]
+      center: [4, 5, 2.7]
+      size: [2, .3, .9]
     # horizontal
     - type: box
-      center: [2, 5, 1.2]
-      size: [2, .3, .4]
+      center: [4, 5, 1.2]
+      size: [2, .3, .8]
 
 robots:
   - type: quad3d_v0
@@ -54,7 +54,7 @@ robots:
 
     goal: [
         # 4.19647, 2.42183, 2.08445,
-        4.,
+        2.,
         6.,
         2., #p
         0,

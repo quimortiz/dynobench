@@ -224,25 +224,7 @@ struct Model_quad3d : Model_robot {
       // std::vector<Eigen::VectorXd> &xs_out,
       // std::vector<Eigen::VectorXd> &us_out,
       std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
-      int *num_valid_states = nullptr) {
-
-    assert(is_valid_fun == nullptr);
-    assert(num_valid_states == nullptr);
-    assert(xs_in.size());
-    assert(xs_in.size() == us_in.size() + 1);
-
-    for (size_t i = 0; i < traj_out.get_size(); i++) {
-      traj_out.get_state(i).head<3>() =
-          xs_in[i].head<3>() + p.head<3>() - i * ref_dt * p.tail<3>();
-      traj_out.get_state(i).segment<4>(3) = xs_in[i].segment<4>(3);
-      traj_out.get_state(i).segment<3>(7) =
-          xs_in[i].segment<3>(7) + p.tail<3>();
-      traj_out.get_state(i).tail<3>() = xs_in[i].tail<3>();
-      if (i < traj_out.get_size() - 1) {
-        traj_out.get_action(i).head<4>() = us_in[i].head<4>();
-      }
-    }
-  }
+      int *num_valid_states = nullptr) override;
 
   void virtual transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,

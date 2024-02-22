@@ -230,7 +230,7 @@ struct Model_quad2d : Model_robot {
       // std::vector<Eigen::VectorXd> &xs_out,
       // std::vector<Eigen::VectorXd> &us_out,
       std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
-      int *num_valid_states = nullptr) {
+      int *num_valid_states = nullptr) override {
 
     assert(is_valid_fun == nullptr);
     assert(num_valid_states == nullptr);

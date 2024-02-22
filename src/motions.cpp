@@ -93,6 +93,7 @@ void Trajectory::to_yaml_format(std::ostream &out,
   out << prefix << STR_(time_stamp) << std::endl;
   out << prefix << STR_(cost) << std::endl;
   out << prefix << STR_(feasible) << std::endl;
+  out << prefix << STR_(feasible_raw) << std::endl;
   out << prefix << STR_(traj_feas) << std::endl;
   out << prefix << STR_(goal_feas) << std::endl;
   out << prefix << STR_(start_feas) << std::endl;
@@ -157,8 +158,8 @@ void Trajectory::update_feasibility(const Feasibility_thresholds &thresholds,
 
 void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
 
-  CHECK(robot, "");
-  CHECK(states.size(), "");
+  DYNO_CHECK(robot, "");
+  DYNO_CHECK(states.size(), "");
 
   max_collision = check_cols(robot, states);
   Eigen::VectorXd dts;

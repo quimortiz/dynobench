@@ -670,6 +670,29 @@ Model_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
   ERROR_WITH_INFO("not implemented");
 }
 
+void Model_robot::transform_primitiveDirectReverse(
+    const Eigen::Ref<const Eigen::VectorXd> &p,
+    const std::vector<Eigen::VectorXd> &xs_in,
+    const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+    // std::vector<Eigen::VectorXd> &xs_out,
+    // std::vector<Eigen::VectorXd> &us_out,
+    std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun,
+    int *num_valid_states) {
+
+  assert(is_valid_fun == nullptr);
+  assert(num_valid_states == nullptr);
+  assert(xs_in.size());
+  assert(xs_in.size() == us_in.size() + 1);
+
+  for (size_t i = 0; i < traj_out.get_size(); i++) {
+    traj_out.get_state(i) = xs_in[i];
+    traj_out.get_state(i).head(translation_invariance) += p;
+    if (i < traj_out.get_size() - 1) {
+      traj_out.get_action(i) = us_in[i];
+    }
+  }
+}
+
 void Model_robot::transform_primitive2(
     const Eigen::Ref<const Eigen::VectorXd> &p,
     const std::vector<Eigen::VectorXd> &xs_in,

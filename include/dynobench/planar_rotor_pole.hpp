@@ -211,7 +211,16 @@ struct Model_quad2dpole : Model_robot {
       xout.head<2>() += p.head<2>();
       xout.segment<2>(4) += p.tail<2>();
     }
-  }
+  };
+
+  virtual void transform_primitiveDirectReverse(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr) override;
 
   void virtual transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,

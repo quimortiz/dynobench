@@ -190,6 +190,8 @@ struct Trajectory {
   double time_stamp; // when it was generated?
   double cost = 1e8;
   bool feasible = 0;
+  bool feasible_raw =
+      0; // use this when we generate a raw trajectory that contains jumps
 
   bool traj_feas = 0;
   bool goal_feas = 0;

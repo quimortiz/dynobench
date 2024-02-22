@@ -47,6 +47,7 @@ struct TrajWrapper {
     return states.col(i);
   }
 
+
   auto get_action(size_t i) {
     assert(i < size - 1);
     assert(i < states.cols());
@@ -610,6 +611,15 @@ struct Model_robot {
     }
     return d < tolerance;
   }
+
+  virtual void transform_primitiveDirectReverse(
+      const Eigen::Ref<const Eigen::VectorXd> &p,
+      const std::vector<Eigen::VectorXd> &xs_in,
+      const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
+      // std::vector<Eigen::VectorXd> &xs_out,
+      // std::vector<Eigen::VectorXd> &us_out,
+      std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
+      int *num_valid_states = nullptr);
 
   virtual void transform_primitive2(
       const Eigen::Ref<const Eigen::VectorXd> &p,
