@@ -34,8 +34,13 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/histogram.hpp>
 
+#include <octomap/octomap.h>
+#include <octomap/OcTree.h>
+
 using ::boost::archive::binary_iarchive;
 using ::boost::archive::binary_oarchive;
+using namespace octomap;
+
 namespace dynobench {
 
 using vstr = std::vector<std::string>;
@@ -678,6 +683,12 @@ void load_env(Model_robot &robot, const Problem &problem) {
           center(0), center(1), center.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
       robot.obstacles.push_back(co);
+    } else if (obs_type == "octomap") {
+      OcTree* octTree = new OcTree("../meshes/map.bt"); // hard-coded
+      fcl::OcTree<double>* fcl_tree = new fcl::OcTree<double>(std::shared_ptr<const octomap::OcTree>(octTree));
+      auto tree_co = new fcl::CollisionObjectd(std::shared_ptr<fcl::CollisionGeometryd>(fcl_tree));
+      robot.obstacles.push_back(tree_co);
+
     } else {
       throw std::runtime_error("Unknown obstacle type! --" + obs_type);
     }
