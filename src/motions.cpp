@@ -688,7 +688,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->computeAABB();
       robot.obstacles.push_back(co);
     } else if (obs_type == "octomap") {
-      OcTree* octTree = new OcTree(obs.octomap_file); 
+      OcTree* octTree = new OcTree(obs.octomap_file);
       fcl::OcTree<double>* fcl_tree = new fcl::OcTree<double>(std::shared_ptr<const octomap::OcTree>(octTree));
       auto tree_co = new fcl::CollisionObjectd(std::shared_ptr<fcl::CollisionGeometryd>(fcl_tree));
       robot.obstacles.push_back(tree_co);
