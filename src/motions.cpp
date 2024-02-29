@@ -270,12 +270,16 @@ void Problem::read_from_yaml(const YAML::Node &env) {
     Vxd size = Vxd::Map(size_.data(), size_.size());
 
     auto obs_type = obs["type"].as<std::string>();
+    std::string octomap_filename;
+    if (obs_type == "octomap"){
+      octomap_filename = obs["octomap_file"].as<std::string>();
+    }
 
     std::vector<double> center_ = obs["center"].as<std::vector<double>>();
     Vxd center = Vxd::Map(center_.data(), center_.size());
 
     obstacles.push_back(
-        Obstacle{.type = obs_type, .size = size, .center = center});
+        Obstacle{.type = obs_type, .octomap_file = octomap_filename, .size = size, .center = center});
   }
 
   robotType = env["robots"][0]["type"].as<std::string>();
@@ -684,7 +688,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->computeAABB();
       robot.obstacles.push_back(co);
     } else if (obs_type == "octomap") {
-      OcTree* octTree = new OcTree("../meshes/map.bt"); // hard-coded
+      OcTree* octTree = new OcTree(obs.octomap_file); 
       fcl::OcTree<double>* fcl_tree = new fcl::OcTree<double>(std::shared_ptr<const octomap::OcTree>(octTree));
       auto tree_co = new fcl::CollisionObjectd(std::shared_ptr<fcl::CollisionGeometryd>(fcl_tree));
       robot.obstacles.push_back(tree_co);
