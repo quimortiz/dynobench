@@ -84,6 +84,7 @@ static double max__ = std::sqrt(std::numeric_limits<double>::max());
 
 struct Obstacle {
   std::string type;
+  std::string octomap_file;
   Eigen::VectorXd size;
   Eigen::VectorXd center;
 };
