@@ -325,8 +325,68 @@ bool Model_robot::collision_check(const Eigen::Ref<const Eigen::VectorXd> &x) {
   return true;
 }
 
-void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                     CollisionOut &cout) {
+void Model_robot::collision_distance_time(
+    const Eigen::Ref<const Eigen::VectorXd> &x, size_t time,
+    CollisionOut &cout) {
+
+  auto &_env = time_varying_env.at(time);
+  assert(_env);
+  if (_env && _env->size()) {
+
+    // compute all tansforms
+
+    transformation_collision_geometries(x, ts_data);
+    DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
+    assert(collision_geometries.size() == ts_data.size());
+    DYNO_CHECK_EQ(collision_geometries.size(), col_outs.size(), AT);
+    assert(collision_geometries.size() == col_outs.size());
+
+    for (size_t i = 0; i < collision_geometries.size(); i++) {
+      fcl::DefaultDistanceData<double> distance_data;
+
+      fcl::Transform3d &result = ts_data[i];
+      assert(collision_geometries[i]);
+      fcl::CollisionObject co(collision_geometries[i]);
+
+      co.setTranslation(result.translation());
+      co.setRotation(result.rotation());
+      co.computeAABB();
+      distance_data.request.enable_signed_distance = true;
+      _env->distance(&co, &distance_data, fcl::DefaultDistanceFunction<double>);
+
+      auto &col_out = col_outs.at(i);
+
+      col_out.distance = distance_data.result.min_distance;
+      col_out.p1 = distance_data.result.nearest_points[0];
+      col_out.p2 = distance_data.result.nearest_points[1];
+    }
+
+    // decid eht
+
+    bool return_only_min = true;
+    if (return_only_min) {
+
+      auto it = std::min_element(
+          col_outs.begin(), col_outs.end(),
+          [](auto &a, auto &b) { return a.distance < b.distance; });
+
+      cout = *it; // copy only the min
+
+    } else {
+      ERROR_WITH_INFO("not implemented");
+    }
+  } else {
+    cout.distance = max__;
+    // struct CollisionOut {
+    //   double distance;
+    //   Eigen::Vector3d p1;
+    //   Eigen::Vector3d p2;
+  }
+}
+
+void Model_robot::__collision_distance(
+    const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout,
+    std::shared_ptr<fcl::BroadPhaseCollisionManagerd> env) {
 
   if (env && env->size()) {
 
@@ -381,6 +441,11 @@ void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
   }
 }
 
+void Model_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                     CollisionOut &cout) {
+  return __collision_distance(x, cout, env);
+}
+
 void Model_robot::collision_distance_diff(
     Eigen::Ref<Eigen::VectorXd> dd, double &f,
     const Eigen::Ref<const Eigen::VectorXd> &x) {
@@ -398,6 +463,28 @@ void Model_robot::collision_distance_diff(
   finite_diff_grad(
       [&](auto &y) {
         collision_distance(y.head(nx_col), c);
+        return c.distance;
+      },
+      x.head(nx_col), dd.head(nx_col), eps);
+}
+
+void Model_robot::collision_distance_time_diff(
+    Eigen::Ref<Eigen::VectorXd> dd, double &f,
+    const Eigen::Ref<const Eigen::VectorXd> &x, size_t time_index) {
+  // compute collision at current point
+
+  CollisionOut c;
+  assert(nx_col > 0);
+  assert(nx_col <= static_cast<size_t>(x.size()));
+
+  collision_distance_time(x, time_index, c);
+  f = c.distance;
+
+  double eps = 1e-4; // TODO: evaluate which are valid values here!
+
+  finite_diff_grad(
+      [&](auto &y) {
+        collision_distance_time(y.head(nx_col), time_index, c);
         return c.distance;
       },
       x.head(nx_col), dd.head(nx_col), eps);

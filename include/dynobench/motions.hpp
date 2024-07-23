@@ -107,6 +107,8 @@ struct Problem {
   Eigen::VectorXd p_ub; // position bounds
 
   std::vector<Obstacle> obstacles;
+  std::vector<std::vector<Obstacle>> time_varying_obstacles; // for moving obstacles
+
   std::string robotType;
   std::vector<std::string> robotTypes;
   void read_from_yaml(const YAML::Node &env);
@@ -405,6 +407,9 @@ struct Info_out {
 };
 
 void load_env(Model_robot &robot, const Problem &problem);
+
+void load_time_varying_env(Model_robot &robot, const Problem &problem) ;
+
 
 // std:
 //

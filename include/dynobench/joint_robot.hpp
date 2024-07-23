@@ -56,8 +56,9 @@ struct Joint_robot : Model_robot {
   lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                    const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  virtual void collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                  CollisionOut &cout) override;
+  virtual void __collision_distance(
+      const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout,
+      std::shared_ptr<fcl::BroadPhaseCollisionManagerd> env) override;
 
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,

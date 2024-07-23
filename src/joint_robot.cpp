@@ -253,11 +253,12 @@ void Joint_robot::transformation_collision_geometries(
   ts = tmp;
 }
 
-void Joint_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                     CollisionOut &cout) {
+void Joint_robot::__collision_distance(
+    const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout,
+    std::shared_ptr<fcl::BroadPhaseCollisionManagerd> _env) {
   double min_dist = std::numeric_limits<double>::max();
   bool check_parts = true;
-  if (env) {
+  if (_env) {
     transformation_collision_geometries(x, ts_data);
     DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);
     assert(collision_geometries.size() == ts_data.size());
@@ -278,8 +279,8 @@ void Joint_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
       auto robot_co = robot_objs_[i];
       fcl::DefaultDistanceData<double> distance_data;
       distance_data.request.enable_signed_distance = true;
-      env->distance(robot_co, &distance_data,
-                    fcl::DefaultDistanceFunction<double>);
+      _env->distance(robot_co, &distance_data,
+                     fcl::DefaultDistanceFunction<double>);
       min_dist = std::min(min_dist, distance_data.result.min_distance);
     }
 

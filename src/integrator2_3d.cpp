@@ -168,7 +168,7 @@ void Integrator2_3d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 void Integrator2_3d::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  assert(x.size() == 6);
+  // assert(x.size() == 6);
   assert(ts.size() == 1); // only one collision body
 
   fcl::Transform3d result;

@@ -34,8 +34,8 @@
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/histogram.hpp>
 
-#include <octomap/octomap.h>
 #include <octomap/OcTree.h>
+#include <octomap/octomap.h>
 
 using ::boost::archive::binary_iarchive;
 using ::boost::archive::binary_oarchive;
@@ -137,7 +137,7 @@ void Trajectory::to_yaml_format(std::ostream &out,
 };
 
 void Trajectory::to_yaml_format_short(std::ostream &out,
-                                const std::string &prefix) const {
+                                      const std::string &prefix) const {
 
   out << prefix << STR_(cost) << std::endl;
 
@@ -248,7 +248,7 @@ void Problem::read_from_yaml(const YAML::Node &env) {
       tmp_goal.push_back(v.as<double>());
     }
     starts.push_back(Vxd::Map(tmp_start.data(), tmp_start.size())); // for tdbA*
-    goals.push_back(Vxd::Map(tmp_goal.data(), tmp_goal.size())); // for tdbA*
+    goals.push_back(Vxd::Map(tmp_goal.data(), tmp_goal.size()));    // for tdbA*
   }
 
   start = Vxd::Map(_start.data(), _start.size());
@@ -265,21 +265,59 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   p_lb = Eigen::Map<Eigen::VectorXd>(&min_.at(0), min_.size());
   p_ub = Eigen::Map<Eigen::VectorXd>(&max_.at(0), max_.size());
 
-  for (const auto &obs : env["environment"]["obstacles"]) {
-    std::vector<double> size_ = obs["size"].as<std::vector<double>>();
-    Vxd size = Vxd::Map(size_.data(), size_.size());
+  // check if the environment has moving obstacles
+  //
+  bool contains_moving_obstacles = false;
+  if (env["environment"]["moving_obstacles"]) {
 
-    auto obs_type = obs["type"].as<std::string>();
-    std::string octomap_filename;
-    if (obs_type == "octomap"){
-      octomap_filename = obs["octomap_file"].as<std::string>();
+    contains_moving_obstacles = true;
+    for (const auto &obstacles : env["environment"]["moving_obstacles"]) {
+
+      std::vector<Obstacle> _obstacles;
+      for (const auto &obs : obstacles ) {
+        std::vector<double> size_ = obs["size"].as<std::vector<double>>();
+        Vxd size = Vxd::Map(size_.data(), size_.size());
+
+        auto obs_type = obs["type"].as<std::string>();
+        std::string octomap_filename;
+        if (obs_type == "octomap") {
+          octomap_filename = obs["octomap_file"].as<std::string>();
+        }
+
+        std::vector<double> center_ = obs["center"].as<std::vector<double>>();
+        Vxd center = Vxd::Map(center_.data(), center_.size());
+
+        _obstacles.push_back(Obstacle{.type = obs_type,
+                                      .octomap_file = octomap_filename,
+                                      .size = size,
+                                      .center = center});
+      }
+      time_varying_obstacles.push_back(_obstacles);
     }
+  }
 
-    std::vector<double> center_ = obs["center"].as<std::vector<double>>();
-    Vxd center = Vxd::Map(center_.data(), center_.size());
+  if (contains_moving_obstacles) {
+    std::cout << "contains moving obstacles" << std::endl;
+    std::cout << "default obstacles is not parsed!" << std::endl;
+  } else {
+    for (const auto &obs : env["environment"]["obstacles"]) {
+      std::vector<double> size_ = obs["size"].as<std::vector<double>>();
+      Vxd size = Vxd::Map(size_.data(), size_.size());
 
-    obstacles.push_back(
-        Obstacle{.type = obs_type, .octomap_file = octomap_filename, .size = size, .center = center});
+      auto obs_type = obs["type"].as<std::string>();
+      std::string octomap_filename;
+      if (obs_type == "octomap") {
+        octomap_filename = obs["octomap_file"].as<std::string>();
+      }
+
+      std::vector<double> center_ = obs["center"].as<std::vector<double>>();
+      Vxd center = Vxd::Map(center_.data(), center_.size());
+
+      obstacles.push_back(Obstacle{.type = obs_type,
+                                   .octomap_file = octomap_filename,
+                                   .size = size,
+                                   .center = center});
+    }
   }
 
   robotType = env["robots"][0]["type"].as<std::string>();
@@ -688,9 +726,11 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->computeAABB();
       robot.obstacles.push_back(co);
     } else if (obs_type == "octomap") {
-      OcTree* octTree = new OcTree(obs.octomap_file);
-      fcl::OcTree<double>* fcl_tree = new fcl::OcTree<double>(std::shared_ptr<const octomap::OcTree>(octTree));
-      auto tree_co = new fcl::CollisionObjectd(std::shared_ptr<fcl::CollisionGeometryd>(fcl_tree));
+      OcTree *octTree = new OcTree(obs.octomap_file);
+      fcl::OcTree<double> *fcl_tree = new fcl::OcTree<double>(
+          std::shared_ptr<const octomap::OcTree>(octTree));
+      auto tree_co = new fcl::CollisionObjectd(
+          std::shared_ptr<fcl::CollisionGeometryd>(fcl_tree));
       robot.obstacles.push_back(tree_co);
 
     } else {
@@ -700,6 +740,54 @@ void load_env(Model_robot &robot, const Problem &problem) {
   robot.env.reset(new fcl::DynamicAABBTreeCollisionManagerd());
   robot.env->registerObjects(robot.obstacles);
   robot.env->setup();
+}
+
+void load_time_varying_env(Model_robot &robot, const Problem &problem) {
+  double ref_pos = 0;
+  double ref_size = 1.;
+
+  for (const auto &obstacles : problem.time_varying_obstacles) {
+    for (const auto &obs : obstacles) {
+      auto &obs_type = obs.type;
+      auto &size = obs.size;
+      auto &center = obs.center;
+
+      if (obs_type == "box") {
+        std::shared_ptr<fcl::CollisionGeometryd> geom;
+        geom.reset(new fcl::Boxd(size(0), size(1),
+                                 size.size() == 3 ? size(2) : ref_size));
+        auto co = new fcl::CollisionObjectd(geom);
+        co->setTranslation(fcl::Vector3d(
+            center(0), center(1), size.size() == 3 ? center(2) : ref_pos));
+        co->computeAABB();
+        robot.obstacles.push_back(co);
+      } else if (obs_type == "sphere") {
+        std::shared_ptr<fcl::CollisionGeometryd> geom;
+        geom.reset(new fcl::Sphered(size(0)));
+        auto co = new fcl::CollisionObjectd(geom);
+        co->setTranslation(fcl::Vector3d(
+            center(0), center(1), center.size() == 3 ? center(2) : ref_pos));
+        co->computeAABB();
+        robot.obstacles.push_back(co);
+      } else if (obs_type == "octomap") {
+        OcTree *octTree = new OcTree(obs.octomap_file);
+        fcl::OcTree<double> *fcl_tree = new fcl::OcTree<double>(
+            std::shared_ptr<const octomap::OcTree>(octTree));
+        auto tree_co = new fcl::CollisionObjectd(
+            std::shared_ptr<fcl::CollisionGeometryd>(fcl_tree));
+        robot.obstacles.push_back(tree_co);
+
+      } else {
+        throw std::runtime_error("Unknown obstacle type! --" + obs_type);
+      }
+    }
+    auto env = std::make_shared<fcl::DynamicAABBTreeCollisionManagerd>();
+    // new fcl::DynamicAABBTreeCollisionManagerd();
+    // robot.env.reset(new fcl::DynamicAABBTreeCollisionManagerd());
+    env->registerObjects(robot.obstacles);
+    env->setup();
+    robot.time_varying_env.push_back(env);
+  }
 }
 
 Trajectory from_welf_to_quim(const Trajectory &traj_raw, double u_nominal) {
