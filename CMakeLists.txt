@@ -39,6 +39,7 @@ add_library(
   ./src/acrobot.cpp
   ./src/quadrotor.cpp
   ./src/unicycle1.cpp
+  ./src/unicycle1_coupled.cpp
   ./src/unicycle2.cpp
   ./src/planar_rotor.cpp
   ./src/planar_rotor_pole.cpp
@@ -46,6 +47,7 @@ add_library(
   ./src/integrator2_2d.cpp
   ./src/joint_robot.cpp
   ./src/integrator1_2d.cpp
+  ./src/integrator2_2d_coupled.cpp
   ./src/integrator2_3d.cpp
   ./src/quadrotor_payload.cpp
   ./src/quadrotor_payload_n.cpp

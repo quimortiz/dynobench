@@ -1,0 +1,5 @@
+dynamics: "integrator2_2d_coupled"
+shape: "sphere"
+radius: 0.1
+max_vel: 0.5
+max_acc: 2.0

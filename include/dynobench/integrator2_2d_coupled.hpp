@@ -23,11 +23,11 @@
 
 namespace dynobench {
 
-struct Integrator2_2d_params {
+struct Integrator2_2d_coupled_params {
 
-  Integrator2_2d_params(const char *file) { read_from_yaml(file); };
+  Integrator2_2d_coupled_params(const char *file) { read_from_yaml(file); };
 
-  Integrator2_2d_params() = default;
+  Integrator2_2d_coupled_params() = default;
 
   // time step for discrete-time dynamics
   double dt = .1;
@@ -54,13 +54,16 @@ struct Integrator2_2d_params {
   void write(std::ostream &out);
 };
 
-struct Integrator2_2d : public Model_robot {
+struct Integrator2_2d_coupled : public Model_robot {
 
-  virtual ~Integrator2_2d() = default;
+  virtual ~Integrator2_2d_coupled();
 
-  Integrator2_2d_params params;
+  Integrator2_2d_coupled_params params;
+  std::vector<fcl::CollisionObjectd *> part_objs_;  // *
+  std::vector<fcl::CollisionObjectd*> robot_objs_; // *
+  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
 
-  Integrator2_2d(const Integrator2_2d_params &params = Integrator2_2d_params(),
+  Integrator2_2d_coupled(const Integrator2_2d_coupled_params &params = Integrator2_2d_coupled_params(),
                  const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
                  const Eigen::VectorXd &p_ub = Eigen::VectorXd());
 
@@ -69,12 +72,9 @@ struct Integrator2_2d : public Model_robot {
 
   virtual int number_of_so2() override { return 0; }
   virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
-    k += 4;
+    k += 8;
   }
-  virtual int number_of_robot() override { return 1; }
-
-  // DISTANCE AND TIME (cost) - BOUNDS
-  // Distances and bounds are useuful in search/motion planning algorithms.
+  virtual int number_of_robot() override { return 2; }
 
   // distance between two states, using weights probided in params
   virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
@@ -98,7 +98,8 @@ struct Integrator2_2d : public Model_robot {
   virtual double
   lower_bound_time_pr(const Eigen::Ref<const Eigen::VectorXd> &x,
                       const Eigen::Ref<const Eigen::VectorXd> &y) override;
-
+                      
+  virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
   // DYNAMICS
   //
   // Calc Velocity (xdot = f(x,u)).
@@ -118,5 +119,8 @@ struct Integrator2_2d : public Model_robot {
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,
       std::vector<Transform3d> &ts) override;
+
+  virtual void collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                  CollisionOut &cout) override;
 };
 } // namespace dynobench
