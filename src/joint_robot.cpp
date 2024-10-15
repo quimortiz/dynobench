@@ -262,7 +262,7 @@ void Joint_robot::collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                      CollisionOut &cout) {
   double min_dist = std::numeric_limits<double>::max();
   bool check_parts = true;
-  
+
   if (env) {
     transformation_collision_geometries(x, ts_data);
     DYNO_CHECK_EQ(collision_geometries.size(), ts_data.size(), AT);

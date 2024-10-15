@@ -54,6 +54,7 @@
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
+#include "dynobench/differential_drive.hpp"
 
 using namespace std;
 using namespace dynobench;
@@ -1364,4 +1365,35 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
 
     BOOST_TEST(traj.feasible == false);
   }
+}
+
+BOOST_AUTO_TEST_CASE(t_differential_drive) {
+  auto model = mk<Model_differential_drive>();
+
+  Eigen::VectorXd x0(3), u0(2);
+  x0 << .1, .2, .3;
+  u0 << -.1, .2;
+
+  Eigen::MatrixXd Jx_diff(3, 3), Ju_diff(3, 2), Jx(3, 3), Ju(3, 2);
+  Jx.setZero();
+  Ju.setZero();
+  Jx_diff.setZero();
+  Ju_diff.setZero();
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x, u0);
+      },
+      x0, 3, Jx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x0, u);
+      },
+      u0, 3, Ju_diff);
+
+  BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
+  BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
