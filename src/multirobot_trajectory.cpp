@@ -34,9 +34,9 @@ void from_joint_to_indiv_trajectory_meta(
       else{
         nxs_accumulated.at(j) = nxs_accumulated.at(j - 1) + nxs.at(id);
         nus_accumulated.at(j) = nus_accumulated.at(j - 1) + nus.at(id);
-        if(residual_force){
-          nxs_accumulated.at(j) += 1; // shift for the force
-        }
+        // if(residual_force){
+        //   nxs_accumulated.at(j) += 1; // shift for the force
+        // }
         id = i;
         ++j;
       }
@@ -53,12 +53,7 @@ void from_joint_to_indiv_trajectory_meta(
         if (k < times.at(i)-1)
           traj_out.actions.push_back(
               traj.actions.at(k).segment(nus_accumulated.at(j), nus.at(i)));
-        // if(residual_force)
-          // residual_forces.at(i).push_back(traj.states.at(k)(fs_accumulated.at(j)));
       }
-
-      std::cout << "updating the solution for: " << i << std::endl;
-      std::cout << "states before: " << solution_multi_robot.trajectories.at(i).states.size() << std::endl;
       solution_multi_robot.trajectories.at(i).states.resize(traj_out.states.size());
       solution_multi_robot.trajectories.at(i).actions.resize(traj_out.actions.size());
       solution_multi_robot.trajectories.at(i) = traj_out;
