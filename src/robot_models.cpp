@@ -38,7 +38,7 @@
 #include "dynobench/quadrotor_payload_n.hpp"
 #include "dynobench/unicycle1.hpp"
 #include "dynobench/unicycle2.hpp"
-
+#include "dynobench/DintegratorCables.hpp"
 // #define dynobench_models "../dynoplan/dynobench/models/"
 #include "dynobench/integrator1_2d.hpp"
 #include "dynobench/integrator2_3d.hpp"
@@ -89,9 +89,10 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     return std::make_unique<Model_quad3dpayload_n>(file, p_lb, p_ub);
   } else if (dynamics == "quad3dpayload_n") {
     return std::make_unique<Model_quad3dpayload_n>(file, p_lb, p_ub);
+  } else if (dynamics == "DintegratorCables") {
+  return std::make_unique<DintegratorCables>(file, p_lb, p_ub);
   } else {
-    std::string error = "dynamics: " + dynamics + " not implemented";
-    ERROR_WITH_INFO(error);
+    ERROR_WITH_INFO("dynamics not implemented: " + dynamics);
   }
 }
 

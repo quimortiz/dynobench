@@ -1,0 +1,16 @@
+dynamics: "DintegratorCables"
+max_vel: 0.5
+max_acc: 2.0
+max_angular_vel: 1.0
+m0: 0.01
+m1: 1.0
+m2: 1.0
+l1: 0.5
+l2: 0.5
+col_size_payload: 0.01
+col_size_robot: 0.1
+size: [0.5, 0.25]
+# distance_weights: [1, 1.]
+dt: .1
+# u_lb: [-20., -20., -20., -20.]
+# u_ub: [20., 20., 20., 20.]

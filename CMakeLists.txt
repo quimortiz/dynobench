@@ -20,7 +20,7 @@ add_subdirectory(deps/json)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
-set(COMPILE_N56 false)
+set(COMPILE_N56 true)
 if(COMPILE_N56)
   set(SOURCE_n56 ./src/quadrotor_payload_dynamics_autogen_n6_p.cpp
                  ./src/quadrotor_payload_dynamics_autogen_n5_p.cpp)
@@ -53,6 +53,8 @@ add_library(
   ./src/quadrotor_payload_dynamics_autogen_n2_p.cpp
   ./src/quadrotor_payload_dynamics_autogen_n3_p.cpp
   ./src/quadrotor_payload_dynamics_autogen_n4_p.cpp
+  ./src/DintegratorCables.cpp
+  ./src/DintegratorCables_dynamics.cpp
   ${SOURCE_n56})
 
 add_library(dynobench::dynobench ALIAS dynobench)
@@ -140,14 +142,14 @@ if(BUILD_DYNOBENCH_TOOLS OR BUILD_ALL)
     PRIVATE fcl yaml-cpp Boost::program_options Boost::serialization)
 endif()
 
-if(BUILD_DYNOBENCH_PYBINDINGS OR BUILD_ALL)
-  add_subdirectory(deps/pybind11)
-  pybind11_add_module(pydynobench src/model_robot_python_bindings.cpp)
-  set_property(TARGET pydynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
-  target_link_libraries(pydynobench PUBLIC Eigen3::Eigen dynobench fcl)
-endif()
+# if(BUILD_DYNOBENCH_PYBINDINGS OR BUILD_ALL)
+add_subdirectory(deps/pybind11)
+pybind11_add_module(pydynobench src/model_robot_python_bindings.cpp)
+set_property(TARGET pydynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
+target_link_libraries(pydynobench PUBLIC Eigen3::Eigen dynobench fcl)
+# endif()
 
-if(BUILD_DYNOBENCH_TESTS OR BUILD_ALL)
-  enable_testing()
-  add_subdirectory(test)
-endif()
+# if(BUILD_DYNOBENCH_TESTS OR BUILD_ALL)
+enable_testing()
+add_subdirectory(test)
+# endif()
