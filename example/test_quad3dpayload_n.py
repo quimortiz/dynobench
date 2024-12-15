@@ -289,12 +289,12 @@ class Controller():
         # print(self.F_ref)
         print("T_vec: ",T_vec.value)
 
-        T_vec2 = cp.Variable(n)
-        objective = cp.Minimize(cp.sum_squares(T_vec2))
-        constraints = [T_vec2[0]*qi_mat[0:3,0] + T_vec2[1]*qi_mat[0:3,1] + T_vec2[2]*qi_mat[0:3,2] == self.F_ref]
-        prob = cp.Problem(objective, constraints)
-        result = prob.solve()
-        print("T_vec2: ",T_vec2.value)
+        # T_vec2 = cp.Variable(n)
+        # objective = cp.Minimize(cp.sum_squares(T_vec2))
+        # constraints = [T_vec2[0]*qi_mat[0:3,0] + T_vec2[1]*qi_mat[0:3,1] + T_vec2[2]*qi_mat[0:3,2] == self.F_ref]
+        # prob = cp.Problem(objective, constraints)
+        # result = prob.solve()
+        # print("T_vec2: ",T_vec2.value)
         T_vec = T_vec.value
         
         # det_qi = np.linalg.det(qi_mat)
