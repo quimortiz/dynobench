@@ -62,8 +62,8 @@ void from_joint_to_indiv_trajectory_meta(
       solution_multi_robot.trajectories.at(i).states.resize(traj_out.states.size());
       solution_multi_robot.trajectories.at(i).actions.resize(traj_out.actions.size());
       solution_multi_robot.trajectories.at(i) = traj_out;
-      std::cout << "states after: " << solution_multi_robot.trajectories.at(i).states.size() << std::endl;
       ++j; // keep track for cluster
     }
+    solution_multi_robot.trajectories.at(i).cost = solution_multi_robot.trajectories.at(i).actions.size() * 0.1;
   }
 }
