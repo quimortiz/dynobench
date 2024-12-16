@@ -231,10 +231,10 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   // grav_v = Eigen::Vector3d(0, 0, -params.m * g);
 
   u_weight.resize(4 * params.num_robots);
-  u_weight.setConstant(.7);
+  u_weight.setConstant(.5);
 
   // DO we need weight on the state? @KHALED??
-  x_weightb = 300 * Vxd::Ones(nx);
+  x_weightb = 200 * Vxd::Ones(nx);
   
   // u_weight.setConstant(.5);
 
