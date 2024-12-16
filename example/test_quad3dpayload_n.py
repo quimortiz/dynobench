@@ -282,24 +282,9 @@ class Controller():
         objective = cp.Minimize(0.001*cp.sum_squares(T_vec) + cp.sum_squares((qi_mat@T_vec - self.F_ref)))
         constraints = [ np.zeros(n,) <= T_vec]
         prob = cp.Problem(objective, constraints)
-
         # The optimal objective value is returned by `prob.solve()`.
         result = prob.solve()
-        # print(qi_mat)
-        # print(self.F_ref)
-        print("T_vec: ",T_vec.value)
-
-        # T_vec2 = cp.Variable(n)
-        # objective = cp.Minimize(cp.sum_squares(T_vec2))
-        # constraints = [T_vec2[0]*qi_mat[0:3,0] + T_vec2[1]*qi_mat[0:3,1] + T_vec2[2]*qi_mat[0:3,2] == self.F_ref]
-        # prob = cp.Problem(objective, constraints)
-        # result = prob.solve()
-        # print("T_vec2: ",T_vec2.value)
-        T_vec = T_vec.value
-        
-        # det_qi = np.linalg.det(qi_mat)
-        # if det_qi < 1e-2:f
-        #     print(f"Warning matrix det is{det_qi}")
+        T_vec = T_vec.value        
         # T_vec = np.linalg.pinv(qi_mat)@second_term
         for k,i in enumerate(self.team_ids):
             qc = states_d[start_idx+9+6*i: start_idx+9+6*i+3]
@@ -559,7 +544,7 @@ def main():
                 robot.updateControllerDict(ctrl, r_idx)
             u = np.array(flatten_list(u))
             # add some noise to the actuation
-            # u += np.random.normal(0.0, 0.025, len(u))
+            u += np.random.normal(0.0, 0.025, len(u))
             u = np.clip(u, 0, 1.5)
             robot.step(states[k + 1], states[k], u, actions_d[k], rollout=rollout)
         print("Done Simulation")
@@ -643,7 +628,6 @@ def main():
             fig, axes = plt.subplots(3, 1, figsize=(8, 12))
             for i in range(3):
                 axes[i].plot(time_steps, j_ref[:, i], label=f'j_ref[{i}]', color='b')
-                # axes[i].plot(time_steps, a_der[:, i], label=f'v_dot[{i}]', color='r', linestyle='--')
 
                 axes[i].set_xlabel('Time (s)')
                 axes[i].set_ylabel(f'{axes_names[i]}')
@@ -694,8 +678,8 @@ def main():
 
                 fig, axes = plt.subplots(3, 1, figsize=(8, 12))
                 for k in range(3):
-                    # axes[k].plot(time_steps, q_cables[:, k], label=f'q_cables[{i}]', color='b')
-                    # axes[k].plot(time_steps, qdes[:, k], label=f'qdes[{i}]',  color='g', linestyle='-')
+                    axes[k].plot(time_steps, q_cables[:, k], label=f'q_cables[{i}]', color='b')
+                    axes[k].plot(time_steps, qdes[:, k], label=f'qdes[{i}]',  color='g', linestyle='-')
                     axes[k].plot(time_steps, qref[:, k], label=f'qref[{i}]',  color='r', linestyle='--')
                     axes[k].set_xlabel('Time (s)')
                     axes[k].set_ylabel(f'{axes_names[k]}')
