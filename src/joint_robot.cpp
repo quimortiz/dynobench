@@ -139,8 +139,8 @@ Joint_robot::Joint_robot(
   for (size_t i = 0; i < collision_geometries.size(); i++) {
     auto robot_part = new fcl::CollisionObject(collision_geometries[i]);
     part_objs_.push_back(robot_part);
-    // when conservative shape for residual
-    if(residual_force && conservative){
+    // when conservative shape for the residual force
+    if(conservative){ // residual_force
       std::shared_ptr<fcl::Ellipsoidd> ellipsoid = std::make_shared<fcl::Ellipsoidd>(radii);
       auto rf_robot_part = new fcl::CollisionObjectd(ellipsoid);
       rf_part_objs_.push_back(rf_robot_part);
@@ -173,7 +173,7 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
     k_u += size_nu;
   }
   // get f_res_dot as (f_res_next - f_res)/ ref_dt. It needs v to be computed already for the NN(x_next)
-  if(residual_force && !conservative){
+  if(residual_force){ // && !conservative
     // get x_next = x + v*dt
     std::vector<Eigen::VectorXd> ind_x; // x
     from_joint_to_ind(x, ind_x);
@@ -322,7 +322,7 @@ void Joint_robot::__collision_distance(
     }
 
     if (check_parts) {
-      if(residual_force && conservative){
+      if(conservative){ // residual_force &&
         for (size_t i = 0; i < ts_data.size(); i++) {
           fcl::Transform3d &transform = ts_data[i];
           auto rf_robot_co = rf_part_objs_[i];
@@ -364,7 +364,7 @@ void Joint_robot::__collision_distance_soft(
     robot_objs_.clear();
     col_mng_robots_->clear();
     rf_robot_objs_.clear();
-    if(residual_force && conservative){
+    if(conservative){ // residual_force &&
       for (size_t i = 0; i < ts_data.size(); i++) {
         fcl::Transform3d &transform = ts_data[i];
         auto robot_co = rf_part_objs_[i];
@@ -403,7 +403,7 @@ void Joint_robot::__collision_distance_soft(
       }
     }
     if (check_parts) {
-      if(residual_force && conservative)
+      if(conservative) // residual_force &&
         col_mng_robots_->registerObjects(rf_robot_objs_);
       else
         col_mng_robots_->registerObjects(robot_objs_);
