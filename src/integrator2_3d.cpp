@@ -35,6 +35,7 @@ void Integrator2_3d_params::write(std::ostream &out) {
   const std::string af = ": ";
 
   out << be << STR(shape, af) << std::endl;
+  out << be << STR(radius, af) << std::endl;
   out << be << STR(dt, af) << std::endl;
   out << be << STR(max_vel, af) << std::endl;
   out << be << STR(max_acc, af) << std::endl;
