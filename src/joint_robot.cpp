@@ -140,7 +140,7 @@ Joint_robot::Joint_robot(
     auto robot_part = new fcl::CollisionObject(collision_geometries[i]);
     part_objs_.push_back(robot_part);
     // when conservative shape for the residual force
-    if(conservative){ // residual_force
+    if(conservative){
       std::shared_ptr<fcl::Ellipsoidd> ellipsoid = std::make_shared<fcl::Ellipsoidd>(radii);
       auto rf_robot_part = new fcl::CollisionObjectd(ellipsoid);
       rf_part_objs_.push_back(rf_robot_part);
@@ -172,8 +172,8 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
     k_x += size_nx;
     k_u += size_nu;
   }
-  // get f_res_dot as (f_res_next - f_res)/ ref_dt. It needs v to be computed already for the NN(x_next)
-  if(residual_force){ // && !conservative
+  // get f_res_dot as (f_res_next - f_res)/ ref_dt? It needs v to be computed already for the NN(x_next)
+  if(residual_force){
     // get x_next = x + v*dt
     std::vector<Eigen::VectorXd> ind_x; // x
     from_joint_to_ind(x, ind_x);
@@ -189,7 +189,7 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
       // update the last element of v
       Eigen::VectorXd segment = v.segment(k_v, size_nx);
       float fa = x.segment(k_x, size_nx)(size_nx - 1); // last element of the state - f
-      segment(segment.size() - 1) = (fa_next - fa) / ref_dt;
+      segment(segment.size() - 1) = (fa_next - fa);
       // std::cout << segment.format(dynobench::FMT) << std::endl;
       v.segment(k_v, size_nx) = segment; // update the x_dot to return
       k_v += size_nx;
@@ -322,7 +322,7 @@ void Joint_robot::__collision_distance(
     }
 
     if (check_parts) {
-      if(conservative){ // residual_force &&
+      if(conservative){
         for (size_t i = 0; i < ts_data.size(); i++) {
           fcl::Transform3d &transform = ts_data[i];
           auto rf_robot_co = rf_part_objs_[i];
@@ -364,7 +364,7 @@ void Joint_robot::__collision_distance_soft(
     robot_objs_.clear();
     col_mng_robots_->clear();
     rf_robot_objs_.clear();
-    if(conservative){ // residual_force &&
+    if(conservative){
       for (size_t i = 0; i < ts_data.size(); i++) {
         fcl::Transform3d &transform = ts_data[i];
         auto robot_co = rf_part_objs_[i];
@@ -403,7 +403,7 @@ void Joint_robot::__collision_distance_soft(
       }
     }
     if (check_parts) {
-      if(conservative) // residual_force &&
+      if(conservative)
         col_mng_robots_->registerObjects(rf_robot_objs_);
       else
         col_mng_robots_->registerObjects(robot_objs_);
