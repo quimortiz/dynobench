@@ -23,7 +23,7 @@ struct Joint_robot : Model_robot {
   // for the ellipsoid shape - for drones
   std::vector<fcl::CollisionObjectd *> rf_part_objs_;  // * for the residual force
   std::vector<fcl::CollisionObjectd *> rf_robot_objs_; // * for the residual force
-  bool residual_force = false; // when residual force is taken into account, and inter-robot collision with ellipsoid shape
+  bool residual_force = true; // when residual force is taken into account, and inter-robot collision with ellipsoid shape
   bool conservative = false; // when no NN for the residual estimation, use Ellipsoid shape
   Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
   float fa_next;
@@ -78,7 +78,8 @@ struct Joint_robot : Model_robot {
   std::vector<size_t> so2_indices;
   std::vector<std::shared_ptr<Model_robot>> v_jointRobot;
 
-  float calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all, double dt);
+  float calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all,
+                    std::vector<std::shared_ptr<Model_robot>> &all_robots, double dt);
   void from_joint_to_ind(const Eigen::VectorXd &x, std::vector<Eigen::VectorXd>& y);
 };
 } // namespace dynobench

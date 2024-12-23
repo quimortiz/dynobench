@@ -65,6 +65,7 @@ Integrator2_3d_res::Integrator2_3d_res(const Integrator2_3d_res_params &params,
   name = "Integrator2_3d_res";
 
   ref_dt = params.dt;
+  large_type = false ? params.robot_type == "small" : true;
 
   u_lb << params.min_acc, params.min_acc, params.min_acc;
   u_ub << params.max_acc, params.max_acc, params.max_acc;
@@ -73,7 +74,7 @@ Integrator2_3d_res::Integrator2_3d_res(const Integrator2_3d_res_params &params,
   x_ub << max__, max__, max__, params.max_vel, params.max_vel, params.max_vel, params.max_f;
 
   u_weight << 1., 1., 1.;
-  x_weightb << 200, 200, 200, 200, 200, 200, 200;
+  x_weightb << 400, 400, 400, 400, 400, 400, 400;
   // add bounds on position if provided
   if (p_lb.size() && p_ub.size()) {
     set_position_lb(p_lb);

@@ -1,4 +1,5 @@
 dynamics: "integrator2_3d"
 shape: "sphere"
 radius: 0.15
+large_type: True
 # use default parameters
