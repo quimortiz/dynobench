@@ -50,6 +50,7 @@
 #include "dynobench/car.hpp"
 #include "dynobench/integrator1_2d.hpp"
 #include "dynobench/integrator2_2d.hpp"
+#include "dynobench/integrator2_3d_res.hpp"
 #include "dynobench/joint_robot.hpp"
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
@@ -1364,4 +1365,80 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
 
     BOOST_TEST(traj.feasible == false);
   }
+}
+
+BOOST_AUTO_TEST_CASE(t_integrator2_3d_res) {
+  auto model = mk<Integrator2_3d_res>();
+
+  Eigen::VectorXd x0(7), u0(3);
+  x0 << .1, .2, .3, .2, .2, .2, .05;
+  u0 << -.1, .2, .2;
+
+  Eigen::MatrixXd Jx_diff(7, 7), Ju_diff(7, 3), Jx(7, 7), Ju(7, 3);
+  Jx.setZero();
+  Ju.setZero();
+  Jx_diff.setZero();
+  Ju_diff.setZero();
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x, u0);
+      },
+      x0, 7, Jx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x0, u);
+      },
+      u0, 7, Ju_diff);
+
+  BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
+  BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(t_joint_integrator2_3d_res) {
+
+  std::vector<std::shared_ptr<Model_robot>> robots;
+  robots.push_back(std::make_unique<Integrator2_3d_res>());
+  robots.push_back(std::make_unique<Integrator2_3d_res>());
+  robots.push_back(std::make_unique<Integrator2_3d_res>());
+
+  auto model =
+      mk<Joint_robot>(robots, Eigen::Vector3d(1, 2, 2), Eigen::Vector3d(3, 3, 3));
+
+  int nx = model->nx;
+  int nu = model->nu;
+  Eigen::VectorXd x0(nx), u0(nu);
+  x0.setRandom();
+  std::cout << x0.size() << std::endl;
+  x0(6) = 0.05;
+  x0(13) = 0.05;
+  x0(20) = 0.05;
+
+  u0.setRandom();
+
+  Eigen::MatrixXd Jx_diff(nx, nx), Ju_diff(nx, nu), Jx(nx, nx), Ju(nx, nu);
+  Jx.setZero();
+  Ju.setZero();
+  Jx_diff.setZero();
+  Ju_diff.setZero();
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x, u0);
+      },
+      x0, nx, Jx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+        model->calcV(y, x0, u);
+      },
+      u0, nx, Ju_diff);
+
+  BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
+  BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }

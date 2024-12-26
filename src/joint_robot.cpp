@@ -213,16 +213,31 @@ void Joint_robot::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
   assert(x.size() == nx);
   assert(u.size() == nu);
 
-  int k_x = 0, k_u = 0;
-  size_t size_nx, size_nu;
-  for (auto &robot : v_jointRobot) {
-    size_nx = robot->nx;
-    size_nu = robot->nu;
-    robot->calcDiffV(Jv_x.block(k_x, k_x, size_nx, size_nx),
-                     Jv_u.block(k_x, k_u, size_nx, size_nu),
-                     x.segment(k_x, size_nx), u.segment(k_u, size_nu));
-    k_x += size_nx;
-    k_u += size_nu;
+  if(residual_force){
+    finite_diff_jac(
+      [&](const Eigen::VectorXd &x_in, Eigen::Ref<Eigen::VectorXd> y) {
+        calcV(y, x_in, u);
+      },
+      x, x.size(), Jv_x);
+
+    finite_diff_jac(
+      [&](const Eigen::VectorXd &u_in, Eigen::Ref<Eigen::VectorXd> y) {
+        calcV(y, x, u_in);
+      },
+      u, x.size(), Jv_u);
+  }
+  else{
+    int k_x = 0, k_u = 0;
+    size_t size_nx, size_nu;
+    for (auto &robot : v_jointRobot) {
+      size_nx = robot->nx;
+      size_nu = robot->nu;
+      robot->calcDiffV(Jv_x.block(k_x, k_x, size_nx, size_nx),
+                       Jv_u.block(k_x, k_u, size_nx, size_nu),
+                       x.segment(k_x, size_nx), u.segment(k_u, size_nu));
+      k_x += size_nx;
+      k_u += size_nu;
+    }
   }
 }
 
