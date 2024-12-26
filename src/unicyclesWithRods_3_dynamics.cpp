@@ -85,7 +85,3 @@ void calcV_unicyclesWithRods_3(double* ff,
     ff[6] = theta_dot2;  // dtheta2
 }
 }
-
-
-
-

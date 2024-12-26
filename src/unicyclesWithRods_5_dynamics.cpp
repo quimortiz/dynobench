@@ -86,19 +86,19 @@ void calcV_unicyclesWithRods_5(double* ff, double l1, double l2, double l3, doub
     Eigen::VectorXd state_dot = G * u_vec;
 
     // ** Compute theta_dot values **
-    double theta_dot1 = (px2 - px1) * (state_dot[4] - state_dot[1]) - 
+    double theta_dot1 = (px2 - px1) * (state_dot[4] - state_dot[1]) -
                         (py2 - py1) * (state_dot[3] - state_dot[0]);
     theta_dot1 /= l1 * l1;
 
-    double theta_dot2 = (px3 - px2) * (state_dot[7] - state_dot[4]) - 
+    double theta_dot2 = (px3 - px2) * (state_dot[7] - state_dot[4]) -
                         (py3 - py2) * (state_dot[6] - state_dot[3]);
     theta_dot2 /= l2 * l2;
 
-    double theta_dot3 = (px4 - px3) * (state_dot[10] - state_dot[7]) - 
+    double theta_dot3 = (px4 - px3) * (state_dot[10] - state_dot[7]) -
                         (py4 - py3) * (state_dot[9] - state_dot[6]);
     theta_dot3 /= l3 * l3;
 
-    double theta_dot4 = (px5 - px4) * (state_dot[13] - state_dot[10]) - 
+    double theta_dot4 = (px5 - px4) * (state_dot[13] - state_dot[10]) -
                         (py5 - py4) * (state_dot[12] - state_dot[9]);
     theta_dot4 /= l4 * l4;
 

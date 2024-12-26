@@ -20,7 +20,3 @@ size: [0.4, 0.4]
 col_size_robot: 0.1
 dt: .01
 dynamics: "quad3dpayload_point"
-
-
-
-

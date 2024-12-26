@@ -111,7 +111,7 @@ void get_rod_state(const Eigen::Ref<const Eigen::VectorXd> &x,
     }
 
 
-    double theta_cable = x[2 + params.num_robots + idx]; 
+    double theta_cable = x[2 + params.num_robots + idx];
     double px_cable = px + 0.5*length*cos(theta_cable);
     double py_cable = py + 0.5*length*sin(theta_cable);
     // Extract the cable angle (theta)
