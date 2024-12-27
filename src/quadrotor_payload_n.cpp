@@ -235,7 +235,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   // DO we need weight on the state? @KHALED??
   x_weightb = 300 * Vxd::Ones(nx);
-  
+
   // u_weight.setConstant(.5);
 
   // // DO we need weight on the state? @KHALED??

@@ -55,6 +55,12 @@ add_library(
   ./src/quadrotor_payload_dynamics_autogen_n4_p.cpp
   ./src/DintegratorCables.cpp
   ./src/DintegratorCables_dynamics.cpp
+  ./src/unicyclesWithRods.cpp
+  ./src/unicyclesWithRods_2_dynamics.cpp
+  ./src/unicyclesWithRods_3_dynamics.cpp
+  ./src/unicyclesWithRods_4_dynamics.cpp
+  ./src/unicyclesWithRods_5_dynamics.cpp
+  ./src/unicyclesWithRods_6_dynamics.cpp
   ${SOURCE_n56})
 
 add_library(dynobench::dynobench ALIAS dynobench)

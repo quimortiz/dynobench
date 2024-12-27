@@ -1,0 +1,17 @@
+environment:
+  max: [2.5, 0.51]
+  min: [-2.5, -0.51]
+  obstacles:
+  - center: [0.0, 0.35, 0.0]
+    size: [0.1, 0.5, 3.0]
+    type: box
+  - center: [0.0, -0.35, 0.0]
+    size: [0.1, 0.5, 3.0]
+    type: box
+name: unicyclesWithRods_3
+robots:
+- start: [-1.0, 0.5, 0., 0., 0., -1.57, -1.57]
+  goal:  [1.0,  0.5, 0., 0., 0., -1.57, -1.57]
+  l: [0.5, 0.5]
+  quadsNum: 3
+  type: unicyclesWithRods_3
