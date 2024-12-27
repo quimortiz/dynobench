@@ -62,7 +62,7 @@ using namespace dynobench;
 Eigen::VectorXd default_vector;
 
 // #define base_path "../../dynobench/"
-#define base_path "../../"
+#define base_path "../"
 
 struct Fake_opt {
   Fake_opt() = default;
@@ -1441,4 +1441,60 @@ BOOST_AUTO_TEST_CASE(t_joint_integrator2_3d_res) {
 
   BOOST_TEST((Jx - Jx_diff).norm() < 1e-5);
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
+}
+
+BOOST_AUTO_TEST_CASE(col_integrator2_3d_res) {
+
+  auto env = std::string(base_path) + "envs/multirobot/example/drone1c.yaml";
+  auto robot = Integrator2_3d_res();
+
+  Problem problem;
+  problem.read_from_yaml(env.c_str());
+
+  load_env(robot, problem);
+  using Vector7d = Eigen::Matrix<double, 7, 1>;
+  Vector7d x(-2, 2, 1.5, 0, 0, 0, 0.05);
+  CollisionOut col;
+  robot.collision_distance(x, col);
+  col.write(std::cout);
+}
+
+BOOST_AUTO_TEST_CASE(t_joint_integrator2_3d_res_env) {
+
+  std::string env =
+      base_path "envs/multirobot/example/drone2c.yaml";
+
+  Problem problem(env);
+
+  std::string robot_type = problem.robotType;
+
+  std::string _base_path = base_path "models/";
+  std::unique_ptr<Model_robot> joint_robot = joint_robot_factory(
+      problem.robotTypes, _base_path, problem.p_lb, problem.p_ub);
+
+  load_env(*joint_robot, problem);
+
+  std::cout << "start " << problem.start.format(FMT) << std::endl;
+  std::cout << "goal " << problem.goal.format(FMT) << std::endl;
+
+  CollisionOut out;
+  joint_robot->collision_distance(problem.start, out);
+
+  BOOST_TEST(out.distance > 0);
+
+  CollisionOut out2;
+  joint_robot->collision_distance(problem.goal, out);
+
+  BOOST_TEST(out.distance > 0);
+  {
+    // Modify the state. Now the two are one on top of each other.
+    Eigen::VectorXd x = problem.start;
+
+    x(8) = x(0) + .01;
+    x(9) = x(1) + .01;
+
+    CollisionOut out3;
+    joint_robot->collision_distance(x, out);
+    BOOST_TEST(out.distance < 0);
+  }
 }

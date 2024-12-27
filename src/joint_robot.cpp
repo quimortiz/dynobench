@@ -213,7 +213,7 @@ void Joint_robot::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
   assert(x.size() == nx);
   assert(u.size() == nu);
 
-  if(residual_force){
+  if(residual_force || conservative){
     finite_diff_jac(
       [&](const Eigen::VectorXd &x_in, Eigen::Ref<Eigen::VectorXd> y) {
         calcV(y, x_in, u);
