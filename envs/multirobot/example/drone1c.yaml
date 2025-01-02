@@ -9,8 +9,8 @@ environment:
   - 0
   obstacles:
   - center: []
-    octomap_file: ../envs/multirobot/octomaps/save.bt
-    octomap_stl: ../envs/multirobot/meshes/save.stl
+    octomap_file: ../dynobench/envs/multirobot/octomaps/save.bt
+    octomap_stl: ../dynobench/envs/multirobot/meshes/save.stl
     size: []
     type: octomap
 robots:
@@ -21,6 +21,7 @@ robots:
   - 0
   - 0
   - 0
+  - 0.04
   start:
   - 1.5
   - 1.5
@@ -28,4 +29,5 @@ robots:
   - 0
   - 0
   - 0
-  type: integrator2_3d_v0
+  - 0.04
+  type: integrator2_3d_res_v0

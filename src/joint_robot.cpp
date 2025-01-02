@@ -189,7 +189,7 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
       // update the last element of v
       Eigen::VectorXd segment = v.segment(k_v, size_nx);
       float fa = x.segment(k_x, size_nx)(size_nx - 1); // last element of the state - f
-      segment(segment.size() - 1) = (fa_next - fa);
+      segment(segment.size() - 1) = (fa_next - fa) / robot->ref_dt;
       // std::cout << segment.format(dynobench::FMT) << std::endl;
       v.segment(k_v, size_nx) = segment; // update the x_dot to return
       k_v += size_nx;

@@ -9,8 +9,8 @@ environment:
   - 0
   obstacles:
   - center: []
-    octomap_file: ../envs/multirobot/octomaps/save.bt
-    octomap_stl: ../envs/multirobot/meshes/drone32c.stl
+    octomap_file: ../dynobench/envs/multirobot/octomaps/save.bt
+    octomap_stl: ../dynoebnch/envs/multirobot/meshes/drone32c.stl
     size: []
     type: octomap
 robots:
@@ -21,6 +21,7 @@ robots:
   - 0
   - 0
   - 0
+  - 0.01
   start:
   - 1.5
   - 1.5
@@ -28,7 +29,8 @@ robots:
   - 0
   - 0
   - 0
-  type: integrator2_3d_v0
+  - 0.01
+  type: integrator2_3d_res_v0
 - goal:
   - -4.25
   - 3.0
@@ -36,6 +38,7 @@ robots:
   - 0
   - 0
   - 0
+  - 0.01
   start:
   - 1.5
   - 1.0
@@ -43,4 +46,5 @@ robots:
   - 0
   - 0
   - 0
-  type: integrator2_3d_v0
+  - 0.01
+  type: integrator2_3d_res_v0
