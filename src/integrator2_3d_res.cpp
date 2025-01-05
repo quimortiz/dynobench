@@ -57,8 +57,8 @@ Integrator2_3d_res::Integrator2_3d_res(const Integrator2_3d_res_params &params,
   u_desc = {"ax[m/s^2]", "ay[m/s^2]", "az[m/s^2]"};
 
   is_2d = false;
-  nx_col = 3;
-  nx_pr = 3;
+  nx_col = 7;
+  nx_pr = 7;
   translation_invariance = 3;
 
   distance_weights = params.distance_weights; // necessary for ompl wrapper
@@ -174,7 +174,7 @@ void Integrator2_3d_res::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 void Integrator2_3d_res::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  assert(x.size() == 7);
+  // assert(x.size() == 7);
   assert(ts.size() == 1); // only one collision body
 
   fcl::Transform3d result;

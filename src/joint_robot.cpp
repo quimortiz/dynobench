@@ -140,7 +140,7 @@ Joint_robot::Joint_robot(
     auto robot_part = new fcl::CollisionObject(collision_geometries[i]);
     part_objs_.push_back(robot_part);
     // when conservative shape for residual
-    if(residual_force && conservative){
+    if(conservative){
       std::shared_ptr<fcl::Ellipsoidd> ellipsoid = std::make_shared<fcl::Ellipsoidd>(radii);
       auto rf_robot_part = new fcl::CollisionObjectd(ellipsoid);
       rf_part_objs_.push_back(rf_robot_part);
@@ -173,7 +173,7 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
     k_u += size_nu;
   }
   // get f_res_dot as (f_res_next - f_res)/ ref_dt. It needs v to be computed already for the NN(x_next)
-  if(residual_force && !conservative){
+  if(residual_force){
     // get x_next = x + v*dt
     std::vector<Eigen::VectorXd> ind_x; // x
     from_joint_to_ind(x, ind_x);
@@ -189,8 +189,7 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
       // update the last element of v
       Eigen::VectorXd segment = v.segment(k_v, size_nx);
       float fa = x.segment(k_x, size_nx)(size_nx - 1); // last element of the state - f
-      segment(segment.size() - 1) = (fa_next - fa) / ref_dt;
-      std::cout << segment.format(dynobench::FMT) << std::endl;
+      segment(segment.size() - 1) = (fa_next - fa);
       v.segment(k_v, size_nx) = segment; // update the x_dot to return
       k_v += size_nx;
       k_x += size_nx;
@@ -316,13 +315,11 @@ void Joint_robot::__collision_distance(
       distance_data.request.enable_signed_distance = true;
       _env->distance(robot_co, &distance_data,
                      fcl::DefaultDistanceFunction<double>);
-      // if(distance_data.result.min_distance < 0)
-        // std::cout << "collision with the env, robot " << i << std::endl;
       min_dist = std::min(min_dist, distance_data.result.min_distance);
     }
 
     if (check_parts) {
-      if(residual_force && conservative){
+      if(conservative){
         for (size_t i = 0; i < ts_data.size(); i++) {
           fcl::Transform3d &transform = ts_data[i];
           auto rf_robot_co = rf_part_objs_[i];
@@ -364,7 +361,7 @@ void Joint_robot::__collision_distance_soft(
     robot_objs_.clear();
     col_mng_robots_->clear();
     rf_robot_objs_.clear();
-    if(residual_force && conservative){
+    if(conservative){
       for (size_t i = 0; i < ts_data.size(); i++) {
         fcl::Transform3d &transform = ts_data[i];
         auto robot_co = rf_part_objs_[i];
@@ -403,7 +400,7 @@ void Joint_robot::__collision_distance_soft(
       }
     }
     if (check_parts) {
-      if(residual_force && conservative)
+      if(conservative)
         col_mng_robots_->registerObjects(rf_robot_objs_);
       else
         col_mng_robots_->registerObjects(robot_objs_);
@@ -423,28 +420,36 @@ void Joint_robot::__collision_distance_soft(
 }
 // for the residuals. It assumes integrator2_3d with (x,y,z,vx,vy,vz)
 float Joint_robot::calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all, double dt){
-  float rho = 0;
+  bool run_nn = false;
   Eigen::VectorXd x_next = x_all.at(idx) + v_all.at(idx)*dt;
+  nn_reset();
   for(size_t j = 0; j < x_all.size(); j++){
     if(j != idx){ // all neighbors, except the robot itself
       Eigen::VectorXd x_neighbor_next = x_all.at(j) + v_all.at(j)*dt;
       auto dist = x_next.head<6>() - x_neighbor_next.head<6>(); // only pos, velocity
       if(abs(dist(0)) < 0.2 && abs(dist(1)) < 0.2 && abs(dist(2)) < 1.5){
+        run_nn = true;
         float input[6] = {static_cast<float>(dist(0)),
                           static_cast<float>(dist(1)),
                           static_cast<float>(dist(2)),
                           static_cast<float>(dist(3)),
                           static_cast<float>(dist(4)),
                           static_cast<float>(dist(5))};
-        nn_reset();
-        nn_add_neighbor(input, NN_ROBOT_SMALL);
-        const float* rhoOutput = nn_eval(NN_ROBOT_SMALL); // in gramms
-        rho += rhoOutput[0] / 1000 * 9.81; // in Newtons
+        const auto nnType = NN_ROBOT_SMALL;
+        nn_add_neighbor(input, nnType);
       }
     }
   }
-  return rho;
+  if(run_nn){
+    // all neighbors are added
+    const auto selfType = NN_ROBOT_SMALL;
+    const float *rhoOutput = nn_eval(selfType); // in grams
+    return rhoOutput[0] / 1000 * 9.81;// in Newtons;
+  }
+  else
+    return 0;
 }
+
 // get each robot's state separately and saves in y
 void Joint_robot::from_joint_to_ind(const Eigen::VectorXd &x,
                                     std::vector<Eigen::VectorXd>& y) {
