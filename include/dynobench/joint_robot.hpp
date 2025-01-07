@@ -23,7 +23,7 @@ struct Joint_robot : Model_robot {
   // for the ellipsoid shape - for drones
   std::vector<fcl::CollisionObjectd *> rf_part_objs_;  // * for the residual force
   std::vector<fcl::CollisionObjectd *> rf_robot_objs_; // * for the residual force
-  bool residual_force = true; // when residual force is taken into account, and inter-robot collision with ellipsoid shape
+  bool residual_force = false; // when residual force is taken into account, and inter-robot collision with ellipsoid shape
   bool conservative = false; // when no NN for the residual estimation
   Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
   float fa_next;
