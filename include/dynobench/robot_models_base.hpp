@@ -298,7 +298,7 @@ struct Model_robot {
   std::vector<std::string> u_desc;
   std::string name;
   double ref_dt;
-
+  bool large_type = false; // double_integrator has small, large type for the residuaal estimation
   Eigen::VectorXd u_ref; // used for cost
   Eigen::VectorXd u_0;   // used for init guess
   Eigen::VectorXd u_lb;

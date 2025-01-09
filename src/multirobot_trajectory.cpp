@@ -34,9 +34,9 @@ void from_joint_to_indiv_trajectory_meta(
       else{
         nxs_accumulated.at(j) = nxs_accumulated.at(j - 1) + nxs.at(id);
         nus_accumulated.at(j) = nus_accumulated.at(j - 1) + nus.at(id);
-        if(residual_force){
-          nxs_accumulated.at(j) += 1; // shift for the force
-        }
+        // if(residual_force){
+          // nxs_accumulated.at(j) += 1; // shift for the force
+        // }
         id = i;
         ++j;
       }

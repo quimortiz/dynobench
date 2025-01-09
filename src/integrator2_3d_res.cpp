@@ -25,6 +25,8 @@ void Integrator2_3d_res_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(max_vel));
   set_from_yaml(node, VAR_WITH_NAME(max_acc));
   set_from_yaml(node, VAR_WITH_NAME(distance_weights));
+  set_from_yaml(node, VAR_WITH_NAME(robot_type));
+
 }
 
 void Integrator2_3d_res_params::write(std::ostream &out) {
@@ -65,6 +67,7 @@ Integrator2_3d_res::Integrator2_3d_res(const Integrator2_3d_res_params &params,
   name = "Integrator2_3d_res";
 
   ref_dt = params.dt;
+  large_type = params.robot_type == "large" ? true : false;
 
   u_lb << params.min_acc, params.min_acc, params.min_acc;
   u_ub << params.max_acc, params.max_acc, params.max_acc;

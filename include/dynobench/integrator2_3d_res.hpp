@@ -45,6 +45,7 @@ struct Integrator2_3d_res_params {
   Eigen::Vector3d distance_weights = Eigen::Vector3d(1, .5, 2);
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
   Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
+  std::string robot_type = "small"; // for NN-based residual force computation
 
   void read_from_yaml(const char *file);
   void read_from_yaml(YAML::Node &node);

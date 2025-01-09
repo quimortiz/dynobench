@@ -1,4 +1,5 @@
 dynamics: "integrator2_3d_res"
 shape: "sphere"
 radius: 0.15 # large
+robot_type: "large"
 # use default parameters
