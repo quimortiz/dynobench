@@ -248,14 +248,14 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   collision_geometries.clear();
 
   double rate_colision_cables =
-      .2; // we use a shorter collision body for the
+      .35; // we use a shorter collision body for the
           // cables to avoid self collision against payload or robot!
   collision_geometries.emplace_back(
       std::make_shared<fcl::Sphered>(params.col_size_payload));
 
   for (size_t i = 0; i < params.num_robots; i++) {
     collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
-        params.col_size_payload, rate_colision_cables * params.l_payload(i)));
+        0.01, rate_colision_cables * params.l_payload(i)));
   }
 
   for (size_t i = 0; i < params.num_robots; i++) {
