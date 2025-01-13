@@ -150,7 +150,7 @@ def main():
             u = unicyclesController.control(refstate[k], states[k], actions_d[k])
             actions[k] = u
             # add some noise to the actuation
-            u += np.random.normal(0.0, 0.025, len(u))
+            u += np.random.normal(0.0, 0.0125, len(u))
             u = np.clip(u, -0.5, 0.5)
             unicyclesWithRods.step(states[k + 1], states[k], u, dt)
         print("Done Simulation")
