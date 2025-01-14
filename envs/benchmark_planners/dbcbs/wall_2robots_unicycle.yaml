@@ -2,16 +2,16 @@ environment:
   max: [2.5, 2.5]
   min: [-2.5, -2.5]
   obstacles:
-  - center: [0.0, 1.0, 0.0]
-    size: [0.2, 2.0, 0.0]
+  - center: [0.0, 2.0, 0.0]
+    size: [0.2, 4.0, 0.0]
     type: box
 joint_robot:
 - goal: [1.0, 1.0, 0.0, 0.0, -1.57]
   l: [0.5]
   quadsNum: 2
   start: [-1.0, 1.0, 0.0, 0.0, -1.57]
-  type: unicyclesWithRods_2
-name: unicyclesWithRods_2
+  type: unicyclesWithRods_2_no_right
+name: unicyclesWithRods_2_no_right
 robots:
 - goal: [1.0, 1.0, 0.0]
   start: [-1.0, 1.0, 0.0]

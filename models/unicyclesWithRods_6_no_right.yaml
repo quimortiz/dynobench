@@ -1,0 +1,17 @@
+dynamics: "unicyclesWithRods"
+num_robots: 6
+max_vel: 0.5
+min_vel: -0.5
+max_angular_vel: 0.5
+min_angular_vel: 0.0
+max_rod_angular_vel: 1.0
+min_rod_angular_vel: -1.0
+size: [.1, .05]
+distance_weights: [1, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5, .5]
+shape: "box"
+dt: .1
+l1: 0.5
+l2: 0.5
+l3: 0.5
+l4: 0.5
+l5: 0.5

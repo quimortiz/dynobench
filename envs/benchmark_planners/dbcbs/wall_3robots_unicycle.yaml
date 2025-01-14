@@ -1,0 +1,24 @@
+environment:
+  max: [5.0, 5.0]
+  min: [-5.0, -5.0]
+  obstacles:
+  - center: [0.0, 2.0, 0.0]
+    size: [0.2, 4.0, 0.0]
+    type: box
+joint_robot:
+- goal: [1.0, 1.0, 0.0, 0.0, 0.0, -1.57, -1.57]
+  l: [0.5, 0.5]
+  quadsNum: 3
+  start: [-1.0, 1.0, 0.0, 0.0, 0.0, -1.57, -1.57]
+  type: unicyclesWithRods_3_no_right
+name: unicyclesWithRods_3_no_right
+robots:
+- goal: [1.0, 1.0, 0.0]
+  start: [-1.0, 1.0, 0.0]
+  type: unicycle1_v0_no_right
+- goal: [1.0003981633553667, 0.5000001585340828, 0.0]
+  start: [-0.9996018366446334, 0.5000001585340828, 0.0]
+  type: unicycle1_v0_no_right
+- goal: [1.0007963267107334, 3.1706816550070016e-07, 0.0]
+  start: [-0.9992036732892668, 3.1706816550070016e-07, 0.0]
+  type: unicycle1_v0_no_right

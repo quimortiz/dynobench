@@ -1,0 +1,15 @@
+environment:
+  min: [-6., -6.]
+  max: [6., 6.]
+  obstacles:
+    - type: box
+      center: [0.0, 2.0, 0.0]
+      size: [0.2, 4.0, 0.0]
+name: unicyclesWithRods_5_no_right
+robots:
+- start: [-1.0, 2.0, 0., 0., 0., 0., 0., -1.57, -1.57, -1.57, -1.57]
+  goal:  [1.0,  2.0, 0., 0., 0., 0., 0., -1.57, -1.57, -1.57, -1.57]
+  l: [0.5, 0.5, 0.5, 0.5]
+  quadsNum: 5
+  type: unicyclesWithRods_5_no_right
+
