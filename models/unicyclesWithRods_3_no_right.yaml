@@ -10,3 +10,5 @@ size: [.1, .05]
 distance_weights: [1, .5, .5, .5, .5, .5]
 shape: "box"
 dt: .1
+l1: 0.5
+l2: 0.5
