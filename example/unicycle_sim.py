@@ -21,6 +21,8 @@ from matplotlib.backends.backend_pdf import PdfPages
 np.set_printoptions(linewidth=np.inf)
 np.set_printoptions(suppress=True)
 
+def wrap_to_pi(angle):
+    return (angle + np.pi) % (2 * np.pi) - np.pi
 
 class Controller:
     def __init__(self, num_robots, gains):
@@ -43,8 +45,7 @@ class Controller:
 
         x_e = (px_d-px)*np.cos(alpha) + (py_d - py)*np.sin(alpha)
         y_e = -(px_d - px)*np.sin(alpha) + (py_d - py)*np.cos(alpha)
-        alpha_e = alpha_d - alpha
-
+        alpha_e = wrap_to_pi(alpha_d - alpha)
         v = v_d*np.cos(alpha_e) + kx * x_e
         w = w_d + v_d*(ky*y_e + kth*np.sin(alpha_e)) + kth*alpha_e
         num_robots = self.num_robots
@@ -68,7 +69,7 @@ class Controller:
 
             x_e = (px_d-px)*np.cos(alpha) + (py_d - py)*np.sin(alpha)
             y_e = -(px_d - px)*np.sin(alpha) + (py_d - py)*np.cos(alpha)
-            alpha_e = alpha_d - alpha
+            alpha_e = wrap_to_pi(alpha_d - alpha)
 
             v = v_d*np.cos(alpha_e) + kx * x_e
             w = w_d + v_d*(ky*y_e + kth*np.sin(alpha_e)) + kth*alpha_e
@@ -149,12 +150,14 @@ def main():
         max_vel = model_path["max_vel"]
         min_vel = model_path["min_vel"]
         max_angular_vel = model_path["max_angular_vel"]
-        min_angular_vel = model_path["min_angular_vel"]
+        min_angular_vel = model_path["min_angular_vel"] 
         u_min = []
         u_max = []
         for j in range(num_robots):
             u_min.extend([min_vel, min_angular_vel])
             u_max.extend([max_vel, max_angular_vel])
+        print(u_min)
+        print(u_max)
         for k in range(len(refstate) - 1):
             u = unicyclesController.control(refstate[k], states[k], actions_d[k])
             actions[k] = u
@@ -162,6 +165,7 @@ def main():
             u += np.random.normal(0.0, 0.0125, len(u))
             u = np.clip(u, u_min, u_max)
             unicyclesWithRods.step(states[k + 1], states[k], u, dt)
+            # unicyclesWithRods.step(states[k + 1], states[k], actions_d[k], dt)
         print("Done Simulation")
 
         output = {}
