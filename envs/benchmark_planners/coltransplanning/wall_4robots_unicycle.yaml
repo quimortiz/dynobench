@@ -7,8 +7,8 @@ environment:
       size: [0.2, 4.0, 0.0]
 name: unicyclesWithRods_4_no_right
 robots:
-- start: [-1.0, 1.5, 0., 0., 0., 0., -1.57, -1.57, -1.57]
-  goal:  [1.0,  1.5, 0., 0., 0., 0., -1.57, -1.57, -1.57]
+- start: [-1.0, 1.0, 0., 0., 0., 0., -1.57, -1.57, -1.57]
+  goal:  [1.0,  1.0, 0., 0., 0., 0., -1.57, -1.57, -1.57]
   l: [0.5, 0.5, 0.5]
   quadsNum: 4
   type: unicyclesWithRods_4_no_right
