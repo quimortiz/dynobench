@@ -40,7 +40,9 @@ robot_factory_with_env(const std::string &robot_name,
 std::unique_ptr<Model_robot>
 joint_robot_factory(const std::vector<std::string> &robot_types,
                     const std::string &base_path, const Eigen::VectorXd &p_lb,
-                    const Eigen::VectorXd &p_ub);
+                    const Eigen::VectorXd &p_ub,
+                    bool is_residual = false,
+                    bool is_conservative = false);
 
 bool check_edge_at_resolution(const Eigen::VectorXd &start,
                               const Eigen::VectorXd &goal,

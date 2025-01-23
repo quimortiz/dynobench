@@ -111,6 +111,9 @@ struct Problem {
 
   std::string robotType;
   std::vector<std::string> robotTypes;
+  bool is_residual = false;
+  bool is_conservative = false;
+
   void read_from_yaml(const YAML::Node &env);
 
   void read_from_yaml(const char *file);

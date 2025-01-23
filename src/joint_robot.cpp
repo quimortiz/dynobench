@@ -62,7 +62,7 @@ int get_number_of_us(
 
 Joint_robot::Joint_robot(
     const std::vector<std::shared_ptr<Model_robot>> &jointRobot,
-    const Eigen::VectorXd &p_lb, const Eigen::VectorXd &p_ub)
+    const Eigen::VectorXd &p_lb, const Eigen::VectorXd &p_ub, bool is_residual, bool is_conservative)
     : Model_robot(std::make_shared<RnSOn>(get_number_of_r_dofs(jointRobot),
                                           get_so2(jointRobot),
                                           get_so2_indices(jointRobot)),
@@ -80,7 +80,8 @@ Joint_robot::Joint_robot(
   if (!all_equal) {
     throw std::runtime_error("Warning: the robots have different dt");
   }
-
+  residual_force = is_residual;
+  conservative = is_conservative;
   ref_dt = first_dt;
 
   so2_indices = get_so2_indices(jointRobot);

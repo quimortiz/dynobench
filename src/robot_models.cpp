@@ -116,7 +116,8 @@ robot_factory_with_env(const std::string &robot_name,
 std::unique_ptr<Model_robot>
 joint_robot_factory(const std::vector<std::string> &robot_types,
                     const std::string &base_path, const Eigen::VectorXd &p_lb,
-                    const Eigen::VectorXd &p_ub) {
+                    const Eigen::VectorXd &p_ub,
+                    bool is_residual, bool is_conservative) {
 
   std::vector<std::string> robotParams;
   std::vector<std::shared_ptr<Model_robot>> jointRobot;
@@ -124,7 +125,7 @@ joint_robot_factory(const std::vector<std::string> &robot_types,
     jointRobot.push_back(
         robot_factory((base_path + robot_type + ".yaml").c_str(), p_lb, p_ub));
   }
-  return std::make_unique<Joint_robot>(jointRobot, p_lb, p_ub);
+  return std::make_unique<Joint_robot>(jointRobot, p_lb, p_ub, is_residual, is_conservative);
 }
 bool check_edge_at_resolution(const Eigen::VectorXd &start,
                               const Eigen::VectorXd &goal,

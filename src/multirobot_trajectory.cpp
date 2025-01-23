@@ -7,8 +7,7 @@ void from_joint_to_indiv_trajectory_meta(
     const std::unordered_set<size_t> &cluster,
     const dynobench::Trajectory &traj, // solution for the cluster
     MultiRobotTrajectory &solution_multi_robot, // output, initialized with parallel_opt
-    const std::vector<int> &times,
-    bool residual_force) {
+    const std::vector<int> &times) {
 
   std::vector<int> nxs = solution_multi_robot.get_nxs(); // set already
   std::vector<int> nus = solution_multi_robot.get_nus();
@@ -34,9 +33,6 @@ void from_joint_to_indiv_trajectory_meta(
       else{
         nxs_accumulated.at(j) = nxs_accumulated.at(j - 1) + nxs.at(id);
         nus_accumulated.at(j) = nus_accumulated.at(j - 1) + nus.at(id);
-        // if(residual_force){
-          // nxs_accumulated.at(j) += 1; // shift for the force
-        // }
         id = i;
         ++j;
       }
@@ -53,8 +49,6 @@ void from_joint_to_indiv_trajectory_meta(
         if (k < times.at(i)-1)
           traj_out.actions.push_back(
               traj.actions.at(k).segment(nus_accumulated.at(j), nus.at(i)));
-        // if(residual_force)
-          // residual_forces.at(i).push_back(traj.states.at(k)(fs_accumulated.at(j)));
       }
 
       std::cout << "updating the solution for: " << i << std::endl;

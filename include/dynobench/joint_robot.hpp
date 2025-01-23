@@ -10,7 +10,9 @@ struct Joint_robot : Model_robot {
   virtual ~Joint_robot() = default;
   Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointRobot,
               const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
-              const Eigen::VectorXd &p_ub = Eigen::VectorXd());
+              const Eigen::VectorXd &p_ub = Eigen::VectorXd(),
+              bool is_residual = false,
+              bool is_conservative = false);
 
   std::vector<int>
       goal_times; // use this to set the time step on which each robot
@@ -24,7 +26,7 @@ struct Joint_robot : Model_robot {
   std::vector<fcl::CollisionObjectd *> rf_part_objs_;  // * for the residual force
   std::vector<fcl::CollisionObjectd *> rf_robot_objs_; // * for the residual force
   bool residual_force = false; // when residual force is taken into account, and inter-robot collision with ellipsoid shape
-  bool conservative = true; // when no NN for the residual estimation
+  bool conservative = false; // when no NN for the residual estimation
   Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
   float fa_next;
   std::vector<int> nxs;
