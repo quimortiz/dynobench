@@ -156,16 +156,15 @@ def main():
         for j in range(num_robots):
             u_min.extend([min_vel, min_angular_vel])
             u_max.extend([max_vel, max_angular_vel])
-        print(u_min)
-        print(u_max)
+
         for k in range(len(refstate) - 1):
             u = unicyclesController.control(refstate[k], states[k], actions_d[k])
             actions[k] = u
             # add some noise to the actuation
             u += np.random.normal(0.0, 0.0125, len(u))
             u = np.clip(u, u_min, u_max)
-            unicyclesWithRods.step(states[k + 1], states[k], u, dt)
-            # unicyclesWithRods.step(states[k + 1], states[k], actions_d[k], dt)
+            # unicyclesWithRods.step(states[k + 1], states[k], u, dt)
+            unicyclesWithRods.step(states[k + 1], states[k], actions_d[k], dt)
         print("Done Simulation")
 
         output = {}

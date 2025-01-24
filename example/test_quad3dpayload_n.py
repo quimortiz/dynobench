@@ -332,9 +332,9 @@ class Controller:
             qc_dot = np.cross(wc, qc)
             action = actions_d[4 * k : 4 * k + 4]
             control = self.B0 @ action
-            self.leePayload.tau_ff.x = 0.0
-            self.leePayload.tau_ff.y = 0.0
-            self.leePayload.tau_ff.z = 0.0
+            self.leePayload.tau_ff.x = control[1]
+            self.leePayload.tau_ff.y = control[2]
+            self.leePayload.tau_ff.z = 0.
             w_des = states_d[start_idx + 9 + 6 * self.num_robots + 4 : start_idx + 9 + 6 * self.num_robots + 7]
             self.leePayload.omega_r.x = w_des[0]
             self.leePayload.omega_r.y = w_des[1]
@@ -610,7 +610,7 @@ def main():
             refactions = refresult["result"]["actions"]
         else:
             raise NotImplementedError("unknown result format")
-        rollout = False
+        rollout = True
         dt = 0.01
         T = (len(refstate) - 1) * dt
         # if payload: point:
@@ -709,7 +709,7 @@ def main():
             u = np.array(flatten_list(u))
             # add some noise to the actuation
             u += np.random.normal(0.0, 0.025, len(u))
-            u = np.clip(u, 0, 1.4)
+            u = np.clip(u, 0, 1.5)
             robot.step(states[k + 1], states[k], u, actions_d[k], rollout=rollout)
         print("Done Simulation")
         if len(robot.mu_planned) > 0:
@@ -717,8 +717,8 @@ def main():
         robot.mu_desired.append(robot.mu_desired[-1])
 
         output = {}
-        output["feasible"] = 0
-        output["cost"] = 10
+        output["feasible"] = refresult["feasible"]
+        output["cost"] = refresult["cost"] if refresult["feasible"] else float("inf")
         output["result"] = {}
         output["result"]["states"] = robot.appSt
         output["result"]["refstates"] = states_d.tolist()
