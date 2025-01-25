@@ -28,6 +28,7 @@ struct Joint_robot : Model_robot {
   bool residual_force = false; // when residual force is taken into account, and inter-robot collision with ellipsoid shape
   bool conservative = false; // when no NN for the residual estimation
   Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
+  Eigen::Vector3d large_radii = Eigen::Vector3d(.12, .12, .45); // from tro paper
   float fa_next;
   std::vector<int> nxs;
 

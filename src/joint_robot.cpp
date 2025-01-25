@@ -142,7 +142,7 @@ Joint_robot::Joint_robot(
     part_objs_.push_back(robot_part);
     // when conservative shape for residual
     if(conservative){
-      std::shared_ptr<fcl::Ellipsoidd> ellipsoid = std::make_shared<fcl::Ellipsoidd>(radii);
+      std::shared_ptr<fcl::Ellipsoidd> ellipsoid = (v_jointRobot[i]->large_type == true) ? std::make_shared<fcl::Ellipsoidd>(large_radii) : std::make_shared<fcl::Ellipsoidd>(radii);
       auto rf_robot_part = new fcl::CollisionObjectd(ellipsoid);
       rf_part_objs_.push_back(rf_robot_part);
     }
