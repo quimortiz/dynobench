@@ -59,9 +59,14 @@ struct MultiRobotTrajectory {
 
   void to_yaml_format(const char *filename) const {
     std::cout << "save trajectory to: " << filename << std::endl;
+    std::ofstream out(filename, std::ios::trunc);  // Open the file in truncation mode
+    if (!out.is_open()) {
+        std::cerr << "Error: Failed to open file for writing: " << filename << std::endl;
+        return;
+    }
     create_dir_if_necessary(filename);
-    std::ofstream out(filename);
     to_yaml_format(out);
+    out.flush();
   }
 
   void to_yaml_format(std::ofstream &out) const {
