@@ -275,12 +275,16 @@ inline MultiRobotTrajectory from_joint_to_indiv_trajectory(
     }
 
     multi_robot_traj.trajectories.push_back(traj_out);
+    multi_robot_traj.trajectories.at(i).cost = multi_robot_traj.trajectories.at(i).actions.size() * 0.1;
+
   }
+
   return multi_robot_traj;
 }
 
 void from_joint_to_indiv_trajectory_meta(
     const std::unordered_set<size_t> &cluster,
     const dynobench::Trajectory &traj,
+    const std::vector<int> &nxs, const std::vector<int> nus,
     MultiRobotTrajectory &solution_multi_robot,
     const std::vector<int> &times);
