@@ -38,6 +38,7 @@
 #include "dynobench/quadrotor_payload.hpp"
 #include "dynobench/quadrotor_payload_n.hpp"
 #include "dynobench/unicycle1.hpp"
+#include "dynobench/unicycle1_3d.hpp"
 #include "dynobench/unicycle2.hpp"
 #include "dynobench/integrator1_2d.hpp"
 #include "dynobench/integrator2_3d.hpp"
@@ -65,6 +66,8 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
 
   if (dynamics == "unicycle1") {
     return std::make_unique<Model_unicycle1>(file, p_lb, p_ub);
+  } else if (dynamics == "unicycle1_3d") {
+    return std::make_unique<Model_unicycle1_3d>(file, p_lb, p_ub);
   } else if (dynamics == "unicycle2") {
     return std::make_unique<Model_unicycle2>(file, p_lb, p_ub);
   } else if (dynamics == "quad2d") {
