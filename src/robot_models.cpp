@@ -35,6 +35,7 @@
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
+#include "dynobench/quadrotor_coupled.hpp"
 #include "dynobench/quadrotor_payload.hpp"
 #include "dynobench/quadrotor_payload_n.hpp"
 #include "dynobench/unicycle1.hpp"
@@ -74,6 +75,8 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     return std::make_unique<Model_quad2d>(file, p_lb, p_ub);
   } else if (dynamics == "quad3d") {
     return std::make_unique<Model_quad3d>(file, p_lb, p_ub);
+  } else if (dynamics == "quad3d_coupled") {
+    return std::make_unique<Model_quad3d_coupled>(file, p_lb, p_ub);
   } else if (dynamics == "acrobot") {
     return std::make_unique<Model_acrobot>(file, p_lb, p_ub);
   } else if (dynamics == "car_with_trailers") {

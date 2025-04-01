@@ -44,6 +44,7 @@ add_library(
   ./src/car.cpp
   ./src/acrobot.cpp
   ./src/quadrotor.cpp
+  ./src/quadrotor_coupled.cpp
   ./src/unicycle1.cpp
   ./src/unicycle1_3d.cpp
   ./src/unicycle2.cpp

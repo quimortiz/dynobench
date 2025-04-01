@@ -68,14 +68,14 @@ Model_quad3d::Model_quad3d(const Quad3d_params &params,
   distance_weights = params.distance_weights;
 
   arm = 0.707106781 * params.arm_length;
-  u_nominal = params.m * g / 4.;
+  u_nominal = params.m * g / 4.; // [f1, f2, f3, f4]. Steady-state thrust that eacj rotor needs to generate in hover
 
   if (params.motor_control) {
-    B0 << 1, 1, 1, 1, -arm, -arm, arm, arm, -arm, arm, arm, -arm, -params.t2t,
+    B0 << 1, 1, 1, 1, -arm, -arm, arm, arm, -arm, arm, arm, -arm, -params.t2t, // control allocation matrix
         params.t2t, -params.t2t, params.t2t;
-    B0 *= u_nominal;
+    B0 *= u_nominal; // [f_T, tau_x, tau_y, tau_z]
     B0inv = B0.inverse();
-  } else {
+  } else { // quick approximation
     B0.setIdentity();
     double nominal_angular_acceleration = 20;
     B0(0, 0) *= u_nominal * 4;
@@ -94,20 +94,10 @@ Model_quad3d::Model_quad3d(const Quad3d_params &params,
   Fu_selection.setZero();
   Fu_selection(2, 0) = 1.;
 
-  // [ 0, 0, 0, 0]   [eta(0)]    =
-  // [ 0, 0, 0, 0]   [eta(1)]
-  // [ 1, 0, 0, 0]   [eta(2)]
-  //                 [eta(3)]
-
   Ftau_selection.setZero();
   Ftau_selection(0, 1) = 1.;
   Ftau_selection(1, 2) = 1.;
   Ftau_selection(2, 3) = 1.;
-
-  // [ 0, 1, 0, 0]   [eta(0)]    =
-  // [ 0, 0, 1, 0]   [eta(1)]
-  // [ 0, 0, 0, 1]   [eta(2)]
-  //                 [eta(3)]
 
   Fu_selection_B0 = Fu_selection * B0;
   Ftau_selection_B0 = Ftau_selection * B0;
@@ -278,10 +268,6 @@ void Model_quad3d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
   rotate_with_q(xq, f_u, y, data.Jx, data.Ja);
 
   Jv_x.block<3, 3>(0, 7).diagonal() = Eigen::Vector3d::Ones(); // dp / dv
-  //
-  //
-  //
-  // std::cout << "data.Jx\n" << data.Jx << std::endl;
 
   Jv_x.block<3, 4>(7 - 1, 3).noalias() = m_inv * data.Jx; // da / dq
   Jv_x.block<3, 3>(10 - 1, 10).noalias() =
