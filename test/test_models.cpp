@@ -1,7 +1,6 @@
 #include "dynobench/math_utils.hpp"
 #include "dynobench/multirobot_trajectory.hpp"
 #include "dynobench/robot_models.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -54,14 +53,15 @@
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
+#include "dynobench/quadrotor_coupled.hpp"
 
 using namespace std;
 using namespace dynobench;
 
 Eigen::VectorXd default_vector;
 
-// #define base_path "../../dynobench/"
-#define base_path "../../"
+#define base_path "../" // debug mode
+// #define base_path "../../"
 
 struct Fake_opt {
   Fake_opt() = default;
@@ -1363,5 +1363,196 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
     traj.update_feasibility(feasibility_thresholds);
 
     BOOST_TEST(traj.feasible == false);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_quadrotor_coupled_dynamics) {
+
+  std::cout << "testing quadrotor dynamics " << std::endl;
+  auto model = mk<dynobench::Model_quad3d_coupled>();
+
+  int nx = model->nx;
+  int nu = model->nu;
+
+  Eigen::VectorXd x_default(nx), u_default(nu);
+  x_default.setZero();
+  x_default = model->get_x0(x_default);
+  u_default = model->u_0;
+
+  Eigen::VectorXd xrand(nx), urand(nu), xrandnoise(nx), urandnoise(nx);
+  xrand.setZero(); // TODO: DONE
+  xrand << 3., 3., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.,
+            1., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.;
+  urand << 1., 1., 1., 1.,1., 1., 1., 1.;
+
+  xrandnoise = xrand + 0.01 * Eigen::VectorXd::Random(nx);
+  model->ensure(xrandnoise);
+  urandnoise = urand + 0.01 * Eigen::VectorXd::Random(nu);
+
+  Eigen::MatrixXd Jx_diff(24, 26), Ju_diff(24, 8), Jx(24, 26), Ju(24, 8);
+  Eigen::MatrixXd Sx_diff(26, 26), Su_diff(26, 8), Sx(26, 26), Su(26, 8);
+
+  std::vector<std::pair<Eigen::VectorXd, Eigen::VectorXd>> xu_s;
+
+  xu_s.push_back({x_default, u_default});
+  xu_s.push_back({xrand, urand});
+  xu_s.push_back({xrandnoise, urandnoise});
+
+  double dt = model->ref_dt;
+
+  for (const auto &k : xu_s) {
+    const auto &x0 = k.first;
+    const auto &u0 = k.second;
+
+    for (auto &m_ptr :
+         {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su}) {
+      m_ptr->setZero();
+    }
+
+    CSTR_V(x0);
+    CSTR_V(u0);
+
+    model->calcDiffV(Jx, Ju, x0, u0);
+    model->stepDiff(Sx, Su, x0, u0, dt);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+          model->calcV(y, x, u0);
+        },
+        x0, 24, Jx_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+          model->calcV(y, x0, u);
+        },
+        u0, 24, Ju_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+          model->step(y, x, u0, dt);
+        },
+        x0, 26, Sx_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+          model->step(y, x0, u, dt);
+        },
+        u0, 26, Su_diff);
+
+    // std::cout << "Jx: \n" << Jx << std::endl;
+    // std::cout << "Jx_diff: \n" << Jx_diff << std::endl;
+    std::cout << "-----------\n"
+              << "report Jx " << std::endl;
+    approx_equal_report(Jx, Jx_diff);
+    std::cout << "report Ju " << std::endl;
+    approx_equal_report(Ju, Ju_diff);
+
+    std::cout << "Sx: \n" << Sx << std::endl;
+    std::cout << "Sx_diff: \n" << Sx_diff << std::endl;
+
+    std::cout << "report Sx " << std::endl;
+    approx_equal_report(Sx, Sx_diff);
+    std::cout << "report Su " << std::endl;
+    approx_equal_report(Su, Su_diff);
+
+    BOOST_TEST((Jx - Jx_diff).norm() <= 10 * 1e-5);
+    BOOST_TEST((Ju - Ju_diff).norm() <= 10 * 1e-5);
+
+    BOOST_TEST((Sx - Sx_diff).norm() <= 10 * 1e-5);
+    BOOST_TEST((Su - Su_diff).norm() <= 10 * 1e-5);
+  }
+}
+
+
+BOOST_AUTO_TEST_CASE(t_quad3d_dynamics) {
+
+  std::cout << "testing quad3d dynamics " << std::endl;
+  auto model = mk<dynobench::Model_quad3d>();
+
+  int nx = model->nx;
+  int nu = model->nu;
+
+  Eigen::VectorXd x_default(nx), u_default(nu);
+  x_default.setZero();
+  x_default = model->get_x0(x_default);
+  u_default = model->u_0;
+
+  Eigen::VectorXd xrand(nx), urand(nu), xrandnoise(nx), urandnoise(nx);
+  xrand.setZero(); // TODO: DONE
+  xrand << 3., 3., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.;
+  urand << 1., 1., 1., 1.;
+
+  xrandnoise = xrand + 0.01 * Eigen::VectorXd::Random(nx);
+  model->ensure(xrandnoise);
+  urandnoise = urand + 0.01 * Eigen::VectorXd::Random(nu);
+
+  Eigen::MatrixXd Jx_diff(12, 13), Ju_diff(12, 4), Jx(12, 13), Ju(12, 4);
+  Eigen::MatrixXd Sx_diff(nx, nx), Su_diff(nx, nu), Sx(nx, nx), Su(nx, nu);
+
+  std::vector<std::pair<Eigen::VectorXd, Eigen::VectorXd>> xu_s;
+
+  xu_s.push_back({x_default, u_default});
+  xu_s.push_back({xrand, urand});
+  xu_s.push_back({xrandnoise, urandnoise});
+
+  double dt = model->ref_dt;
+
+  for (const auto &k : xu_s) {
+    const auto &x0 = k.first;
+    const auto &u0 = k.second;
+
+    for (auto &m_ptr :
+         {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su}) {
+      m_ptr->setZero();
+    }
+
+    CSTR_V(x0);
+    CSTR_V(u0);
+
+    model->calcDiffV(Jx, Ju, x0, u0);
+    // model->stepDiff(Sx, Su, x0, u0, dt);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+          model->calcV(y, x, u0);
+        },
+        x0, 12, Jx_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+          model->calcV(y, x0, u);
+        },
+        u0, 12, Ju_diff);
+
+    // finite_diff_jac(
+    //     [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+    //       model->step(y, x, u0, dt);
+    //     },
+    //     x0, nx, Sx_diff);
+
+    // finite_diff_jac(
+    //     [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+    //       model->step(y, x0, u, dt);
+    //     },
+    //     u0, nx, Su_diff);
+    std::cout << "Jx: \n" << Jx << std::endl;
+    std::cout << "Jx_diff: \n" << Jx_diff << std::endl;
+
+    std::cout << "-----------\n"
+              << "report Jx " << std::endl;
+    approx_equal_report(Jx, Jx_diff);
+    std::cout << "report Ju " << std::endl;
+    approx_equal_report(Ju, Ju_diff);
+
+    // std::cout << "report Sx " << std::endl;
+    // approx_equal_report(Sx, Sx_diff);
+    // std::cout << "report Su " << std::endl;
+    // approx_equal_report(Su, Su_diff);
+
+    BOOST_TEST((Jx - Jx_diff).norm() <= 10 * 1e-5);
+    BOOST_TEST((Ju - Ju_diff).norm() <= 10 * 1e-5);
+
+    // BOOST_TEST((Sx - Sx_diff).norm() <= 10 * 1e-5);
+    // BOOST_TEST((Su - Su_diff).norm() <= 10 * 1e-5);
   }
 }

@@ -2,6 +2,7 @@
 
 #include "dynobench/for_each_macro.hpp"
 #include "dynobench/robot_models_base.hpp"
+#include "fcl/broadphase/broadphase_collision_manager.h"
 
 namespace dynobench {
 
@@ -83,10 +84,17 @@ struct Model_quad3d_coupled : Model_robot {
     Eigen::Matrix<double, 26, 1> xnext;
     Matrix34 Jx; // keep the old size 3x4, separate for each robot
     Eigen::Matrix3d Ja; // keep the old size 3x3, separate for each robot
+    Matrix34 Jx2;
+    Eigen::Matrix3d Ja2;
+
   } data;
 
   Vector24d ff;
   Quad3d_coupled_params params;
+
+  std::vector<fcl::CollisionObjectd *> part_objs_;
+  std::vector<fcl::CollisionObjectd*> robot_objs_;
+  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
 
 
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
@@ -346,6 +354,10 @@ struct Model_quad3d_coupled : Model_robot {
   virtual double
   lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                        const Eigen::Ref<const Eigen::VectorXd> &y) override;
+
+  virtual void
+  collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                  CollisionOut &cout) override;
 };
 
 } // namespace dynobench
