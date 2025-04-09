@@ -3,85 +3,98 @@
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include <fcl/fcl.h>
 
-namespace dynobench {
+namespace dynobench
+{
 
-struct Joint_robot : Model_robot {
+  struct Joint_robot : Model_robot
+  {
 
-  virtual ~Joint_robot() = default;
-  Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointRobot,
-              const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
-              const Eigen::VectorXd &p_ub = Eigen::VectorXd(),
-              bool is_residual = false,
-              bool is_conservative = false);
+    virtual ~Joint_robot() = default;
+    Joint_robot(const std::vector<std::shared_ptr<Model_robot>> &jointRobot,
+                const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+                const Eigen::VectorXd &p_ub = Eigen::VectorXd(),
+                bool is_residual = false,
+                bool is_conservative = false);
 
-  std::vector<int>
-      goal_times; // use this to set the time step on which each robot
-  // should reach the goal. E.g. goal_times = [10, 20] means that the first
-  // robot should reach its goal in 10 time steps and the second robot in 20
-  // time steps. the time in seconds will be this number multiplied by dt.
+    std::vector<int>
+        goal_times; // use this to set the time step on which each robot
+    // should reach the goal. E.g. goal_times = [10, 20] means that the first
+    // robot should reach its goal in 10 time steps and the second robot in 20
+    // time steps. the time in seconds will be this number multiplied by dt.
 
-  std::vector<fcl::CollisionObjectd *> part_objs_;  // *
-  std::vector<fcl::CollisionObjectd *> robot_objs_; // *
-  // for the ellipsoid shape - for drones
-  std::vector<fcl::CollisionObjectd *> rf_part_objs_;  // * for the residual force
-  std::vector<fcl::CollisionObjectd *> rf_robot_objs_; // * for the residual force
-  bool residual_force = false; // when residual force is taken into account, and inter-robot collision with ellipsoid shape
-  bool conservative = false; // when no NN for the residual estimation
-  Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
-  Eigen::Vector3d large_radii = Eigen::Vector3d(.12, .12, .45); // from tro paper
-  float fa_next;
-  std::vector<int> nxs;
+    std::vector<fcl::CollisionObjectd *> part_objs_;  // *
+    std::vector<fcl::CollisionObjectd *> robot_objs_; // *
+    // for the ellipsoid shape - for drones
+    std::vector<fcl::CollisionObjectd *> rf_part_objs_;           // * for the residual force
+    std::vector<fcl::CollisionObjectd *> rf_robot_objs_;          // * for the residual force
+    bool residual_force = false;                                  // when residual force is taken into account, and inter-robot collision with ellipsoid shape
+    bool conservative = false;                                    // when no NN for the residual estimation
+    Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3);        // from tro paper
+    Eigen::Vector3d large_radii = Eigen::Vector3d(.12, .12, .45); // from tro paper
+    float fa_next;
+    std::vector<int> nxs;
+    int k_x, k_u, k_v, k_su;
+    size_t size_nx, size_nu, size_v, size_ff;
+    int total_nxs = 0;
+    std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
 
-  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
+    virtual int number_of_r_dofs() override { NOT_IMPLEMENTED; }
+    virtual int number_of_so2() override { NOT_IMPLEMENTED; }
+    virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override
+    {
+      NOT_IMPLEMENTED
+    }
+    virtual int number_of_robot() override { NOT_IMPLEMENTED; }
 
-  virtual int number_of_r_dofs() override { NOT_IMPLEMENTED; }
-  virtual int number_of_so2() override { NOT_IMPLEMENTED; }
-  virtual void indices_of_so2(int &k, std::vector<size_t> &vect) override {
-    NOT_IMPLEMENTED
-  }
-  virtual int number_of_robot() override { NOT_IMPLEMENTED; }
+    virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
+    virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
+                       const Eigen::Ref<const Eigen::VectorXd> &x,
+                       const Eigen::Ref<const Eigen::VectorXd> &u) override;
 
-  virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
-                     const Eigen::Ref<const Eigen::VectorXd> &x,
-                     const Eigen::Ref<const Eigen::VectorXd> &u) override;
+    virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
+                           Eigen::Ref<Eigen::MatrixXd> Jv_u,
+                           const Eigen::Ref<const Eigen::VectorXd> &x,
+                           const Eigen::Ref<const Eigen::VectorXd> &u) override;
+    virtual void stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
+                          Eigen::Ref<Eigen::MatrixXd> Fu,
+                          const Eigen::Ref<const Eigen::VectorXd> &x,
+                          const Eigen::Ref<const Eigen::VectorXd> &u,
+                          double dt) override;
 
-  virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
-                         Eigen::Ref<Eigen::MatrixXd> Jv_u,
-                         const Eigen::Ref<const Eigen::VectorXd> &x,
-                         const Eigen::Ref<const Eigen::VectorXd> &u) override;
+    virtual void step(Eigen::Ref<Eigen::VectorXd> xnext,
+                      const Eigen::Ref<const Eigen::VectorXd> &x,
+                      const Eigen::Ref<const Eigen::VectorXd> &u, double dt) override;
 
-  virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                          const Eigen::Ref<const Eigen::VectorXd> &y) override;
+    virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+                            const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  virtual void interpolate(Eigen::Ref<Eigen::VectorXd> xt,
-                           const Eigen::Ref<const Eigen::VectorXd> &from,
-                           const Eigen::Ref<const Eigen::VectorXd> &to,
-                           double dt) override;
+    virtual void interpolate(Eigen::Ref<Eigen::VectorXd> xt,
+                             const Eigen::Ref<const Eigen::VectorXd> &from,
+                             const Eigen::Ref<const Eigen::VectorXd> &to,
+                             double dt) override;
 
-  virtual double
-  lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
-                   const Eigen::Ref<const Eigen::VectorXd> &y) override;
+    virtual double
+    lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
+                     const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  virtual void __collision_distance(
-      const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout,
-      std::shared_ptr<fcl::BroadPhaseCollisionManagerd> env) override;
+    virtual void __collision_distance(
+        const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout,
+        std::shared_ptr<fcl::BroadPhaseCollisionManagerd> env) override;
 
-  // for soft constrained collision checking robot-moving obstacles
-  virtual void __collision_distance_soft(
-      const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout,
-      std::shared_ptr<fcl::BroadPhaseCollisionManagerd> env) override;
+    // for soft constrained collision checking robot-moving obstacles
+    virtual void __collision_distance_soft(
+        const Eigen::Ref<const Eigen::VectorXd> &x, CollisionOut &cout,
+        std::shared_ptr<fcl::BroadPhaseCollisionManagerd> env) override;
 
+    virtual void transformation_collision_geometries(
+        const Eigen::Ref<const Eigen::VectorXd> &x,
+        std::vector<Transform3d> &ts) override;
 
-  virtual void transformation_collision_geometries(
-      const Eigen::Ref<const Eigen::VectorXd> &x,
-      std::vector<Transform3d> &ts) override;
+    std::vector<size_t> so2_indices;
+    std::vector<std::shared_ptr<Model_robot>> v_jointRobot;
 
-  std::vector<size_t> so2_indices;
-  std::vector<std::shared_ptr<Model_robot>> v_jointRobot;
-
-  float calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all, std::vector<std::shared_ptr<Model_robot>> &all_robots, double dt);
-  void from_joint_to_ind(const Eigen::VectorXd &x, std::vector<Eigen::VectorXd>& y);
-};
+    float calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all, std::vector<std::shared_ptr<Model_robot>> &all_robots, double dt);
+    void from_joint_to_ind(const Eigen::VectorXd &x, std::vector<Eigen::VectorXd> &y);
+  };
 } // namespace dynobench
