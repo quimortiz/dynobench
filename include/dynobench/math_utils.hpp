@@ -608,10 +608,11 @@ namespace dynobench
   double inline so3_distance(const Eigen::Vector4d &x, const Eigen::Vector4d &y)
   {
     double max_quaternion_norm_error = 1e-5;
+    // Akmaral: quad3d is failing in a joint mode
     // DYNO_CHECK_LEQ(std::abs(x.norm() - 1), max_quaternion_norm_error,
-    //                eigen_to_string(x));
+    //  eigen_to_string(x));
     // DYNO_CHECK_LEQ(std::abs(y.norm() - 1), max_quaternion_norm_error,
-    //                eigen_to_string(y));
+    //  eigen_to_string(y));
     double dq = std::fabs(x.dot(y));
     if (dq > 1.0 - max_quaternion_norm_error)
       return 0.0;
