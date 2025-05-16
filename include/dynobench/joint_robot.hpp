@@ -74,6 +74,8 @@ namespace dynobench
                              const Eigen::Ref<const Eigen::VectorXd> &to,
                              double dt) override;
 
+    virtual void ensure(Eigen::Ref<Eigen::VectorXd> xinout) override;
+
     virtual double
     lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &y) override;

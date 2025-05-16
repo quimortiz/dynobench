@@ -332,6 +332,18 @@ namespace dynobench
     }
   }
 
+  void Joint_robot::ensure(Eigen::Ref<Eigen::VectorXd> xinout)
+  {
+    size_t size_nx;
+    int k_x = 0;
+    for (auto &robot : v_jointRobot)
+    {
+      size_nx = robot->nx;
+      robot->ensure(xinout.segment(k_x, size_nx));
+      k_x += size_nx;
+    }
+  }
+
   double
   Joint_robot::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &y)
