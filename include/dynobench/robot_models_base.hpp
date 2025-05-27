@@ -80,6 +80,13 @@ namespace dynobench
       }
       return actions_vec;
     }
+    // Static function to sort a vector
+    double last_state_f;
+    static void SortByLastStateF(std::vector<TrajWrapper> &vec)
+    {
+      std::sort(vec.begin(), vec.end(), [](const TrajWrapper &a, const TrajWrapper &b)
+                { return a.last_state_f < b.last_state_f; });
+    }
 
   private:
     size_t size;
