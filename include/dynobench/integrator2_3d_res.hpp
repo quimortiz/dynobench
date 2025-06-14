@@ -42,7 +42,7 @@ struct Integrator2_3d_res_params {
   std::string filename = "";
   std::string shape = "sphere";
   double radius = 0.10;
-  Eigen::Vector3d distance_weights = Eigen::Vector3d(1, .5, 0.5); // 1-others, 0.5-window8
+  Eigen::Vector3d distance_weights = Eigen::Vector3d(1, .5, 1.); // 1-others, 0.5-window8
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
   Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
   std::string robot_type = "small"; // for NN-based residual force computation
