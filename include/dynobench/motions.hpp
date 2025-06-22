@@ -248,9 +248,8 @@ struct Trajectory {
   void read_from_yaml(const char *file);
 
   void check(std::shared_ptr<Model_robot> robot, bool verbose = false);
-
-  std::vector<Trajectory>
-  find_discontinuities(std::shared_ptr<Model_robot> &robot);
+  bool is_empty() const;
+  std::vector<Trajectory> find_discontinuities(std::shared_ptr<Model_robot> &robot);
 
   void update_feasibility(
       const Feasibility_thresholds &thresholds = Feasibility_thresholds(),
