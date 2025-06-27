@@ -30,18 +30,35 @@ BOOST_AUTO_TEST_CASE(t_mujoco_quads_payload) {
     Eigen::MatrixXd Jx(model->nx, model->nx), Ju(model->nx, model->nu);
     Eigen::MatrixXd Sx(model->nx, model->nx), Su(model->nx, model->nu);
     /* payload + one quad: [p  q_xyzw] ------------------------------------- */
-    Eigen::VectorXd pose(7*nb);
+    Eigen::VectorXd pose0(7*nb);
     std::cout << "model size: " << model->nx << std::endl;
-    pose <<
-        0.0, 0.0, 0.2,   0, 0, 0, 1,          // payload  (x y z  qx qy qz qw)
-        0.2, 0.0, 0.6,   0, 0, 0, 1,          // quadrotor 1
-       -0.2, 0.0, 0.6,   0, 0, 0, 1,          // quadrotor 2
-        0.0, 0.2, 0.6,   0, 0, 0, 1;          // quadrotor 3
-    x0.head(7*nb)           = pose;
+    pose0 <<
+        0.0, 0.0, 0.0,   0, 0, 0, 1,          // payload  (x y z  qx qy qz qw)
+        0.2, 0.0, 0.4,   0, 0, 0, 1,          // quadrotor 1
+       -0.2, 0.0, 0.4,   0, 0, 0, 1;          // quadrotor 2
+    x0.head(7*nb) = pose0;
     x0.tail(model->m->nv).setZero();      // zero velocities
     Eigen::VectorXd xnext = Eigen::VectorXd::Zero(model->nx);
     Eigen::VectorXd u = Eigen::VectorXd::Zero(model->nu);
-    u << 0.087309, 0.087309, 0.087309, 0.087309, 0.087309, 0.087309, 0.087309, 0.087309, 0.087309, 0.087309, 0.087309, 0.087309;
+    u << 0.087309, 0.087309, 0.087309, 0.087309,  0.087309, 0.087309, 0.087309, 0.087309;
+
+
+
+    Eigen::VectorXd x1 = Eigen::VectorXd::Zero(model->nx);
+    x1.setZero(model->nx);                       
+    Eigen::VectorXd pose1(7*nb);
+    std::cout << "model size: " << model->nx << std::endl;
+    pose1 <<
+        0.0, 0.0, 0.3,   0, 0, 0, 1,          // payload  (x y z  qx qy qz qw)
+        0.2, 0.0, 0.4,   0, 0, 0, 1,          // quadrotor 1
+       -0.2, 0.0, 0.4,   0, 0, 0, 1;          // quadrotor 2
+    x1.head(7*nb) = pose1;
+    x1.tail(model->m->nv).setZero();      // zero velocities
+
+    double test_distance = model->distance(x1, x0);
+    std::cout << "distance is: " << test_distance << "\nbetween: \n" << x0.transpose() << "\n" <<
+    x1.transpose() << std::endl;
+
     GLFWwindow* window = glfwCreateWindow(1200, 900, "MuJoCo Viewer", nullptr, nullptr);
 
     if (!window) {
@@ -75,11 +92,7 @@ BOOST_AUTO_TEST_CASE(t_mujoco_quads_payload) {
             ctrl = u;
             model->step(xnext, x0, u, model->ref_dt);
             model->calcDiffV(Jx, Ju, x0, u);
-            std::cout << "Jx: \n" << Jx << std::endl;
-            std::cout << "Ju: \n" << Ju << std::endl;            
             model->stepDiff(Sx, Su, x0, u, model->ref_dt);
-            std::cout << "Sx: \n" << Sx << std::endl;
-            std::cout << "Su: \n" << Su << std::endl;
             x0.swap(xnext);
             ++i;
             mjv_updateScene(model->m, model->d, &opt, nullptr, &cam, mjCAT_ALL, &scn);
