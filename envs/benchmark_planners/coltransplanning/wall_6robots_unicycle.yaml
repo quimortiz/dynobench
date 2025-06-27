@@ -13,4 +13,3 @@ robots:
   l: [0.5, 0.5, 0.5, 0.5, 0.5]
   quadsNum: 6
   type: unicyclesWithRods_6_no_right
-

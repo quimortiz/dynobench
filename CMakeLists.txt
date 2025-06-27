@@ -17,9 +17,9 @@ find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
 # find_package(pybind11 REQUIRED)
 find_package(glfw3 CONFIG QUIET)
-if (NOT glfw3_FOUND)
-    find_package(PkgConfig REQUIRED)
-    pkg_check_modules(GLFW REQUIRED glfw3)         # uses glfw3.pc
+if(NOT glfw3_FOUND)
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(GLFW REQUIRED glfw3) # uses glfw3.pc
 endif()
 add_subdirectory(deps/json)
 
@@ -76,9 +76,9 @@ add_library(dynobench::dynobench ALIAS dynobench)
 set_property(TARGET dynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 add_library(mujoco::mujoco SHARED IMPORTED)
-set_target_properties(mujoco::mujoco PROPERTIES
-    IMPORTED_LOCATION             ${MJ_ROOT}/lib/libmujoco.so
-    INTERFACE_INCLUDE_DIRECTORIES ${MJ_ROOT}/include)
+set_target_properties(
+  mujoco::mujoco PROPERTIES IMPORTED_LOCATION ${MJ_ROOT}/lib/libmujoco.so
+                            INTERFACE_INCLUDE_DIRECTORIES ${MJ_ROOT}/include)
 
 target_include_directories(
   dynobench
@@ -91,12 +91,15 @@ target_compile_options(dynobench PRIVATE -Wall -Wextra)
 
 target_link_libraries(
   dynobench
-  PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization
-         Boost::stacktrace_basic ${CMAKE_DL_LIBS}
+  PUBLIC fcl
+         yaml-cpp
+         Boost::program_options
+         Boost::serialization
+         Boost::stacktrace_basic
+         ${CMAKE_DL_LIBS}
          glfw
          mujoco::mujoco
-         PUBLIC nlohmann_json::nlohmann_json
-)
+  PUBLIC nlohmann_json::nlohmann_json)
 
 # Installation instructions
 

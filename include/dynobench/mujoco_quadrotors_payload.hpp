@@ -104,7 +104,7 @@ struct MujocoQuadsPayload_params {
   double arm_length = 0.046; // m
   double t2t = 0.006;        // thrust-to-torque ratio
   double dt = .01;
-  
+
   std::string shape = "sphere";
   Eigen::Vector2d distance_weights_payload_pose = Eigen::Vector2d(1, 0);
   Eigen::Vector2d distance_weights_payload_vel = Eigen::Vector2d(.1, 0);
@@ -156,7 +156,7 @@ struct Model_MujocoQuadsPayload : Model_robot {
   // qpos: [xpos_{payload}, xpos_{quad1}, ..., xpos_{quadn}] \in R^{7*(n+1)}
   // qvel: [xvel_{payload}, xvel_{quad1}, ..., xvel_{quadn}] \in R^{6*(n+1)}
 
-  
+
   // Regularization in the optimization problem.
   // you have to make this genereal
   Eigen::VectorXd state_weights;
@@ -181,17 +181,17 @@ struct Model_MujocoQuadsPayload : Model_robot {
 
   void get_payload_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                        Eigen::Ref<Eigen::Vector3d> out) {
-    out = x.segment(7*(params.num_robots+1), 3); 
+    out = x.segment(7*(params.num_robots+1), 3);
   }
 
   void get_payload_q(const Eigen::Ref<const Eigen::VectorXd> &x,
                      Eigen::Ref<Eigen::Vector4d> out) {
-    out = x.segment(3, 4); 
+    out = x.segment(3, 4);
   }
 
   void get_payload_w(const Eigen::Ref<const Eigen::VectorXd> &x,
                      Eigen::Ref<Eigen::Vector3d> out) {
-    out = x.segment(7*(params.num_robots+1)+3, 3); 
+    out = x.segment(7*(params.num_robots+1)+3, 3);
   }
 
   virtual void get_robot_i_position(const Eigen::Ref<const Eigen::VectorXd> &x,

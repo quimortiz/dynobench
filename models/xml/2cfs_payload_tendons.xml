@@ -87,7 +87,7 @@
   <worldbody>
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" />
     <light pos="0 0 1.5" dir="0 0 -1" directional="true" />
-    
+
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <joint type="free" damping="0"/>
       <geom size="0.01" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
@@ -215,20 +215,20 @@
       <spatial name="tendon1"  limited="true" range="0.05 0.5"  damping="0" springlength="0.5" width="0.001" rgba="0.1 0.8 0.1 1">
           <site site="payload_s" />
           <site site="uav1_s" />
-      </spatial>    
+      </spatial>
   </tendon>
   <tendon>
       <spatial name="tendon2"  limited="true" range="0.05 0.5"   damping="0" springlength="0.5" width="0.001" rgba="0.1 0.8 0.1 1">
          <site site="payload_s" />
           <site site="uav2_s" />
-      </spatial>    
+      </spatial>
   </tendon>
 
   <equality>
     <connect name="rod1"
             site1="uav1_s" site2="payload_s"
             active='false'
-            />   
+            />
   </equality>
 
   <sensor>

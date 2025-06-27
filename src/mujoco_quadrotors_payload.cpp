@@ -48,7 +48,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
 
     : Model_robot(std::make_shared<Rn>(7 + 7*(params.num_robots) + 6 + 6*(params.num_robots)),
                   4 * params.num_robots),
-      params(params) 
+      params(params)
 {
 
   translation_invariance = 3;
@@ -72,7 +72,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   is_2d = false;
 
   ref_dt = params.dt;
-  u_ref.setConstant(.95); 
+  u_ref.setConstant(.95);
 
   arm = 0.707106781 * params.arm_length;
   u_nominal = params.m(0) * g / 4.; // now u is between [0,1]
@@ -90,10 +90,10 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   }
 
   x_desc = {"p0x [m]", "p0y [m]", "p0z [m]", "q0x []",  "q0y []",  "q0z []",  "q0w []",
-            "p1x [m]", "p1y [m]", "p1z [m]", "q1x []",  "q1y []",  "q1z []",  "q1w []", 
-            "pnx [m]", "pny [m]", "pnz [m]", "qnx []",  "qny []",  "qnz []",  "qnw []", 
-            "v0x [m]", "v0y [m]", "v0z [m]",            "w0y []",  "w0z []",  "w0w []", 
-            "v1x [m]", "v1y [m]", "v1z [m]",            "w1y []",  "w1z []",  "w1w []", 
+            "p1x [m]", "p1y [m]", "p1z [m]", "q1x []",  "q1y []",  "q1z []",  "q1w []",
+            "pnx [m]", "pny [m]", "pnz [m]", "qnx []",  "qny []",  "qnz []",  "qnw []",
+            "v0x [m]", "v0y [m]", "v0z [m]",            "w0y []",  "w0z []",  "w0w []",
+            "v1x [m]", "v1y [m]", "v1z [m]",            "w1y []",  "w1z []",  "w1w []",
             "vnx [m]", "vny [m]", "vnz [m]",            "wny []",  "wnz []",  "wnw []"};
 
   u_desc = {"f11 []", "f21 []", "f31 []", "f41 []",
@@ -146,7 +146,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   // payload
   collision_geometries.emplace_back(
       std::make_shared<fcl::Sphered>(params.col_size_payload));
-  
+
   // robots
   for (size_t i = 0; i < params.num_robots; i++) {
     collision_geometries.emplace_back(
@@ -176,7 +176,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   //   // state_ref(6 + 6 + 2) = -.9;
   // }
   // k_acc = 1.;
-  
+
   // Load mujoco model
   char err[1024] = "";
   m = mj_loadXML(params.model_path.c_str(),             // file
@@ -249,7 +249,7 @@ void Model_MujocoQuadsPayload::collision_distance(
   }
 
   if (check_inner) {
-    // inter-body collisions (including payloads) 
+    // inter-body collisions (including payloads)
     transformation_collision_geometries(x, ts_data);
 
     // Update the collision objects
@@ -298,7 +298,7 @@ void Model_MujocoQuadsPayload::calcV(Eigen::Ref<Eigen::VectorXd> ff,
   dyno2mj_pos(x.head(7*nb), nb, qpos_mj); // copy the dynobench qpos to mujoco qpos and reorder the quaternions
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
   ctrl_mj = u; // copy the controls
-  mj_forward(m, d);                      
+  mj_forward(m, d);
   ff.head(m->nv) = qvel_mj;
   ff.tail(m->nv) = qacc_mj;
 }
@@ -315,7 +315,7 @@ void Model_MujocoQuadsPayload::calcVtmp(Eigen::Ref<Eigen::VectorXd> ff,
   dyno2mj_pos(x.head(7*nb), nb, qpos_mj); // copy the dynobench qpos to mujoco qpos and reorder the quaternions
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
   ctrl_mj = u; // copy the controls
-  mj_forward(m, tmp);                      
+  mj_forward(m, tmp);
   ff.head(m->nv) = qvel_mj;
   ff.tail(m->nv) = qacc_mj;
 }
@@ -403,34 +403,34 @@ Model_MujocoQuadsPayload::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
 
   DYNO_CHECK_EQ(x.size(), nx, AT)
   DYNO_CHECK_EQ(y.size(), nx, AT)
-  
+
   int nb = params.num_robots + 1;
   Eigen::VectorXd diff(4*nb);
   Eigen::VectorXd dist_weights(4*nb);
   diff.setOnes();
   dist_weights.setOnes();
-                                  
-  dist_weights.head<2>() = params.distance_weights_payload_pose;  
+
+  dist_weights.head<2>() = params.distance_weights_payload_pose;
   Eigen::Vector2d diff_payload_pose((x.head<3>() - y.head<3>()).norm(), so3_distance(x.segment<4>(3), y.segment<4>(3)));
   diff.head<2>() = diff_payload_pose;
-  
+
   dist_weights.segment(2*nb, 2) = params.distance_weights_payload_vel;
   Eigen::Vector2d diff_payload_vel((x.segment(m->nq,3) - y.segment(m->nq,3)).norm(), (x.segment(m->nq+3,3) - y.segment(m->nq+3,3)).norm());
   diff.segment(2*nb,2) = diff_payload_vel;
-  
+
   Eigen::Vector2d diff_quad_pose(0,0);
   Eigen::Vector2d diff_quad_vel(0,0);
   for (int i = 1; i < nb; ++i) {
     dist_weights.segment(2*i, 2) = params.distance_weights_quads_pose;
     diff_quad_pose << (x.segment<3>(7*i) - y.segment<3>(7*i)).norm(), so3_distance(x.segment<4>(7*i + 3), y.segment<4>(7*i + 3));
     diff.segment(2*i,2) = diff_quad_pose;
-   
+
     dist_weights.segment(2*nb+2*i, 2) = params.distance_weights_quads_vel;
     diff_quad_vel << (x.segment(m->nq+i,3) - y.segment(m->nq+i,3)).norm(), (x.segment(m->nq+i+3,3) - y.segment(m->nq+i+3,3)).norm();
     diff.segment(2*nb+2*i,2) = diff_payload_vel;
   }
   std::cout << "distance weights: " << dist_weights.transpose() << "\n" <<
-  "diff: "<< diff.transpose() << std::endl; 
+  "diff: "<< diff.transpose() << std::endl;
   return diff.dot(dist_weights);
 }
 

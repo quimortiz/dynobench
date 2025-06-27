@@ -316,7 +316,8 @@ class Controller:
             + cp.sum_squares((qi_mat @ T_vec - self.F_ref))
         )
         constraints = [
-            0.001*np.ones(
+            0.001
+            * np.ones(
                 n,
             )
             <= T_vec
@@ -334,8 +335,16 @@ class Controller:
             control = self.B0 @ action
             self.leePayload.tau_ff.x = control[1]
             self.leePayload.tau_ff.y = control[2]
-            self.leePayload.tau_ff.z = 0.
-            w_des = states_d[start_idx + 9 + 6 * self.num_robots + 4 : start_idx + 9 + 6 * self.num_robots + 7]
+            self.leePayload.tau_ff.z = 0.0
+            w_des = states_d[
+                start_idx
+                + 9
+                + 6 * self.num_robots
+                + 4 : start_idx
+                + 9
+                + 6 * self.num_robots
+                + 7
+            ]
             self.leePayload.omega_r.x = w_des[0]
             self.leePayload.omega_r.y = w_des[1]
             self.leePayload.omega_r.z = w_des[2]

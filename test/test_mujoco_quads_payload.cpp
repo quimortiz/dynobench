@@ -26,7 +26,7 @@ BOOST_AUTO_TEST_CASE(t_mujoco_quads_payload) {
     auto model = mk<dynobench::Model_MujocoQuadsPayload>(params);
     const int nb = params.num_robots + 1;        // payload + drones
     Eigen::VectorXd x0 = Eigen::VectorXd::Zero(model->nx);
-    x0.setZero(model->nx);                       
+    x0.setZero(model->nx);
     Eigen::MatrixXd Jx(model->nx, model->nx), Ju(model->nx, model->nu);
     Eigen::MatrixXd Sx(model->nx, model->nx), Su(model->nx, model->nu);
     /* payload + one quad: [p  q_xyzw] ------------------------------------- */
@@ -45,7 +45,7 @@ BOOST_AUTO_TEST_CASE(t_mujoco_quads_payload) {
 
 
     Eigen::VectorXd x1 = Eigen::VectorXd::Zero(model->nx);
-    x1.setZero(model->nx);                       
+    x1.setZero(model->nx);
     Eigen::VectorXd pose1(7*nb);
     std::cout << "model size: " << model->nx << std::endl;
     pose1 <<
@@ -113,4 +113,3 @@ BOOST_AUTO_TEST_CASE(t_mujoco_quads_payload) {
     glfwDestroyWindow(window);
     glfwTerminate();
 }
-

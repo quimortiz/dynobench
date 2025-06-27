@@ -151,7 +151,7 @@
           <site name="motor12" pos="-0.03253  -0.03253 0" size="0.000005"/>
           <site name="motor13" pos=" -0.03253  0.03253 0" size="0.000005"/>
           <site name="motor14" pos=" 0.03253 0.03253 0" size="0.000005"/>
-        </body>     
+        </body>
       </body>
     </body>
   </worldbody>
