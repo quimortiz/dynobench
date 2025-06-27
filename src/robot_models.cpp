@@ -43,7 +43,7 @@
 // #define dynobench_models "../dynoplan/dynobench/models/"
 #include "dynobench/integrator1_2d.hpp"
 #include "dynobench/integrator2_3d.hpp"
-
+#include "dynobench/mujoco_quadrotors_payload.hpp"
 namespace dynobench {
 
 std::unique_ptr<Model_robot> robot_factory(const char *file,
@@ -94,6 +94,8 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
   return std::make_unique<DintegratorCables>(file, p_lb, p_ub);
   }  else if (dynamics == "unicyclesWithRods") {
   return std::make_unique<unicyclesWithRods>(file, p_lb, p_ub);
+  } else if (dynamics == "mujocoquadspayload") {
+  return std::make_unique<Model_MujocoQuadsPayload>(file, p_lb, p_ub);
   } else {
     ERROR_WITH_INFO("dynamics not implemented: " + dynamics);
   }
