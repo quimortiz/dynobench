@@ -248,6 +248,7 @@ struct Trajectory {
   void read_from_yaml(const char *file);
 
   void check(std::shared_ptr<Model_robot> robot, bool verbose = false);
+  bool is_empty() const;
 
   std::vector<Trajectory>
   find_discontinuities(std::shared_ptr<Model_robot> &robot);

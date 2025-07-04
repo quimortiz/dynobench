@@ -705,6 +705,11 @@ void Trajectories::load_file_boost(const char *file) {
             << std::endl;
 }
 
+bool Trajectory::is_empty() const
+{
+  return states.empty();
+}
+
 void load_env(Model_robot &robot, const Problem &problem) {
   double ref_pos = 0;
   double ref_size = 1.;
