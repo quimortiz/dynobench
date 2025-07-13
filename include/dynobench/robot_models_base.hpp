@@ -82,6 +82,7 @@ namespace dynobench
     }
     // Static function to sort a vector
     double last_state_f;
+    double norm_distance;
     static void SortByLastStateF(std::vector<TrajWrapper> &vec)
     {
       std::sort(vec.begin(), vec.end(), [](const TrajWrapper &a, const TrajWrapper &b)
@@ -97,7 +98,11 @@ namespace dynobench
       // Sort by last_state_f
       std::vector<TrajWrapper> sorted = input;
       std::sort(sorted.begin(), sorted.end(), [](const TrajWrapper &a, const TrajWrapper &b)
-                { return a.last_state_f < b.last_state_f; });
+                {  
+      if (a.last_state_f != b.last_state_f)
+        return a.last_state_f < b.last_state_f;
+      // tie-breaker based on normalized distance
+      return a.norm_distance < b.norm_distance; });
 
       std::vector<TrajWrapper> result;
       std::vector<TrajWrapper> current_cluster;
