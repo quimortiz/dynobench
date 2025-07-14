@@ -89,12 +89,12 @@ namespace dynobench
                 { return a.last_state_f < b.last_state_f; });
     }
 
-    std::vector<TrajWrapper> GetTopNPerClusterByLastStateF(const std::vector<TrajWrapper> &input, double min_f, double max_f, size_t N = 4)
+    std::vector<TrajWrapper> GetTopNPerClusterByLastStateF(const std::vector<TrajWrapper> &input, double range, double min_f, double max_f, size_t N = 4)
     {
       if (input.empty())
         return {};
 
-      double threshold = 0.05 * (max_f - min_f); // 5% of the range
+      double threshold = range * (max_f - min_f); // 5% - circle
       // Sort by last_state_f
       std::vector<TrajWrapper> sorted = input;
       std::sort(sorted.begin(), sorted.end(), [](const TrajWrapper &a, const TrajWrapper &b)
