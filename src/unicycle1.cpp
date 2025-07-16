@@ -174,8 +174,10 @@ Model_unicycle1::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
       std::max(std::abs(params.max_vel), std::abs(params.min_vel));
   double max_angular_vel_abs = std::max(std::abs(params.max_angular_vel),
                                         std::abs(params.min_angular_vel));
-  return std::max((x.head<2>() - y.head<2>()).norm() / max_vel_abs,
-                  so2_distance(x(2), y(2)) / max_angular_vel_abs);
+  // return std::max((x.head<2>() - y.head<2>()).norm() / max_vel_abs,
+  //                 so2_distance(x(2), y(2)) / max_angular_vel_abs);
+  return ((x.head<2>() - y.head<2>()).norm() / max_vel_abs) + (so2_distance(x(2), y(2)) / max_angular_vel_abs);
+
 }
 
 } // namespace dynobench

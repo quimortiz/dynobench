@@ -101,12 +101,12 @@ double
 Integrator1_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
   // approximate                                 
-  std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.max_vel,
-                                std::abs(x(1) - y(1)) / params.max_vel};
+  // std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.max_vel,
+  //                               std::abs(x(1) - y(1)) / params.max_vel};
 
-  return *std::max_element(maxs.begin(), maxs.end());
+  // return *std::max_element(maxs.begin(), maxs.end());
   // precise - needed for grid-style env.
-  // return (x - y).norm() / params.max_vel;
+  return (x - y).norm() / params.max_vel;
 }
 
 double Integrator1_2d::lower_bound_time_pr(
