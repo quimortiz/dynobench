@@ -42,6 +42,17 @@ struct MultiRobotTrajectory {
 
   std::vector<dynobench::Trajectory> trajectories;
 
+  bool is_empty()
+  {
+    for (const auto &traj : trajectories)
+    {
+      if (!traj.states.empty())
+      {
+        return false;
+      }
+    }
+    return true; // All trajectories have empty states
+  }
   void read_from_yaml(const char *file) {
     std::cout << "Loading file: " << file << std::endl;
     read_from_yaml(load_yaml_safe(file));
