@@ -837,7 +837,7 @@ def main():
                         qdes[j, 0:3] = -mu_d[j, 0:3] / np.linalg.norm(mu_d[j, 0:3])
                     else:
                         qdes[j, 0:3] = [0, 0, -1]
-                        print("norm mu is zero!")
+                        # print("norm mu is zero!")
 
                 fig, axes = plt.subplots(3, 1, figsize=(8, 12))
                 for k in range(3):
