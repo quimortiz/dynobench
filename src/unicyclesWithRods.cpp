@@ -126,12 +126,12 @@ unicyclesWithRods::unicyclesWithRods(const unicyclesWithRods_params &params,
   // robots
   for (size_t i = 0; i < params.num_robots ; ++i) {
     collision_geometries.push_back(
-      std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
+    std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
   }
   // rods
   for (size_t i = 0; i < params.num_robots-1 ; ++i) {
     collision_geometries.push_back(
-      std::make_shared<fcl::Boxd>(0.6*0.5, 0.01, 0.01)); // 80 % of the rod length
+      std::make_shared<fcl::Capsuled>(0.02, 0.7*0.5));
   }
   ts_data.resize(2*params.num_robots - 1);
   col_outs.resize(2*params.num_robots - 1);
@@ -164,7 +164,19 @@ void unicyclesWithRods::transformation_collision_geometries(
     fcl::Transform3d result_c = fcl::Transform3d::Identity();
     get_rod_state(x, state_c, i);
     result_c.translate(Eigen::Vector3d(state_c(0), state_c(1), 0.0));
-    result_c.rotate(Eigen::AngleAxisd(state_c(2), Eigen::Vector3d::UnitZ()));
+    // Eigen::Matrix3d perturb = Eigen::AngleAxisd(1e-3, Eigen::Vector3d::UnitZ()).toRotationMatrix();
+
+    // First rotate capsule from Z to X
+    Eigen::Matrix3d rot_Z_to_X = Eigen::AngleAxisd(-M_PI / 2, Eigen::Vector3d::UnitY()).toRotationMatrix();
+
+    // Then apply theta rotation (in XY plane)
+    Eigen::Matrix3d rot_theta = Eigen::AngleAxisd(state_c(2), Eigen::Vector3d::UnitZ()).toRotationMatrix();
+
+    // Combine: first align, then rotate
+    result_c.linear() = rot_theta * rot_Z_to_X;
+
+    // result_c.rotate(Eigen::AngleAxisd(state_c(2), Eigen::Vector3d::UnitZ()));
+    // result_c.linear() = perturb * result_c.linear();
 
     ts.at(params.num_robots + i) = result_c;
   }
@@ -201,7 +213,9 @@ void unicyclesWithRods::collision_distance(
     col_mng_robots_->registerObjects(collision_objects_ptrs);
     fcl::DefaultDistanceData<double> inter_robot_distance_data;
     inter_robot_distance_data.request.enable_signed_distance = true;
-
+    // inter_robot_distance_data.request.gjk_solver_type = fcl::GJKSolverType::GST_INDEP;
+    inter_robot_distance_data.request.distance_tolerance = 1e-4;
+    inter_robot_distance_data.request.enable_nearest_points = true; 
     col_mng_robots_->distance(&inter_robot_distance_data,
                               fcl::DefaultDistanceFunction<double>);
 
