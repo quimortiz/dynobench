@@ -22,6 +22,7 @@ void Quad3dpayload_n_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(point_mass));
   set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_payload));
+  set_from_yaml(node, VAR_WITH_NAME(capsule_size));
 
   set_from_yaml(node, VAR_WITH_NAME(m_payload));
   set_from_yaml(node, VAR_WITH_NAME(l_payload));
@@ -236,6 +237,10 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
 
   // DO we need weight on the state? @KHALED??
   x_weightb = 300 * Vxd::Ones(nx);
+  x_weightb.segment(0,3).setConstant(100);
+  // for (size_t i = 0; i < params.num_robots; i++) {
+  //   x_weightb.segment(6 + 6 * i, 3).setConstant(600);
+  // }
 
   // u_weight.setConstant(.5);
 
@@ -249,14 +254,14 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   collision_geometries.clear();
 
   double rate_colision_cables =
-      .35; // we use a shorter collision body for the
+      .4; // we use a shorter collision body for the
           // cables to avoid self collision against payload or robot!
   collision_geometries.emplace_back(
       std::make_shared<fcl::Sphered>(params.col_size_payload));
 
   for (size_t i = 0; i < params.num_robots; i++) {
     collision_geometries.emplace_back(std::make_shared<fcl::Capsuled>(
-        0.01, rate_colision_cables * params.l_payload(i)));
+        params.capsule_size, rate_colision_cables * params.l_payload(i)));
   }
 
   for (size_t i = 0; i < params.num_robots; i++) {
@@ -302,7 +307,7 @@ Model_quad3dpayload_n::Model_quad3dpayload_n(
   // state_ref(6 + 2) = -.9;
   // state_ref(6 + 6 + 2) = -.9;
 
-  k_acc = 1.;
+  k_acc = 1.0;
 }
 
 Eigen::VectorXd Model_quad3dpayload_n::get_x0(const Eigen::VectorXd &x) {
