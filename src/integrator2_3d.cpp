@@ -100,11 +100,12 @@ Integrator2_3d::Integrator2_3d(const Integrator2_3d_params &params,
 double Integrator2_3d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  std::array<double, 2> maxs = {
-      (x.head<3>() - y.head<3>()).norm() / params.max_vel,
-      (x.tail<3>() - y.tail<3>()).norm() / params.max_acc};
-
-  return *std::max_element(maxs.begin(), maxs.end());
+  // std::array<double, 2> maxs = {
+      // (x.head<3>() - y.head<3>()).norm() / params.max_vel,
+      // (x.tail<3>() - y.tail<3>()).norm() / params.max_acc};
+// 
+  // return *std::max_element(maxs.begin(), maxs.end());
+  return (((x.head<3>() - y.head<3>()).norm() / params.max_vel) + ((x.tail<3>() - y.tail<3>()).norm() / params.max_acc));
 }
 
 void Integrator2_3d::set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) {
