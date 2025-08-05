@@ -26,7 +26,7 @@ struct Quad3dpayload_n_params {
   //
   //
   //
-
+  double capsule_size = 0.03;
   double max_vel = 4;
   double max_angular_vel = 8;
 
@@ -73,6 +73,7 @@ struct Quad3dpayload_n_params {
 
     out << be << STR(col_size_robot, af) << std::endl;
     out << be << STR(col_size_payload, af) << std::endl;
+    out << be << STR(capsule_size, af) << std::endl;
 
     out << be << STR(m_payload, af) << std::endl;
 
