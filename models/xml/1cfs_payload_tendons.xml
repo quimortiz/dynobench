@@ -157,7 +157,7 @@
 
 
     <tendon>
-      <spatial name="tendon1"  limited="true" range="0.0 0.5"  damping="0"  width="0.001" rgba="0.1 0.8 0.1 1">
+      <spatial name="tendon1"  limited="true" range="0.1 0.5"  damping="0.01"  width="0.001" rgba="0.1 0.8 0.1 1">
           <site site="payload_s" />
           <site site="uav1_s" />
       </spatial>

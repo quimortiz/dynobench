@@ -88,10 +88,29 @@
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" />
     <light pos="0 0 1.5" dir="0 0 -1" directional="true" />
 
+
+    <geom name="obs1"  
+            type="box"  
+            pos="0.0 0.3 0.0"  
+            size="0.15 0.15 1.5"    
+            rgba="0.8 0.2 0.2 1"    
+            contype="0" conaffinity="0"  
+            material="polished_plastic"
+    />
+    
+    <!-- obstacle #2: center [0.0, -0.3, 0.0], full size [0.3,0.3,3.0] -->
+    <geom name="obs2"  
+          type="box"  
+          pos="0.0 -0.3 0.0"  
+          size="0.15 0.15 1.5"  
+          rgba="0.8 0.2 0.2 1"  
+          contype="0" conaffinity="0"  
+          material="polished_plastic"
+    />
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <joint type="free" damping="0"/>
       <geom size="0.01" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
-      <inertial pos="0 0 0" mass="0.000001" diaginertia="1e-8 1e-8 1e-8" />
+      <inertial pos="0 0 0" mass="0.0054" diaginertia="1e-8 1e-8 1e-8" />
       <site name="payload_s" pos="0 0 0" />
     </body>
 
