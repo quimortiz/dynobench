@@ -56,37 +56,61 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   const double RM_max__ = std::sqrt(std::numeric_limits<double>::max());
   const double RM_low__ = -RM_max__;
   using Vxd = Eigen::VectorXd;
+  // Load mujoco model
+  char err[1024] = "";
+  m = mj_loadXML(params.model_path.c_str(),             // file
+                            nullptr,                   // no include paths
+                            err, sizeof(err));         // fill error buffer
+
+  if (!m) {
+      std::cerr << "MuJoCo loadXML error:\n" << err << std::endl;
+      throw std::runtime_error("mj_loadXML failed: " + std::string(err));
+  }
+
+  d = mj_makeData(m);
+  if (!d) {
+      throw std::runtime_error("mj_makeData failed");
+  }
+
+  tmp = mj_makeData(m);
+  if (!tmp) {
+      throw std::runtime_error("mj_makeData (tmp) failed");
+  }
 
   std::cout << "Robot name " << name << std::endl;
   std::cout << "Parameters" << std::endl;
   this->params.write(std::cout);
   std::cout << "***" << std::endl;
+  if (m->nv == 0 || m->nq == 0) {
+      throw std::runtime_error("MuJoCo model loaded but has invalid dimensions (nv or nq == 0)");
+  }
 
   u_0.setOnes(4 * params.num_robots);
 
   // @QUIM: fix this values
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
-  nx_col = nx;
-  nx_pr = 7;
+  nx_col = m->nv;
+  nx_pr = m->nq;
   is_2d = false;
 
   ref_dt = params.dt;
-  u_ref.setConstant(.95);
+  u_ref.setConstant(0.95);
 
   arm = 0.707106781 * params.arm_length;
-  u_nominal = params.m(0) * g / 4.; // now u is between [0,1]
+  u_nominal = params.m(0) * g / 4.; // now u is between [0,max_f]
 
   B0 << 1, 1, 1, 1, -arm, -arm, arm, arm, -arm, arm, arm, -arm, -params.t2t,
       params.t2t, -params.t2t, params.t2t;
   B0 *= u_nominal;
   B0inv = B0.inverse();
-  name = "mujocoquadspayload";
+  name = "mujoco_quadspayload";
   goal_weight.resize(nx);
   goal_weight.setOnes();
-
-  for (size_t i = 0; i < params.num_robots+1; i++) {
-    goal_weight.segment(7*i+3, 4).setConstant(.001);
+  goal_weight.segment(3, 4).setConstant(0.0); // payload quat
+  goal_weight.segment((7*(params.num_robots+1))+3, 3).setConstant(0.0); // payload ang vel
+  for (size_t i = 1; i < params.num_robots; i++) {
+    goal_weight.segment(7*i+3, 4).setConstant(0.01);
   }
 
   x_desc = {"p0x [m]", "p0y [m]", "p0z [m]", "q0x []",  "q0y []",  "q0z []",  "q0w []",
@@ -99,18 +123,22 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   u_desc = {"f11 []", "f21 []", "f31 []", "f41 []",
             "f12 []", "f22 []", "f32 []", "f42 []",
             "f1n []", "f22 []", "f3n []", "f4n []"};
-  u_lb = params.u_lb;
-  u_ub = params.u_ub;
+
+
+  u_lb = Eigen::VectorXd::Zero(4 * params.num_robots);
+  u_ub = Eigen::VectorXd::Ones(4 * params.num_robots);
+  u_ub *= params.max_f;
+
 
   // payload position and quaternion
-  x_lb.segment(0, 7) << RM_low__, RM_low__, RM_low__,  RM_low__, RM_low__, RM_low__, RM_low__;
+  x_lb.segment(0, 7) << p_lb(0), p_lb(1), p_lb(2),  RM_low__, RM_low__, RM_low__, RM_low__;
 
   // payload vel and angular vel
-  x_lb.segment(7*(params.num_robots + 1), 6) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__, RM_low__;
+  x_lb.segment(7*(params.num_robots + 1), 6) << -params.max_vel, -params.max_vel, -params.max_vel, RM_low__, RM_low__, RM_low__;
 
   // robot position and quaternion
   for (int i = 0; i < params.num_robots; ++i) {
-    x_lb.segment(7 + 7 * i, 7) << RM_low__, RM_low__, RM_low__, RM_low__, RM_low__, RM_low__, RM_low__; // uav position and quat
+    x_lb.segment(7 + 7 * i, 7) << p_lb(0), p_lb(1), p_lb(2), RM_low__, RM_low__, RM_low__, RM_low__; // uav position and quat
   }
 
   // robot vel and angular vel
@@ -119,14 +147,14 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   }
 
   // payload position and quaternion
-  x_ub.segment(0, 7) << RM_max__, RM_max__, RM_max__,  RM_max__, RM_max__, RM_max__, RM_max__;
+  x_ub.segment(0, 7) << p_ub(0), p_ub(1), p_ub(2),  RM_max__, RM_max__, RM_max__, RM_max__;
 
   // payload vel and angular vel
-  x_ub.segment(7*(params.num_robots + 1), 6) << RM_max__, RM_max__, RM_max__, RM_max__, RM_max__, RM_max__;
+  x_ub.segment(7*(params.num_robots + 1), 6) << params.max_vel, params.max_vel, params.max_vel, RM_max__ , RM_max__, RM_max__;
 
   // robot position and quaternion
   for (int i = 0; i < params.num_robots; ++i) {
-    x_ub.segment(7 + 7 * i, 7) << RM_max__, RM_max__, RM_max__, RM_max__, RM_max__, RM_max__, RM_max__; // uav position and quat
+    x_ub.segment(7 + 7 * i, 7) << p_ub(0), p_ub(1), p_ub(2), RM_max__, RM_max__, RM_max__, RM_max__; // uav position and quat
   }
 
   // robot vel and angular vel
@@ -134,11 +162,15 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
     x_ub.segment(7*(params.num_robots + 1) + 6*(i+1), 6) << params.max_vel, params.max_vel, params.max_vel, params.max_angular_vel, params.max_angular_vel, params.max_angular_vel;
   }
 
-
   u_weight.resize(4 * params.num_robots);
   u_weight.setConstant(.7);
 
-  x_weightb = 300 * Vxd::Ones(nx);
+  x_weightb = 300*Vxd::Ones(nx);
+  // x_weightb.head(7*(params.num_robots+1))*= 0;
+  
+  // x_weightb.segment(7*(params.num_robots+1), 3)*=50; // lin vel payload
+  x_weightb.segment(3 ,4) = Eigen::VectorXd::Zero(4); // quat payload
+  x_weightb.segment(7*(params.num_robots+1) + 3 ,3) = Eigen::VectorXd::Zero(3); // ang vel payload
 
   // COLLISIONS
   collision_geometries.clear();
@@ -166,33 +198,43 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   col_mng_robots_ = std::make_shared<fcl::DynamicAABBTreeCollisionManagerd>();
   col_mng_robots_->setup();
 
-  // state_weights = Vxd::Zero(nx);
-  // state_ref = Vxd::Zero(nx);
+  state_weights = Vxd::Zero(nx);
+  state_ref = Vxd::Zero(nx);
 
-  // state_weights.segment(6, 3).setConstant(0.1);
-  // for(size_t i=0; i<params.num_robots;++i) {
-  //   state_weights.segment(6 + 6*i, 3).setConstant(0.1);
-  //    state_ref(6 + 6*i + 2) = -.9;
-  //   // state_ref(6 + 6 + 2) = -.9;
+  // for (size_t i = 0; i < params.num_robots; ++i) {
+  //   // state_weights.segment(7 + 7*i, 3).setZero();
+  //   state_weights.segment(7 + 7*i + 6, 1).setConstant(0.1);
+  //   state_ref(7 + 7*i + 6) = 1.;
   // }
-  // k_acc = 1.;
+  // std::cout << "state_ref: \n" << state_ref.transpose() << std::endl;
+  // std::cout << "state_wei: \n" << state_weights.transpose() << std::endl;
+  k_acc = 1.5; //0.005;
 
-  // Load mujoco model
-  char err[1024] = "";
-  m = mj_loadXML(params.model_path.c_str(),             // file
-                            nullptr,                   // no include paths
-                            err, sizeof(err));         // fill error buffer
 
-  if (!m) {                                          // loading failed
-      std::cerr << "MuJoCo loadXML error:\n" << err << std::endl;
-  }
-
-  d = mj_makeData(m);
-  tmp = mj_makeData(m);
+  __v.resize(2*m->nv);
+  __Jv_x.resize(2*m->nv, m->nq + m->nv);
+  __Jv_u.resize(2*m->nv, nu);
+  std::cout << "finished model loading..." << std::endl;
 }
 
 Eigen::VectorXd Model_MujocoQuadsPayload::get_x0(const Eigen::VectorXd &x) {
-  NOT_IMPLEMENTED;
+  const int nb = params.num_robots + 1;          
+  auto qpos_mj = mjVec(d->qpos, m->nq);          
+  auto qvel_mj = mjVec(d->qvel, m->nv);
+  auto ctrl_mj = mjVec(d->ctrl, m->nu);
+
+  dyno2mj_pos(x.head(7*nb), nb, qpos_mj);     
+  qvel_mj = x.tail(m->nv);                    
+  ctrl_mj.setZero();                             
+  mj_forward(m, d);
+
+  Eigen::VectorXd x_out(nx);                     
+  Eigen::VectorXd xpos(7*nb);                    
+  mj2dyno_pos(qpos_mj, nb, xpos);                
+  x_out.head(m->nq) = xpos;
+  x_out.tail(m->nv) = qvel_mj;
+
+  return x_out;
 }
 
 void Model_MujocoQuadsPayload::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
@@ -202,17 +244,6 @@ void Model_MujocoQuadsPayload::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
 std::map<std::string, std::vector<double>>
 Model_MujocoQuadsPayload::get_info(const Eigen::Ref<const Eigen::VectorXd> &x) {
   NOT_IMPLEMENTED;
-  // // TODO: test this!!
-
-  // std::map<std::string, std::vector<double>> out;
-
-  // for (size_t i = 0; i < params.num_robots; ++i) {
-  //   Eigen::VectorXd pr(Eigen::Vector3d::Zero());
-  //   Eigen::VectorXd pc(Eigen::Vector3d::Zero());
-  //   get_position_robot_i(x, i, pr);
-  //   get_position_center_cable(x, pc, i);
-  //   out.insert({"robot_pos_" + std::to_string(i), {pr(0), pr(1), pr(2)}});
-  //   out.insert({"calbe_pos_" + std::to_string(i), {pc(0), pc(1), pc(2)}});
 }
 
 void Model_MujocoQuadsPayload::transformation_collision_geometries(
@@ -297,10 +328,17 @@ void Model_MujocoQuadsPayload::calcV(Eigen::Ref<Eigen::VectorXd> ff,
   auto ctrl_mj = mjVec(d->ctrl, m->nu);
   dyno2mj_pos(x.head(7*nb), nb, qpos_mj); // copy the dynobench qpos to mujoco qpos and reorder the quaternions
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
-  ctrl_mj = u; // copy the controls
+  ctrl_mj = u*u_nominal; // copy the controls
   mj_forward(m, d);
+  // std::cout << "nv: " << m->nv << std::endl;
+  // std::cout << "qpos: \n" << qpos_mj.transpose() << std::endl;
+  // std::cout << "qvel: \n" << qvel_mj.transpose() << std::endl;
+  // std::cout << "qacc: \n" << qacc_mj.transpose() << std::endl;
   ff.head(m->nv) = qvel_mj;
   ff.tail(m->nv) = qacc_mj;
+  // std::cout << "ff size: " << ff.size() << std::endl;
+  // std::cout << "ff: \n" << ff.transpose() << std::endl;
+
 }
 
 void Model_MujocoQuadsPayload::calcVtmp(Eigen::Ref<Eigen::VectorXd> ff,
@@ -314,7 +352,7 @@ void Model_MujocoQuadsPayload::calcVtmp(Eigen::Ref<Eigen::VectorXd> ff,
   auto ctrl_mj = mjVec(tmp->ctrl, m->nu);
   dyno2mj_pos(x.head(7*nb), nb, qpos_mj); // copy the dynobench qpos to mujoco qpos and reorder the quaternions
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
-  ctrl_mj = u; // copy the controls
+  ctrl_mj = u*u_nominal; // copy the controls
   mj_forward(m, tmp);
   ff.head(m->nv) = qvel_mj;
   ff.tail(m->nv) = qacc_mj;
@@ -328,15 +366,17 @@ void Model_MujocoQuadsPayload::calcDiffV(
 
   finite_diff_jac(
       [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
-        calcVtmp(y, x, u);
+        y.resize(2 * m->nv);
+        calcV(y, x, u);
       },
-      x, nx, Jv_x);
+      x, 2*m->nv, Jv_x);
 
   finite_diff_jac(
       [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
-        calcVtmp(y, x, u);
+        y.resize(2 * m->nv);
+        calcV(y, x, u);
       },
-      u, nx, Jv_u);
+      u, 2*m->nv, Jv_u);
 }
 
 void Model_MujocoQuadsPayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
@@ -351,6 +391,7 @@ void Model_MujocoQuadsPayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
   dyno2mj_pos(x.head(7*nb), nb, qpos_mj); // copy the dynobench qpos to mujoco qpos and reorder the quaternions
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
   ctrl_mj = u; // copy the controls
+  ctrl_mj *= u_nominal;
   mj_step(m, d);
   Eigen::VectorXd xpos(7 * nb);             // [p, q_xyzw] for each
   mj2dyno_pos(qpos_mj, nb, xpos);               // wxyz → xyzw per body
@@ -369,6 +410,7 @@ void Model_MujocoQuadsPayload::steptmp(Eigen::Ref<Eigen::VectorXd> xnext,
   dyno2mj_pos(x.head(7*nb), nb, qpos_mj); // copy the dynobench qpos to mujoco qpos and reorder the quaternions
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
   ctrl_mj = u; // copy the controls
+  ctrl_mj *= u_nominal;
   mj_step(m, tmp);
   Eigen::VectorXd xpos(7 * nb);             // [p, q_xyzw] for each
   mj2dyno_pos(qpos_mj, nb, xpos);               // wxyz → xyzw per body
@@ -386,13 +428,15 @@ void Model_MujocoQuadsPayload::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
 
 finite_diff_jac(
         [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
-          steptmp(y, x, u, dt);
+          y.resize(nx);
+          step(y, x, u, dt);
         },
         x, nx, Fx);
 
     finite_diff_jac(
         [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
-          steptmp(y, x, u, dt);
+          y.resize(nx);
+          step(y, x, u, dt);
         },
         u, nx, Fu);
 }
@@ -427,10 +471,8 @@ Model_MujocoQuadsPayload::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
 
     dist_weights.segment(2*nb+2*i, 2) = params.distance_weights_quads_vel;
     diff_quad_vel << (x.segment(m->nq+i,3) - y.segment(m->nq+i,3)).norm(), (x.segment(m->nq+i+3,3) - y.segment(m->nq+i+3,3)).norm();
-    diff.segment(2*nb+2*i,2) = diff_payload_vel;
+    diff.segment(2*nb+2*i,2) = diff_quad_vel;
   }
-  std::cout << "distance weights: " << dist_weights.transpose() << "\n" <<
-  "diff: "<< diff.transpose() << std::endl;
   return diff.dot(dist_weights);
 }
 

@@ -104,14 +104,14 @@ struct MujocoQuadsPayload_params {
   double arm_length = 0.046; // m
   double t2t = 0.006;        // thrust-to-torque ratio
   double dt = .01;
-
+  bool visualize = true;
   std::string shape = "sphere";
   Eigen::Vector2d distance_weights_payload_pose = Eigen::Vector2d(1, 0);
-  Eigen::Vector2d distance_weights_payload_vel = Eigen::Vector2d(.1, 0);
-  Eigen::Vector2d distance_weights_quads_pose = Eigen::Vector2d(1, 1);
-  Eigen::Vector2d distance_weights_quads_vel = Eigen::Vector2d(.1, .1);
-  Eigen::Vector4d u_ub;
-  Eigen::Vector4d u_lb;
+  Eigen::Vector2d distance_weights_payload_vel  = Eigen::Vector2d(.5, 0);
+  Eigen::Vector2d distance_weights_quads_pose   = Eigen::Vector2d(1, 0.5);
+  Eigen::Vector2d distance_weights_quads_vel    = Eigen::Vector2d(.5, .05);
+  Eigen::VectorXd u_ub;
+  Eigen::VectorXd u_lb;
 
   void read_from_yaml(YAML::Node &node);
   void read_from_yaml(const char *file);
@@ -161,13 +161,13 @@ struct Model_MujocoQuadsPayload : Model_robot {
   // you have to make this genereal
   Eigen::VectorXd state_weights;
   Eigen::VectorXd state_ref;
-
+  
   std::vector<std::unique_ptr<fcl::CollisionObjectd>>
       collision_objects; // QUIM : TODO move this to the base class!
 
   virtual ~Model_MujocoQuadsPayload() = default;
 
-  Eigen::VectorXd ff; // TODO: remember to allocate memory in constructor!
+  // Eigen::VectorXd ff; // TODO: remember to allocate memory in constructor!
   MujocoQuadsPayload_params params;
 
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
@@ -235,6 +235,11 @@ struct Model_MujocoQuadsPayload : Model_robot {
   mjModel* m;
   mjData* d;
   mjData* tmp;
+  bool viewer_ready_ = false;
+  mjvScene   scn_;
+  mjrContext con_;
+  mjvCamera  cam_;
+  mjvOption  opt_;
 
   std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
 
@@ -356,6 +361,25 @@ struct Model_MujocoQuadsPayload : Model_robot {
   virtual double
   lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                        const Eigen::Ref<const Eigen::VectorXd> &y) override;
+
+  void init_mujoco_viewer() override {
+    if (viewer_ready_) return;          // already done
+
+    mjv_defaultScene  (&scn_);
+    mjr_defaultContext(&con_);
+    mjv_defaultCamera (&cam_);
+    mjv_defaultOption (&opt_);
+
+    mjv_makeScene   (m, &scn_, 2000);
+    mjr_makeContext (m, &con_, mjFONTSCALE_150);
+
+    viewer_ready_ = true;
+  };
+  void render(int w, int h) override {
+    if (params.visualize && viewer_ready_) {
+      mjr_render({0,0,w,h}, &scn_, &con_);
+    }
+  }
 };
 
 } // namespace dynobench
