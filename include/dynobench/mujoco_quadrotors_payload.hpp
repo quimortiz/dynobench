@@ -161,7 +161,7 @@ struct Model_MujocoQuadsPayload : Model_robot {
   // you have to make this genereal
   Eigen::VectorXd state_weights;
   Eigen::VectorXd state_ref;
-  
+
   std::vector<std::unique_ptr<fcl::CollisionObjectd>>
       collision_objects; // QUIM : TODO move this to the base class!
 

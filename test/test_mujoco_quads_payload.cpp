@@ -24,8 +24,8 @@ BOOST_AUTO_TEST_CASE(t_mujoco_quads_payload) {
     Eigen::VectorXd p_lb(3);
     p_lb << -1000, -1000, -1000;
     Eigen::VectorXd p_ub(3);
-    p_ub << 1000, 1000, 1000;    
-    auto model = mk<dynobench::Model_MujocoQuadsPayload>(params, p_lb, p_ub); 
+    p_ub << 1000, 1000, 1000;
+    auto model = mk<dynobench::Model_MujocoQuadsPayload>(params, p_lb, p_ub);
     if (!model || !model->m || !model->d) {
         std::cerr << "Model or MuJoCo components are NULL!" << std::endl;
         BOOST_FAIL("Failed to initialize MuJoCo model or data");

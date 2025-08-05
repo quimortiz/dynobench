@@ -167,7 +167,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
 
   x_weightb = 300*Vxd::Ones(nx);
   // x_weightb.head(7*(params.num_robots+1))*= 0;
-  
+
   // x_weightb.segment(7*(params.num_robots+1), 3)*=50; // lin vel payload
   x_weightb.segment(3 ,4) = Eigen::VectorXd::Zero(4); // quat payload
   x_weightb.segment(7*(params.num_robots+1) + 3 ,3) = Eigen::VectorXd::Zero(3); // ang vel payload
@@ -218,19 +218,19 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
 }
 
 Eigen::VectorXd Model_MujocoQuadsPayload::get_x0(const Eigen::VectorXd &x) {
-  const int nb = params.num_robots + 1;          
-  auto qpos_mj = mjVec(d->qpos, m->nq);          
+  const int nb = params.num_robots + 1;
+  auto qpos_mj = mjVec(d->qpos, m->nq);
   auto qvel_mj = mjVec(d->qvel, m->nv);
   auto ctrl_mj = mjVec(d->ctrl, m->nu);
 
-  dyno2mj_pos(x.head(7*nb), nb, qpos_mj);     
-  qvel_mj = x.tail(m->nv);                    
-  ctrl_mj.setZero();                             
+  dyno2mj_pos(x.head(7*nb), nb, qpos_mj);
+  qvel_mj = x.tail(m->nv);
+  ctrl_mj.setZero();
   mj_forward(m, d);
 
-  Eigen::VectorXd x_out(nx);                     
-  Eigen::VectorXd xpos(7*nb);                    
-  mj2dyno_pos(qpos_mj, nb, xpos);                
+  Eigen::VectorXd x_out(nx);
+  Eigen::VectorXd xpos(7*nb);
+  mj2dyno_pos(qpos_mj, nb, xpos);
   x_out.head(m->nq) = xpos;
   x_out.tail(m->nv) = qvel_mj;
 
