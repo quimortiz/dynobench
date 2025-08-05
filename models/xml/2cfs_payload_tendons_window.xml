@@ -14,7 +14,7 @@
   </visual>
 
   <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0">
-  <flag contact="disable"/>  
+  <flag contact="disable"/>
 </option>
 
   <compiler inertiafromgeom="false" meshdir="cf2/assets" autolimits="false"/>
@@ -89,22 +89,22 @@
   <worldbody>
     <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" />
     <light pos="0 0 1.5" dir="0 0 -1" directional="true" />
-    <geom name="obs1"  
-            type="box"  
-            pos="0.0 0.4 0.0"  
-            size="0.15 0.15 1.5"    
-            rgba="0.8 0.2 0.2 1"    
-            contype="0" conaffinity="0"  
+    <geom name="obs1"
+            type="box"
+            pos="0.0 0.4 0.0"
+            size="0.15 0.15 1.5"
+            rgba="0.8 0.2 0.2 1"
+            contype="0" conaffinity="0"
             material="polished_plastic"
     />
-    
+
     <!-- obstacle #2: center [0.0, -0.3, 0.0], full size [0.3,0.3,3.0] -->
-    <geom name="obs2"  
-          type="box"  
-          pos="0.0 -0.4 0.0"  
-          size="0.15 0.15 1.5"  
-          rgba="0.8 0.2 0.2 1"  
-          contype="0" conaffinity="0"  
+    <geom name="obs2"
+          type="box"
+          pos="0.0 -0.4 0.0"
+          size="0.15 0.15 1.5"
+          rgba="0.8 0.2 0.2 1"
+          contype="0" conaffinity="0"
           material="polished_plastic"
     />
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
@@ -115,12 +115,12 @@
     </body>
 
     <body name="cf21" pos="0.0 0.0 0.0" childclass="cf2" quat="1 0 0 0">
-       <geom name="sphere1"  
-          type="sphere"  
-          pos="0.0 0.0 0.0"  
-          size="0.08"  
-          rgba="0.8 0.2 0.2 0.1"  
-          contype="1" conaffinity="1"  
+       <geom name="sphere1"
+          type="sphere"
+          pos="0.0 0.0 0.0"
+          size="0.08"
+          rgba="0.8 0.2 0.2 0.1"
+          contype="1" conaffinity="1"
     />
       <site name="uav1_s" pos="0 0 0" />
       <joint type="free" damping="0"/>
@@ -172,12 +172,12 @@
     </body>
 
     <body name="cf22" pos="-0.0 0.0 0.0" childclass="cf2" quat="1 0 0 0">
-    <geom name="sphere2"  
-      type="sphere"  
-      pos="0.0 0.0 0.0"  
-      size="0.08"  
-      rgba="0.8 0.2 0.2 0.1"  
-      contype="0" conaffinity="0"  
+    <geom name="sphere2"
+      type="sphere"
+      pos="0.0 0.0 0.0"
+      size="0.08"
+      rgba="0.8 0.2 0.2 0.1"
+      contype="0" conaffinity="0"
     />
 
       <joint type="free" damping="0"/>

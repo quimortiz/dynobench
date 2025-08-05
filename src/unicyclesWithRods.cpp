@@ -215,7 +215,7 @@ void unicyclesWithRods::collision_distance(
     inter_robot_distance_data.request.enable_signed_distance = true;
     // inter_robot_distance_data.request.gjk_solver_type = fcl::GJKSolverType::GST_INDEP;
     inter_robot_distance_data.request.distance_tolerance = 1e-4;
-    inter_robot_distance_data.request.enable_nearest_points = true; 
+    inter_robot_distance_data.request.enable_nearest_points = true;
     col_mng_robots_->distance(&inter_robot_distance_data,
                               fcl::DefaultDistanceFunction<double>);
 
