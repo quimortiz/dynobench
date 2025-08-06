@@ -1,7 +1,6 @@
 #include "dynobench/math_utils.hpp"
 #include "dynobench/multirobot_trajectory.hpp"
 #include "dynobench/robot_models.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -54,16 +53,18 @@
 #include "dynobench/planar_rotor.hpp"
 #include "dynobench/planar_rotor_pole.hpp"
 #include "dynobench/quadrotor.hpp"
+#include "dynobench/quadrotor_coupled.hpp"
 
 using namespace std;
 using namespace dynobench;
 
 Eigen::VectorXd default_vector;
 
-// #define base_path "../../dynobench/"
+// #define base_path "../" // debug mode
 #define base_path "../../"
 
-struct Fake_opt {
+struct Fake_opt
+{
   Fake_opt() = default;
   std::string filename = "tmp.yaml";
   int max_it = 10;
@@ -73,12 +74,14 @@ struct Fake_opt {
 };
 
 // for string delimiter
-std::vector<std::string> split(std::string s, std::string delimiter) {
+std::vector<std::string> split(std::string s, std::string delimiter)
+{
   size_t pos_start = 0, pos_end, delim_len = delimiter.length();
   std::string token;
   std::vector<std::string> res;
 
-  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos) {
+  while ((pos_end = s.find(delimiter, pos_start)) != std::string::npos)
+  {
     token = s.substr(pos_start, pos_end - pos_start);
     pos_start = pos_end + delim_len;
     if (token.size())
@@ -87,32 +90,37 @@ std::vector<std::string> split(std::string s, std::string delimiter) {
 
   if (s.substr(pos_start).size())
     res.push_back(s.substr(pos_start));
-  for (auto &r : res) {
+  for (auto &r : res)
+  {
     std::cout << "- " << r << std::endl;
   }
   return res;
 }
 
 void tokenize(std::string const &str, const char delim,
-              std::vector<std::string> &out) {
+              std::vector<std::string> &out)
+{
   // construct a stream from the string
   std::stringstream ss(str);
 
   std::string s;
-  while (std::getline(ss, s, delim)) {
+  while (std::getline(ss, s, delim))
+  {
     if (s.size())
       out.push_back(s);
   }
 }
 
-Fake_opt fakeCLIParser(const std::string &argv) {
+Fake_opt fakeCLIParser(const std::string &argv)
+{
 
   auto outs = split(argv, "--");
 
   std::ofstream o(base_path "fake_cli.json");
   o << "{\n";
 
-  for (size_t i = 0; i < outs.size(); i++) {
+  for (size_t i = 0; i < outs.size(); i++)
+  {
     auto out = outs[i];
 
     std::vector<std::string> _out;
@@ -121,16 +129,22 @@ Fake_opt fakeCLIParser(const std::string &argv) {
     // if (i < outs.size() - 1)
     o << "  \"" << _out[0] << "\": ";
 
-    try {
+    try
+    {
       double d = std::stod(_out[1]);
       o << _out[1];
-    } catch (const std::exception &e) {
+    }
+    catch (const std::exception &e)
+    {
       o << "\"" << _out[1] << "\"";
     }
 
-    if (i < outs.size() - 1) {
+    if (i < outs.size() - 1)
+    {
       o << ",\n";
-    } else {
+    }
+    else
+    {
       o << "\n";
     }
   }
@@ -145,7 +159,8 @@ Fake_opt fakeCLIParser(const std::string &argv) {
   return opt;
 }
 
-BOOST_AUTO_TEST_CASE(t_traj_to_json) {
+BOOST_AUTO_TEST_CASE(t_traj_to_json)
+{
 
   Trajectory traj;
 
@@ -222,7 +237,8 @@ BOOST_AUTO_TEST_CASE(t_traj_to_json) {
 
 BOOST_AUTO_TEST_CASE(t_jsonX) {}
 
-BOOST_AUTO_TEST_CASE(t_fakeCLIParser) {
+BOOST_AUTO_TEST_CASE(t_fakeCLIParser)
+{
   Fake_opt opt =
       fakeCLIParser("--filename ../models/quad2d_v0.yaml --max_it   100");
   std::cout << opt.max_it << " " << opt.filename << std::endl;
@@ -263,7 +279,8 @@ BOOST_AUTO_TEST_CASE(t_fakeCLIParser) {
 //   // how to test that they are the same?
 // }
 
-BOOST_AUTO_TEST_CASE(t_load_json) {
+BOOST_AUTO_TEST_CASE(t_load_json)
+{
   Unicycle1_paramsJ aa;
 
   aa.read_from_yaml(
@@ -272,7 +289,8 @@ BOOST_AUTO_TEST_CASE(t_load_json) {
   aa.write_yaml(std::cout);
 }
 
-BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
+BOOST_AUTO_TEST_CASE(t_load_model_yaml)
+{
 
   std::shared_ptr<Model_robot> robot = std::make_shared<Model_quad2d>(
       (std::string(base_path) + "models/quad2d_v0.yaml").c_str());
@@ -306,14 +324,16 @@ BOOST_AUTO_TEST_CASE(t_load_model_yaml) {
 //   }
 // }
 
-BOOST_AUTO_TEST_CASE(acrobot_rollout) {
+BOOST_AUTO_TEST_CASE(acrobot_rollout)
+{
   size_t T = 100; // one second
   // auto dyn = mk<Dynamics_acrobot>();
   auto model = mk<Model_acrobot>();
 
   std::vector<Eigen::VectorXd> us;
   std::vector<Eigen::VectorXd> xs;
-  for (size_t i = 0; i < T; i++) {
+  for (size_t i = 0; i < T; i++)
+  {
     us.push_back(model->params.max_torque * .01 * Eigen::VectorXd::Random(1));
   }
 
@@ -325,7 +345,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout) {
   xs.push_back(xold);
   double dt = .01;
 
-  for (size_t i = 0; i < T; i++) {
+  for (size_t i = 0; i < T; i++)
+  {
     std::cout << "u " << us.at(i).format(FMT) << std::endl;
     std::cout << "xold " << xold.format(FMT) << std::endl;
     model->step(xnext, xold, us.at(i), dt);
@@ -337,14 +358,16 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout) {
   std::cout << "final state" << xs.back().format(FMT) << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
+BOOST_AUTO_TEST_CASE(acrobot_rollout_free)
+{
   auto model = mk<Model_acrobot>();
   double dt = .01;
   size_t T = 1. / dt; // one second
 
   std::vector<Eigen::VectorXd> us;
   std::vector<Eigen::VectorXd> xs;
-  for (size_t i = 0; i < T; i++) {
+  for (size_t i = 0; i < T; i++)
+  {
     us.push_back(Eigen::VectorXd::Zero(1));
   }
 
@@ -356,7 +379,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
     xold << 2.8, 0, 0, 0;
     xs.push_back(xold);
     double original_energy = model->calcEnergy(xold);
-    for (size_t i = 0; i < T; i++) {
+    for (size_t i = 0; i < T; i++)
+    {
       std::cout << "i: " << i << std::endl;
       std::cout << "u " << us.at(i).format(FMT) << std::endl;
       std::cout << "xold " << xold.format(FMT) << std::endl;
@@ -377,7 +401,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
     xs.clear();
     xold << 2.8, 0, 0, 0;
     double original_energy = model->calcEnergy(xold);
-    for (size_t i = 0; i < T; i++) {
+    for (size_t i = 0; i < T; i++)
+    {
       std::cout << "i: " << i << std::endl;
       std::cout << "u " << us.at(i).format(FMT) << std::endl;
       std::cout << "xold " << xold.format(FMT) << std::endl;
@@ -397,7 +422,8 @@ BOOST_AUTO_TEST_CASE(acrobot_rollout_free) {
   // dyn->max_torque =
 }
 
-BOOST_AUTO_TEST_CASE(t_qintegrate) {
+BOOST_AUTO_TEST_CASE(t_qintegrate)
+{
 
   Eigen::Quaterniond q = Eigen::Quaterniond(0, 0, 0, 1);
   double dt = .01;
@@ -409,11 +435,13 @@ BOOST_AUTO_TEST_CASE(t_qintegrate) {
   __get_quat_from_ang_vel_time(omega * dt, deltaQ, nullptr);
   quat_product(q.coeffs(), deltaQ, out, nullptr, nullptr);
 
-  std::cout << "out\n" << out << std::endl;
+  std::cout << "out\n"
+            << out << std::endl;
 
   Eigen::MatrixXd JqD(4, 4);
   double eps = 1e-6;
-  for (size_t i = 0; i < 4; i++) {
+  for (size_t i = 0; i < 4; i++)
+  {
     Eigen::Vector4d qe;
     // Eigen::Vector3d ye;
     qe = q.coeffs();
@@ -429,7 +457,8 @@ BOOST_AUTO_TEST_CASE(t_qintegrate) {
   }
 
   Eigen::MatrixXd JomegaD(4, 3);
-  for (size_t i = 0; i < 3; i++) {
+  for (size_t i = 0; i < 3; i++)
+  {
     Eigen::Vector3d omegae;
     omegae = omega;
     omegae(i) += eps;
@@ -449,7 +478,8 @@ BOOST_AUTO_TEST_CASE(t_qintegrate) {
   // TODO: check the diffs against analytic!!
 }
 
-BOOST_AUTO_TEST_CASE(t_quat_product) {
+BOOST_AUTO_TEST_CASE(t_quat_product)
+{
 
   Eigen::Vector4d p{1, 2, 3, 4};
   p.normalize();
@@ -467,7 +497,8 @@ BOOST_AUTO_TEST_CASE(t_quat_product) {
 
   bool check1 = (out_eigen.coeffs() - out).cwiseAbs().maxCoeff() < 1e-10;
 
-  if (!check1) {
+  if (!check1)
+  {
 
     std::cout << "out_eigen" << std::endl;
     std::cout << out_eigen.coeffs() << std::endl;
@@ -486,13 +517,15 @@ BOOST_AUTO_TEST_CASE(t_quat_product) {
   Eigen::Matrix4d JqD;
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
         quat_product(x, q, y, &__Jp, &__Jq);
       },
       p, 4, JpD);
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
         quat_product(p, x, y, &__Jp, &__Jq);
       },
       p, 4, JqD);
@@ -501,7 +534,8 @@ BOOST_AUTO_TEST_CASE(t_quat_product) {
 
   bool check2 = (Jq - JqD).cwiseAbs().maxCoeff() < 10 * eps;
 
-  if (!check2) {
+  if (!check2)
+  {
 
     std::cout << "Jq" << std::endl;
     std::cout << Jq << std::endl;
@@ -514,7 +548,8 @@ BOOST_AUTO_TEST_CASE(t_quat_product) {
 
   bool check3 = (Jp - JpD).cwiseAbs().maxCoeff() < 10 * eps;
 
-  if (!check3) {
+  if (!check3)
+  {
 
     std::cout << "Jp" << std::endl;
     std::cout << Jp << std::endl;
@@ -526,7 +561,8 @@ BOOST_AUTO_TEST_CASE(t_quat_product) {
   CHECK(check3, AT);
 }
 
-BOOST_AUTO_TEST_CASE(exp_map_quat) {
+BOOST_AUTO_TEST_CASE(exp_map_quat)
+{
 
   using Matrix43d = Eigen::Matrix<double, 4, 3>;
   {
@@ -544,7 +580,8 @@ BOOST_AUTO_TEST_CASE(exp_map_quat) {
     std::cout << "ref " << ref.coeffs().format(FMT) << std::endl;
 
     finite_diff_jac(
-        [&](const Eigen::VectorXd &xx, Eigen::Ref<Eigen::VectorXd> y) {
+        [&](const Eigen::VectorXd &xx, Eigen::Ref<Eigen::VectorXd> y)
+        {
           return __get_quat_from_ang_vel_time(xx, y);
         },
         v, 4, Jd, 1e-8);
@@ -573,7 +610,8 @@ BOOST_AUTO_TEST_CASE(exp_map_quat) {
     std::cout << "ref " << ref.coeffs().format(FMT) << std::endl;
 
     finite_diff_jac(
-        [&](const Eigen::VectorXd &xx, Eigen::Ref<Eigen::VectorXd> y) {
+        [&](const Eigen::VectorXd &xx, Eigen::Ref<Eigen::VectorXd> y)
+        {
           return __get_quat_from_ang_vel_time(xx, y);
         },
         v, 4, Jd, 1e-9);
@@ -602,7 +640,8 @@ BOOST_AUTO_TEST_CASE(exp_map_quat) {
     std::cout << "ref " << ref.coeffs().format(FMT) << std::endl;
 
     finite_diff_jac(
-        [&](const Eigen::VectorXd &xx, Eigen::Ref<Eigen::VectorXd> y) {
+        [&](const Eigen::VectorXd &xx, Eigen::Ref<Eigen::VectorXd> y)
+        {
           return __get_quat_from_ang_vel_time(xx, y);
         },
         v, 4, Jd, 1e-13);
@@ -618,13 +657,15 @@ BOOST_AUTO_TEST_CASE(exp_map_quat) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(linear_interpolation) {
+BOOST_AUTO_TEST_CASE(linear_interpolation)
+{
 
   Eigen::VectorXd ts = Eigen::VectorXd::LinSpaced(10, 0, 9);
 
   std::vector<Eigen::VectorXd> xs_vec(10, Eigen::VectorXd(2));
 
-  for (size_t i = 0; i < 10; i++) {
+  for (size_t i = 0; i < 10; i++)
+  {
     Eigen::VectorXd x(2);
     x << i, 2 * i;
     xs_vec.at(i) = x;
@@ -635,7 +676,8 @@ BOOST_AUTO_TEST_CASE(linear_interpolation) {
   Eigen::VectorXd x(2);
   Eigen::VectorXd J(2);
 
-  for (size_t i = 0; i < 10; i++) {
+  for (size_t i = 0; i < 10; i++)
+  {
     path->interpolate(ts(i), x, J);
     std::cout << x << std::endl;
     BOOST_TEST((x - xs_vec.at(i)).norm() < 1e-12);
@@ -657,7 +699,8 @@ BOOST_AUTO_TEST_CASE(linear_interpolation) {
   // TODO: add some test!
 }
 
-BOOST_AUTO_TEST_CASE(t_normalize) {
+BOOST_AUTO_TEST_CASE(t_normalize)
+{
   Eigen::Vector4d q(1, 2, 1, 2.);
   Eigen::Vector4d y;
   Eigen::Matrix4d Jq;
@@ -669,14 +712,16 @@ BOOST_AUTO_TEST_CASE(t_normalize) {
   double eps = 1e-6;
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
         return normalize(x, y, __Jq);
       },
       q, 4, JqD);
 
   bool check2 = (Jq - JqD).cwiseAbs().maxCoeff() < 10 * eps;
 
-  if (!check2) {
+  if (!check2)
+  {
     std::cout << "Jq" << std::endl;
     std::cout << Jq << std::endl;
     std::cout << "JqD" << std::endl;
@@ -687,7 +732,8 @@ BOOST_AUTO_TEST_CASE(t_normalize) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(matrix_rotation) {
+BOOST_AUTO_TEST_CASE(matrix_rotation)
+{
   // very big error. Compute the rotation of a
   // vector. check with finite diff.
 
@@ -708,7 +754,8 @@ BOOST_AUTO_TEST_CASE(matrix_rotation) {
   Eigen::Matrix3d __Ja;
   Eigen::MatrixXd JqD(3, 4);
   double eps = 1e-6;
-  for (size_t i = 0; i < 4; i++) {
+  for (size_t i = 0; i < 4; i++)
+  {
     Eigen::Vector4d qe;
     Eigen::Vector3d ye;
     qe = q;
@@ -721,7 +768,8 @@ BOOST_AUTO_TEST_CASE(matrix_rotation) {
   }
 
   Eigen::Matrix3d JaD;
-  for (size_t i = 0; i < 3; i++) {
+  for (size_t i = 0; i < 3; i++)
+  {
     Eigen::Vector3d ae;
     Eigen::Vector3d ye;
     ae = a;
@@ -734,7 +782,8 @@ BOOST_AUTO_TEST_CASE(matrix_rotation) {
   bool check1 = (Ja - JaD).cwiseAbs().maxCoeff() < 10 * eps;
   bool check2 = (Jq - JqD).cwiseAbs().maxCoeff() < 10 * eps;
 
-  if (!check1) {
+  if (!check1)
+  {
     std::cout << "Ja" << std::endl;
     std::cout << Ja << std::endl;
     std::cout << "JaD" << std::endl;
@@ -744,7 +793,8 @@ BOOST_AUTO_TEST_CASE(matrix_rotation) {
     CHECK(((Ja - JaD).cwiseAbs().maxCoeff() < 10 * eps), AT);
   }
 
-  if (!check2) {
+  if (!check2)
+  {
     std::cout << "Jq" << std::endl;
     std::cout << Jq << std::endl;
     std::cout << "JqD" << std::endl;
@@ -755,7 +805,8 @@ BOOST_AUTO_TEST_CASE(matrix_rotation) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(t_slerp) {
+BOOST_AUTO_TEST_CASE(t_slerp)
+{
 
   Eigen::Vector4d a(1, 0, 0, 0);
   Eigen::Vector4d v(0, 0, 0, 1);
@@ -770,7 +821,8 @@ BOOST_AUTO_TEST_CASE(t_slerp) {
             << std::endl;
 }
 
-BOOST_AUTO_TEST_CASE(tcol_unicycle) {
+BOOST_AUTO_TEST_CASE(tcol_unicycle)
+{
 
   auto env = std ::string(base_path) + "envs/unicycle1_v0/parallelpark_0.yaml";
 
@@ -802,7 +854,8 @@ BOOST_AUTO_TEST_CASE(tcol_unicycle) {
   BOOST_CHECK(std::fabs(col.distance - (-0.11123)) < 1e-5);
 }
 
-BOOST_AUTO_TEST_CASE(col_car_with_trailer) {
+BOOST_AUTO_TEST_CASE(col_car_with_trailer)
+{
 
   auto env = std::string(base_path) + "envs/car1_v0/bugtrap_0.yaml";
   auto car = Model_car_with_trailers();
@@ -830,7 +883,8 @@ BOOST_AUTO_TEST_CASE(col_car_with_trailer) {
   col.write(std::cout);
 }
 
-BOOST_AUTO_TEST_CASE(tcol_quad3d) {
+BOOST_AUTO_TEST_CASE(tcol_quad3d)
+{
 
   auto env = std::string(base_path) + "envs/quadrotor_v0/quad_one_obs.yaml";
 
@@ -867,7 +921,8 @@ BOOST_AUTO_TEST_CASE(tcol_quad3d) {
   BOOST_TEST(std::fabs(col.distance - (.1)) < 5 * 1e-5);
 }
 
-BOOST_AUTO_TEST_CASE(col_acrobot) {
+BOOST_AUTO_TEST_CASE(col_acrobot)
+{
 
   Problem problem;
   auto env = std::string(base_path) + "envs/acrobot_v0/swing_up_obs.yaml";
@@ -923,7 +978,8 @@ BOOST_AUTO_TEST_CASE(col_acrobot) {
 //   out.write(std::cout);
 // };
 
-BOOST_AUTO_TEST_CASE(t_serialization) {
+BOOST_AUTO_TEST_CASE(t_serialization)
+{
 
   Trajectory traj1, traj2;
 
@@ -960,7 +1016,8 @@ BOOST_AUTO_TEST_CASE(t_serialization) {
   BOOST_TEST(trajs_A.data.at(1).distance(trajs_B.data.at(1)) < 1e-10);
 }
 
-BOOST_AUTO_TEST_CASE(t_Integrator2_2d) {
+BOOST_AUTO_TEST_CASE(t_Integrator2_2d)
+{
   auto model = mk<Integrator2_2d>();
 
   Eigen::VectorXd x0(4), u0(2);
@@ -976,13 +1033,15 @@ BOOST_AUTO_TEST_CASE(t_Integrator2_2d) {
   model->calcDiffV(Jx, Ju, x0, u0);
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
         model->calcV(y, x, u0);
       },
       x0, 4, Jx_diff);
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+      {
         model->calcV(y, x0, u);
       },
       u0, 4, Ju_diff);
@@ -991,7 +1050,8 @@ BOOST_AUTO_TEST_CASE(t_Integrator2_2d) {
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
 
-BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
+BOOST_AUTO_TEST_CASE(t_Integrator1_2d)
+{
   auto model = mk<Integrator1_2d>();
 
   Eigen::VectorXd x0(2), u0(2);
@@ -1007,13 +1067,15 @@ BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
   model->calcDiffV(Jx, Ju, x0, u0);
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
         model->calcV(y, x, u0);
       },
       x0, 2, Jx_diff);
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+      {
         model->calcV(y, x0, u);
       },
       u0, 2, Ju_diff);
@@ -1022,7 +1084,8 @@ BOOST_AUTO_TEST_CASE(t_Integrator1_2d) {
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
 
-BOOST_AUTO_TEST_CASE(t_joint_robot) {
+BOOST_AUTO_TEST_CASE(t_joint_robot)
+{
 
   std::vector<std::shared_ptr<Model_robot>> robots;
   robots.push_back(std::make_unique<Model_unicycle1>());
@@ -1052,13 +1115,15 @@ BOOST_AUTO_TEST_CASE(t_joint_robot) {
   model->calcDiffV(Jx, Ju, x0, u0);
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
         model->calcV(y, x, u0);
       },
       x0, nx, Jx_diff);
 
   finite_diff_jac(
-      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+      {
         model->calcV(y, x0, u);
       },
       u0, nx, Ju_diff);
@@ -1067,7 +1132,8 @@ BOOST_AUTO_TEST_CASE(t_joint_robot) {
   BOOST_TEST((Ju - Ju_diff).norm() < 1e-5);
 }
 
-BOOST_AUTO_TEST_CASE(t_joint_robot_env) {
+BOOST_AUTO_TEST_CASE(t_joint_robot_env)
+{
 
   std::string env =
       base_path "envs/multirobot/example/gen_p10_n2_6_hetero.yaml";
@@ -1123,7 +1189,8 @@ BOOST_AUTO_TEST_CASE(t_joint_robot_env) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
+BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer)
+{
 
   std::string env = base_path "envs/multirobot/example/swap2_trailer.yaml";
 
@@ -1204,7 +1271,8 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_trailer) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
+BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle)
+{
 
   std::string env = base_path "envs/multirobot/example/swap4_unicycle.yaml";
 
@@ -1285,7 +1353,8 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap4_unicycle) {
   }
 }
 
-BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
+BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2)
+{
 
   std::string env = base_path "envs/multirobot/example/swap2_unicycle2.yaml";
 
@@ -1364,4 +1433,298 @@ BOOST_AUTO_TEST_CASE(t_check_traj_swap2_unicycle2) {
 
     BOOST_TEST(traj.feasible == false);
   }
+}
+
+BOOST_AUTO_TEST_CASE(t_quadrotor_coupled_dynamics)
+{
+
+  std::cout << "testing quadrotor dynamics " << std::endl;
+  auto model = mk<dynobench::Model_quad3d_coupled>();
+
+  int nx = model->nx;
+  int nu = model->nu;
+
+  Eigen::VectorXd x_default(nx), u_default(nu);
+  x_default.setZero();
+  x_default = model->get_x0(x_default);
+  u_default = model->u_0;
+
+  Eigen::VectorXd xrand(nx), urand(nu), xrandnoise(nx), urandnoise(nx);
+  xrand.setZero(); // TODO: DONE
+  xrand << 3., 3., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.,
+      1., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.;
+  urand << 1., 1., 1., 1., 1., 1., 1., 1.;
+
+  xrandnoise = xrand + 0.01 * Eigen::VectorXd::Random(nx);
+  model->ensure(xrandnoise);
+  urandnoise = urand + 0.01 * Eigen::VectorXd::Random(nu);
+
+  Eigen::MatrixXd Jx_diff(24, 26), Ju_diff(24, 8), Jx(24, 26), Ju(24, 8);
+  Eigen::MatrixXd Sx_diff(26, 26), Su_diff(26, 8), Sx(26, 26), Su(26, 8);
+
+  std::vector<std::pair<Eigen::VectorXd, Eigen::VectorXd>> xu_s;
+
+  xu_s.push_back({x_default, u_default});
+  xu_s.push_back({xrand, urand});
+  xu_s.push_back({xrandnoise, urandnoise});
+
+  double dt = model->ref_dt;
+
+  for (const auto &k : xu_s)
+  {
+    const auto &x0 = k.first;
+    const auto &u0 = k.second;
+
+    for (auto &m_ptr :
+         {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su})
+    {
+      m_ptr->setZero();
+    }
+
+    CSTR_V(x0);
+    CSTR_V(u0);
+
+    model->calcDiffV(Jx, Ju, x0, u0);
+    model->stepDiff(Sx, Su, x0, u0, dt);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+        {
+          model->calcV(y, x, u0);
+        },
+        x0, 24, Jx_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+        {
+          model->calcV(y, x0, u);
+        },
+        u0, 24, Ju_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+        {
+          model->step(y, x, u0, dt);
+        },
+        x0, 26, Sx_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+        {
+          model->step(y, x0, u, dt);
+        },
+        u0, 26, Su_diff);
+
+    // std::cout << "Jx: \n" << Jx << std::endl;
+    // std::cout << "Jx_diff: \n" << Jx_diff << std::endl;
+    std::cout << "-----------\n"
+              << "report Jx " << std::endl;
+    approx_equal_report(Jx, Jx_diff);
+    std::cout << "report Ju " << std::endl;
+    approx_equal_report(Ju, Ju_diff);
+
+    std::cout << "Sx: \n"
+              << Sx << std::endl;
+    std::cout << "Sx_diff: \n"
+              << Sx_diff << std::endl;
+
+    std::cout << "report Sx " << std::endl;
+    approx_equal_report(Sx, Sx_diff);
+    std::cout << "report Su " << std::endl;
+    approx_equal_report(Su, Su_diff);
+
+    BOOST_TEST((Jx - Jx_diff).norm() <= 10 * 1e-5);
+    BOOST_TEST((Ju - Ju_diff).norm() <= 10 * 1e-5);
+
+    BOOST_TEST((Sx - Sx_diff).norm() <= 10 * 1e-5);
+    BOOST_TEST((Su - Su_diff).norm() <= 10 * 1e-5);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_quad3d_dynamics)
+{
+
+  std::cout << "testing quad3d dynamics " << std::endl;
+  auto model = mk<dynobench::Model_quad3d>();
+
+  int nx = model->nx;
+  int nu = model->nu;
+
+  Eigen::VectorXd x_default(nx), u_default(nu);
+  x_default.setZero();
+  x_default = model->get_x0(x_default);
+  u_default = model->u_0;
+
+  Eigen::VectorXd xrand(nx), urand(nu), xrandnoise(nx), urandnoise(nx);
+  xrand.setZero(); // TODO: DONE
+  xrand << 3., 3., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.;
+  urand << 1., 1., 1., 1.;
+
+  xrandnoise = xrand + 0.01 * Eigen::VectorXd::Random(nx);
+  model->ensure(xrandnoise);
+  urandnoise = urand + 0.01 * Eigen::VectorXd::Random(nu);
+
+  Eigen::MatrixXd Jx_diff(12, 13), Ju_diff(12, 4), Jx(12, 13), Ju(12, 4);
+  Eigen::MatrixXd Sx_diff(nx, nx), Su_diff(nx, nu), Sx(nx, nx), Su(nx, nu);
+
+  std::vector<std::pair<Eigen::VectorXd, Eigen::VectorXd>> xu_s;
+
+  xu_s.push_back({x_default, u_default});
+  xu_s.push_back({xrand, urand});
+  xu_s.push_back({xrandnoise, urandnoise});
+
+  double dt = model->ref_dt;
+
+  for (const auto &k : xu_s)
+  {
+    const auto &x0 = k.first;
+    const auto &u0 = k.second;
+
+    for (auto &m_ptr :
+         {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su})
+    {
+      m_ptr->setZero();
+    }
+
+    CSTR_V(x0);
+    CSTR_V(u0);
+
+    model->calcDiffV(Jx, Ju, x0, u0);
+    // model->stepDiff(Sx, Su, x0, u0, dt);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+        {
+          model->calcV(y, x, u0);
+        },
+        x0, 12, Jx_diff);
+
+    finite_diff_jac(
+        [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+        {
+          model->calcV(y, x0, u);
+        },
+        u0, 12, Ju_diff);
+
+    // finite_diff_jac(
+    //     [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y) {
+    //       model->step(y, x, u0, dt);
+    //     },
+    //     x0, nx, Sx_diff);
+
+    // finite_diff_jac(
+    //     [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y) {
+    //       model->step(y, x0, u, dt);
+    //     },
+    //     u0, nx, Su_diff);
+    std::cout << "Jx: \n"
+              << Jx << std::endl;
+    std::cout << "Jx_diff: \n"
+              << Jx_diff << std::endl;
+
+    std::cout << "-----------\n"
+              << "report Jx " << std::endl;
+    approx_equal_report(Jx, Jx_diff);
+    std::cout << "report Ju " << std::endl;
+    approx_equal_report(Ju, Ju_diff);
+
+    // std::cout << "report Sx " << std::endl;
+    // approx_equal_report(Sx, Sx_diff);
+    // std::cout << "report Su " << std::endl;
+    // approx_equal_report(Su, Su_diff);
+
+    BOOST_TEST((Jx - Jx_diff).norm() <= 10 * 1e-5);
+    BOOST_TEST((Ju - Ju_diff).norm() <= 10 * 1e-5);
+
+    // BOOST_TEST((Sx - Sx_diff).norm() <= 10 * 1e-5);
+    // BOOST_TEST((Su - Su_diff).norm() <= 10 * 1e-5);
+  }
+}
+
+BOOST_AUTO_TEST_CASE(t_joint_quad3d)
+{
+
+  std::vector<std::shared_ptr<Model_robot>> robots;
+  robots.push_back(std::make_unique<Model_quad3d>());
+  robots.push_back(std::make_unique<Model_quad3d>());
+
+  auto model =
+      mk<Joint_robot>(robots, Eigen::Vector3d(-1., -1., -1.), Eigen::Vector3d(6, 6, 4));
+
+  int nx = model->nx;
+  int nu = model->nu;
+  Eigen::VectorXd x0(nx), u0(nu);
+  x0.setRandom();
+  u0.setRandom();
+  x0 << 3., 3., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.,
+      1., 1., 1., 0., 0., 0., 1., 0., 0., 0., 0., 0., 0.;
+  u0 << 1., 1., 1., 1., 1., 1., 1., 1.;
+
+  Eigen::MatrixXd Jx_diff(24, nx), Ju_diff(24, nu), Jx(24, nx), Ju(24, nu);
+  Eigen::MatrixXd Sx_diff(26, 26), Su_diff(26, 8), Sx(26, 26), Su(26, 8);
+  double dt = model->ref_dt;
+
+  for (auto &m_ptr :
+       {&Jx_diff, &Ju_diff, &Jx, &Ju, &Sx_diff, &Su_diff, &Sx, &Su})
+  {
+    m_ptr->setZero();
+  }
+
+  model->calcDiffV(Jx, Ju, x0, u0);
+  model->stepDiff(Sx, Su, x0, u0, dt);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
+        model->calcV(y, x, u0);
+      },
+      x0, 24, Jx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+      {
+        model->calcV(y, x0, u);
+      },
+      u0, 24, Ju_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &x, Eigen::Ref<Eigen::VectorXd> y)
+      {
+        model->step(y, x, u0, dt);
+      },
+      x0, 26, Sx_diff);
+
+  finite_diff_jac(
+      [&](const Eigen::VectorXd &u, Eigen::Ref<Eigen::VectorXd> y)
+      {
+        model->step(y, x0, u, dt);
+      },
+      u0, 26, Su_diff);
+
+  // std::cout << "Jx: \n"
+  //           << Jx << std::endl;
+  // std::cout << "Jx_diff: \n"
+  //           << Jx_diff << std::endl;
+
+  // std::cout << "-----------\n"
+  //           << "report Jx " << std::endl;
+  // approx_equal_report(Jx, Jx_diff);
+  // std::cout << "report Ju " << std::endl;
+  // approx_equal_report(Ju, Ju_diff);
+
+  std::cout << "Sx: \n"
+            << Sx << std::endl;
+  std::cout << "Sx_diff: \n"
+            << Sx_diff << std::endl;
+
+  std::cout << "report Sx " << std::endl;
+  approx_equal_report(Sx, Sx_diff);
+  std::cout << "report Su " << std::endl;
+  approx_equal_report(Su, Su_diff);
+
+  // BOOST_TEST((Jx - Jx_diff).norm() < 1e-4);
+  // BOOST_TEST((Ju - Ju_diff).norm() < 1e-4);
+
+  BOOST_TEST((Sx - Sx_diff).norm() <= 10 * 1e-4);
+  BOOST_TEST((Su - Su_diff).norm() <= 10 * 1e-4);
 }
