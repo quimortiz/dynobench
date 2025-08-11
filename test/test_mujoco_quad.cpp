@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(t_compare_mujoco_and_quad3d) {
 
     // ==== Load MujocoQuad ====
     MujocoQuad_params mj_params;
-    mj_params.read_from_yaml((std::string(base_path) + "models/mujocoquad.yaml").c_str());
+    mj_params.read_from_yaml((std::string(base_path) + "models/mujocoquad_empty.yaml").c_str());
     Eigen::VectorXd p_lb(3); p_lb << -1000, -1000, -1000;
     Eigen::VectorXd p_ub(3); p_ub << 1000, 1000, 1000;
     auto model_mj = mk<Model_MujocoQuad>(mj_params, p_lb, p_ub);
