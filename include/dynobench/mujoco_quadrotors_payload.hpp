@@ -308,10 +308,6 @@ struct Model_MujocoQuadsPayload : Model_robot {
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;
 
-  virtual void calcVtmp(Eigen::Ref<Eigen::VectorXd> f,
-                     const Eigen::Ref<const Eigen::VectorXd> &x,
-                     const Eigen::Ref<const Eigen::VectorXd> &u);
-
   virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                          Eigen::Ref<Eigen::MatrixXd> Jv_u,
                          const Eigen::Ref<const Eigen::VectorXd> &x,
@@ -321,11 +317,6 @@ struct Model_MujocoQuadsPayload : Model_robot {
                     const Eigen::Ref<const Eigen::VectorXd> &x,
                     const Eigen::Ref<const Eigen::VectorXd> &u,
                     double dt) override;
-
-  virtual void steptmp(Eigen::Ref<Eigen::VectorXd> xnext,
-                    const Eigen::Ref<const Eigen::VectorXd> &x,
-                    const Eigen::Ref<const Eigen::VectorXd> &u,
-                    double dt);
 
   virtual void stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
                         Eigen::Ref<Eigen::MatrixXd> Fu,

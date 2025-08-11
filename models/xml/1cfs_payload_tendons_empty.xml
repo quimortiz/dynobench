@@ -13,7 +13,9 @@
       <rgba haze="0.15 0.25 0.35 1" />
   </visual>
 
-  <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0"/>
+  <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0">
+  <flag contact="disable"/>
+  </option>
 
   <compiler inertiafromgeom="false" meshdir="cf2/assets" autolimits="false"/>
 
@@ -157,18 +159,12 @@
 
 
     <tendon>
-      <spatial name="tendon1"  limited="true" range="0.1 0.5"  damping="0.01"  width="0.001" rgba="0.1 0.8 0.1 1">
+      <spatial name="tendon1"  limited="true" range="0.499999 0.5"  damping="0.0"  width="0.002" rgba="0.1 0.8 0.1 1">
           <site site="payload_s" />
           <site site="uav1_s" />
       </spatial>
   </tendon>
 
-  <equality>
-    <connect name="rod1"
-            site1="uav1_s" site2="payload_s"
-            active='false'
-            />
-  </equality>
 
   <sensor>
     <accelerometer name="payload_sensor" site="payload_s"/>
