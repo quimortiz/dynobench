@@ -12,4 +12,3 @@ robots:
   quadsNum: 2
   goal: [1.0, 1.0,  0., 0., -1.57]
   type: unicyclesWithRods_2_no_right
-

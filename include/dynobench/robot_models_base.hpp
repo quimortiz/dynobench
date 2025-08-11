@@ -704,6 +704,9 @@ struct Model_robot {
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts);
 
+
+  virtual void init_mujoco_viewer() {};
+  virtual void render(int width, int height) {} // default = nothing
   virtual ~Model_robot() = default;
 };
 

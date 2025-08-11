@@ -1,0 +1,16 @@
+#use default parameters
+distance_weights: [1., .2, .1, .05]
+max_vel: 4
+max_angular_vel: 8
+max_acc: 25
+max_f: 1.4
+max_angular_acc: 20 # used for bounds on time
+arm_length: 0.046
+t2t: 0.006 # thrust-to-torque ratio
+mass: 0.0356
+size: 0.1
+model_path: "/home/khaledwahba94/imrc/db-CBS/dynoplan/dynobench/models/xml/dyno_crazyflie_empty.xml"
+dt: .01
+J_v: [16.571710e-6, 16.655602e-6, 29.261652e-6] # inertia matrix
+dynamics: "mujocoquad"
+visualize: true

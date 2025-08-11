@@ -21,8 +21,10 @@ from matplotlib.backends.backend_pdf import PdfPages
 np.set_printoptions(linewidth=np.inf)
 np.set_printoptions(suppress=True)
 
+
 def wrap_to_pi(angle):
     return (angle + np.pi) % (2 * np.pi) - np.pi
+
 
 class Controller:
     def __init__(self, num_robots, gains):
@@ -30,7 +32,7 @@ class Controller:
         self.num_robots = num_robots
 
     def control(self, refstate, state, actions_d):
-        #compute error
+        # compute error
         l = 0.5
         # controls for 1st robot
         px = state[0]
@@ -43,40 +45,41 @@ class Controller:
         v_d, w_d = actions_d[0:2]
         kx, ky, kth = self.gains
 
-        x_e = (px_d-px)*np.cos(alpha) + (py_d - py)*np.sin(alpha)
-        y_e = -(px_d - px)*np.sin(alpha) + (py_d - py)*np.cos(alpha)
+        x_e = (px_d - px) * np.cos(alpha) + (py_d - py) * np.sin(alpha)
+        y_e = -(px_d - px) * np.sin(alpha) + (py_d - py) * np.cos(alpha)
         alpha_e = wrap_to_pi(alpha_d - alpha)
-        v = v_d*np.cos(alpha_e) + kx * x_e
-        w = w_d + v_d*(ky*y_e + kth*np.sin(alpha_e)) + kth*alpha_e
+        v = v_d * np.cos(alpha_e) + kx * x_e
+        w = w_d + v_d * (ky * y_e + kth * np.sin(alpha_e)) + kth * alpha_e
         num_robots = self.num_robots
-        control = [v,w]
+        control = [v, w]
         # control for 1,...n robots
-        for i in range(num_robots-1):
-            
-            theta = state[2+num_robots+i]
-            theta_d = refstate[2+num_robots+i]
-            
-            alpha = state[2+i+1]
-            alpha_d = refstate[2+i+1]
+        for i in range(num_robots - 1):
 
-            v_d, w_d = actions_d[2*(i+1) : 2*(i+1) + 2]
-    
-            px += l*np.cos(theta)
-            py += l*np.sin(theta)
+            theta = state[2 + num_robots + i]
+            theta_d = refstate[2 + num_robots + i]
 
-            px_d += l*np.cos(theta_d)
-            py_d += l*np.sin(theta_d)
+            alpha = state[2 + i + 1]
+            alpha_d = refstate[2 + i + 1]
 
-            x_e = (px_d-px)*np.cos(alpha) + (py_d - py)*np.sin(alpha)
-            y_e = -(px_d - px)*np.sin(alpha) + (py_d - py)*np.cos(alpha)
+            v_d, w_d = actions_d[2 * (i + 1) : 2 * (i + 1) + 2]
+
+            px += l * np.cos(theta)
+            py += l * np.sin(theta)
+
+            px_d += l * np.cos(theta_d)
+            py_d += l * np.sin(theta_d)
+
+            x_e = (px_d - px) * np.cos(alpha) + (py_d - py) * np.sin(alpha)
+            y_e = -(px_d - px) * np.sin(alpha) + (py_d - py) * np.cos(alpha)
             alpha_e = wrap_to_pi(alpha_d - alpha)
 
-            v = v_d*np.cos(alpha_e) + kx * x_e
-            w = w_d + v_d*(ky*y_e + kth*np.sin(alpha_e)) + kth*alpha_e
+            v = v_d * np.cos(alpha_e) + kx * x_e
+            w = w_d + v_d * (ky * y_e + kth * np.sin(alpha_e)) + kth * alpha_e
 
-            control.extend([v,w])
+            control.extend([v, w])
 
         return np.array(control)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -129,16 +132,21 @@ def main():
         T = (len(refstate) - 1) * dt
 
         initstate = np.array(refstate[0])
-        
-        gains = [5,2,2] # kx, ky, kth
+
+        gains = [5, 2, 2]  # kx, ky, kth
 
         refArray = np.asarray(refstate, dtype=float)
 
         with open(args.model_path, "r") as f:
             model_params = yaml.load(f, Loader=yaml.CSafeLoader)
-        
-        unicyclesWithRods = pydynobench.robot_factory(args.model_path, [-1000, -1000], [1000, 1000])
-        unicyclesController = Controller(num_robots, gains,)
+
+        unicyclesWithRods = pydynobench.robot_factory(
+            args.model_path, [-1000, -1000], [1000, 1000]
+        )
+        unicyclesController = Controller(
+            num_robots,
+            gains,
+        )
 
         states = np.zeros((refArray.shape))
         states[0] = initstate
@@ -150,7 +158,7 @@ def main():
         max_vel = model_path["max_vel"]
         min_vel = model_path["min_vel"]
         max_angular_vel = model_path["max_angular_vel"]
-        min_angular_vel = model_path["min_angular_vel"] 
+        min_angular_vel = model_path["min_angular_vel"]
         u_min = []
         u_max = []
         for j in range(num_robots):

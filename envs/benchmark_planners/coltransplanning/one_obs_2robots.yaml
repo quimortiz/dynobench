@@ -1,7 +1,7 @@
 environment:
   max: [1.0, 0.1, 1.0]
   min: [-1.0, -0.1, 0.0]
-  obstacles: 
+  obstacles:
   - center: [0.0, 0.0, 0.1]
     size: [0.1, 0.2, 0.05]
     type: box
