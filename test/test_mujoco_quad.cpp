@@ -88,7 +88,7 @@ BOOST_AUTO_TEST_CASE(t_compare_mujoco_and_quad3d) {
     std::cout << "\n" << std::endl;
     std::cout << "\n" << std::endl;
     std::cout << "\n" << std::endl;
-    
+
     std::cout << "Fx_mj: \n" << Jx_mj << std::endl;
     std::cout << "Fx_qd3: \n" << Jx_q3d << std::endl;
     approx_equal_report(Fx_mj, Fx_q3d);

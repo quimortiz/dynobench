@@ -137,11 +137,11 @@ struct Model_MujocoQuad : Model_robot {
 
   // Eigen::VectorXd ff; // TODO: remember to allocate memory in constructor!
   MujocoQuad_params params;
-  
+
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
     x.segment<6>(7).setZero();
   }
-  
+
   double arm;
   double g = 9.81;
 
