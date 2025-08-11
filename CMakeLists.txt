@@ -69,6 +69,7 @@ add_library(
   ./src/unicyclesWithRods_5_dynamics.cpp
   ./src/unicyclesWithRods_6_dynamics.cpp
   ./src/mujoco_quadrotors_payload.cpp
+  ./src/mujoco_quadrotor.cpp
   ${SOURCE_n56})
 
 add_library(dynobench::dynobench ALIAS dynobench)
