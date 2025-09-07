@@ -89,6 +89,39 @@ struct MultiRobotTrajectory {
     }
   }
 
+  // db-lacam has [0,0] actions when the robot reaches its goal
+  void trimTrajectories()
+  {
+    double tol = 1e-9;
+    for (auto &traj : trajectories)
+    {
+      // Find the last nonzero action
+      int last_nonzero = -1;
+      for (int i = traj.actions.size() - 1; i >= 0; --i)
+      {
+        if (traj.actions[i].cwiseAbs().maxCoeff() > tol)
+        {
+          last_nonzero = i;
+          break;
+        }
+      }
+
+      if (last_nonzero >= 0)
+      {
+        // Keep actions up to last_nonzero
+        traj.actions.resize(last_nonzero + 1);
+        // States must be one longer than actions
+        traj.states.resize(last_nonzero + 2);
+      }
+      else
+      {
+        // all actions are zero -> keep just the first state
+        traj.actions.clear();
+        traj.states.resize(1);
+      }
+    }
+  }
+
   dynobench::Trajectory transform_to_joint_trajectory() {
 
     dynobench::Trajectory joint_trajectory;
