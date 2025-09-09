@@ -1,0 +1,20 @@
+#use default parameters
+name: mujocoquadspayload_switch3
+num_robots: 3
+max_vel: 4
+max_angular_vel: 8
+max_acc: 25
+max_f: 1.4
+arm_length: 0.046
+t2t: 0.006 # thrust-to-torque ratio
+m: [0.0356]
+col_size_robot: 0.1
+col_size_payload: .01
+distance_weights_payload_pose: [1., 0.0]
+distance_weights_payload_vel: [0.1, 0.0]
+distance_weights_quads_pose: [1., 0.05]
+distance_weights_quads_vel: [.1, 0.05]
+model_path: "/home/khaledwahba94/imrc/db-CBS/dynoplan/dynobench/models/xml/3cfs_payload_tendons_switch.xml"
+dt: .01
+dynamics: "mujocoquadspayload"
+visualize: true

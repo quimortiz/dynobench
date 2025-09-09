@@ -12,6 +12,7 @@ namespace dynobench {
 void MujocoQuadsPayload_params::read_from_yaml(YAML::Node &node) {
 
   set_from_yaml(node, VAR_WITH_NAME(num_robots));
+  set_from_yaml(node, VAR_WITH_NAME(name));
   set_from_yaml(node, VAR_WITH_NAME(col_size_robot));
   set_from_yaml(node, VAR_WITH_NAME(col_size_payload));
 
@@ -76,7 +77,11 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   if (!tmp) {
       throw std::runtime_error("mj_makeData (tmp) failed");
   }
-
+  if (params.name == "") {
+    name = "mujocoquadspayload";
+  } else {
+    name = params.name;
+  }
   std::cout << "Robot name " << name << std::endl;
   std::cout << "Parameters" << std::endl;
   this->params.write(std::cout);
@@ -86,7 +91,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   }
 
   u_0.setOnes(4 * params.num_robots);
-
+  // u_ref.setConstant(0.95);
   // @QUIM: fix this values
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
@@ -104,7 +109,6 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
       params.t2t, -params.t2t, params.t2t;
   B0 *= u_nominal;
   B0inv = B0.inverse();
-  name = "mujocoquadspayload";
   goal_weight.resize(nx);
   goal_weight.setOnes();
   goal_weight.segment(3, 4).setConstant(0.0); // payload quat
@@ -163,9 +167,10 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   u_weight.setConstant(.7);
 
   x_weightb = Vxd::Zero(nx);
-  x_weightb.tail(2*m->nv) = 350*Vxd::Ones(nx);
-  // x_weightb.segment(7*(params.num_robots+1), 3) = 300*Eigen::VectorXd::Ones(3); // payload vel
-  // x_weightb.segment(7*(params.num_robots+1) + 3 ,3) = Eigen::VectorXd::Zero(3); // ang vel payload
+  x_weightb.tail(m->nq+m->nv) = 350*Vxd::Ones(nx);
+  // x_weightb.tail(m->nv) = 300*Vxd::Ones(nx);
+  x_weightb.segment(3 ,4) = Eigen::VectorXd::Zero(4); // paylaod quat 
+  x_weightb.segment(7*(params.num_robots+1) + 3 ,3) = Eigen::VectorXd::Zero(3); // ang vel payload
 
   // COLLISIONS
   collision_geometries.clear();
@@ -195,13 +200,12 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
 
   state_weights = Vxd::Zero(nx);
   state_ref = Vxd::Zero(nx);
-  state_weights.setOnes();
-  state_weights *= 0.01;
-  for (size_t i = 0; i < params.num_robots; ++i) {
-    state_weights.segment(7 + 7*i, 3).setZero();
-    state_weights.segment(7 + 7*i + 3, 4).setConstant(0.001);
-    state_ref(7 + 7*i + 6) = 1.;
-  }
+  // state_weights.setOnes();
+  // state_weights *= 0.01;
+  // for (size_t i = 0; i < params.num_robots; ++i) {
+  //   state_weights.segment(7 + 7*i + 3, 4).setConstant(0.0);
+  //   state_ref(7 + 7*i + 6) = 1.;
+  // }
   k_acc =0.005;
 
 

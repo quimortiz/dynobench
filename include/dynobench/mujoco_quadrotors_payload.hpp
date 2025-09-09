@@ -86,7 +86,7 @@ struct MujocoQuadsPayload_params {
 
   MujocoQuadsPayload_params(const char *file) { read_from_yaml(file); }
   MujocoQuadsPayload_params() = default;
-
+  std::string name = "";
   int num_robots; //
 
   double col_size_robot = .1;    // radius
@@ -122,6 +122,7 @@ struct MujocoQuadsPayload_params {
     const std::string af = ": ";
 
     out << be << STR(filename, af) << std::endl;
+    out << be << STR(name, af) << std::endl;
     out << be << STR(num_robots, af) << std::endl;
     out << be << STR(model_path, af) << std::endl;
 

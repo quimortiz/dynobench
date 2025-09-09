@@ -91,40 +91,22 @@
     <light pos="0 0 1.5" dir="0 0 -1" directional="true" />
     <geom name="obs1"
             type="box"
-            pos="0.0 0.5 0.0"
+            pos="0.0 0.35 0.0"
             size="0.15 0.15 1.5"
             rgba="0.8 0.2 0.2 1"
             contype="0" conaffinity="0"
             material="polished_plastic"
     />
+
+    <!-- obstacle #2: center [0.0, -0.3, 0.0], full size [0.3,0.3,3.0] -->
     <geom name="obs2"
           type="box"
-          pos="0.0 -0.5 0.0"
+          pos="0.0 -0.35 0.0"
           size="0.15 0.15 1.5"
           rgba="0.8 0.2 0.2 1"
           contype="0" conaffinity="0"
           material="polished_plastic"
     />
-
-        <geom name="obs3"
-            type="box"
-          pos="0.0 0.0 1.5"
-            size="0.15 0.65 0.15"
-            rgba="0.8 0.2 0.2 1"
-            contype="0" conaffinity="0"
-            material="polished_plastic"
-    />
-
-    <geom name="obs4"
-          type="box"
-          pos="0.0 0.0 0.2"
-            size="0.15 0.5 0.4"
-          rgba="0.8 0.2 0.2 1"
-          contype="0" conaffinity="0"
-          material="polished_plastic"
-    />
-
-
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <joint type="free" damping="0"/>
       <geom size="0.01" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
