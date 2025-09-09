@@ -119,6 +119,7 @@ struct MultiRobotTrajectory {
         traj.actions.clear();
         traj.states.resize(1);
       }
+      traj.cost = static_cast<double>(traj.actions.size());
     }
   }
 
