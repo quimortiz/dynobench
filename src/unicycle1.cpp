@@ -20,6 +20,7 @@ void Unicycle1_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(shape));
   set_from_yaml(node, VAR_WITH_NAME(dt));
   set_from_yaml(node, VAR_WITH_NAME(size));
+  set_from_yaml(node, VAR_WITH_NAME(radius));
   set_from_yaml(node, VAR_WITH_NAME(distance_weights));
 }
 
