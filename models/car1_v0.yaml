@@ -1,4 +1,4 @@
-distance_weights: [1, 0.3, 0.25]
+distance_weights: [1, .5, .25] # [1, 0.3, 0.25]
 num_trailers: 1
 dt: 0.1
 l: 0.25
@@ -7,8 +7,8 @@ min_vel: -0.1
 max_steering_abs: 1.047198 # PI / 3
 shape: box
 shape_trailer: box
-size: [.5, .25]
-size_trailer: [.3, .25]
-hitch_lengths: [.5]
+size: [0.2, 0.1] # [.5, .25]
+size_trailer: [.1, .1 ] # [.3, .25]
+hitch_lengths: [.2] # [.5]
 max_angular_vel: 10
 dynamics: car_with_trailers
