@@ -1,4 +1,4 @@
-<mujoco model="2cfs_payload">
+<mujoco model="dyno_crazyflie">
 
   <asset>
     <texture name="grid" type="2d" builtin="checker" rgb1=".1 .2 .3"
@@ -14,8 +14,8 @@
   </visual>
 
   <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0">
-  <flag contact="disable"/>
-  </option>
+  <flag contact="enable"/>
+</option>
 
   <compiler inertiafromgeom="false" meshdir="cf2/assets" autolimits="false"/>
 
@@ -87,17 +87,50 @@
   </asset>
 
   <worldbody>
-    <geom name="floor" size="0 0 0.01" type="plane" material="groundplane" />
+    <geom name="obs1"
+            type="box"
+            pos="0.0 0.5 0.0"
+            size="0.15 0.15 1.65"
+            rgba="0.8 0.2 0.2 0.5"
+            contype="0" conaffinity="0"
+            material="polished_plastic"
+    />
+    <geom name="obs2"
+          type="box"
+          pos="0.0 -0.5 0.0"
+          size="0.15 0.15 1.65"
+          rgba="0.8 0.2 0.2 0.5"
+          contype="0" conaffinity="0"
+          material="polished_plastic"
+    />
+
+        <geom name="obs3"
+            type="box"
+          pos="0.0 0.0 1.5"
+            size="0.15 0.65 0.15"
+            rgba="0.8 0.2 0.2 1"
+            contype="0" conaffinity="0"
+            material="polished_plastic"
+    />
+
+    <geom name="obs4"
+          type="box"
+          pos="0.0 0.0 0.2"
+            size="0.15 0.65 0.7"
+          rgba="0.8 0.2 0.2 1.0"
+          contype="0" conaffinity="0"
+          material="polished_plastic"
+    />
+    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" />
     <light pos="0 0 1.5" dir="0 0 -1" directional="true" />
-
-    <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
-      <joint type="free" damping="0"/>
-      <geom size="0.01" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
-      <inertial pos="0 0 0" mass="0.01" diaginertia="1e-8 1e-8 1e-8" />
-      <site name="payload_s" pos="0 0 0" />
-    </body>
-
     <body name="cf21" pos="0.0 0.0 0.0" childclass="cf2" quat="1 0 0 0">
+       <!-- <geom name="sphere1"
+          type="sphere"
+          pos="0.0 0.0 0.0"
+          size="0.1"
+          rgba="0.8 0.2 0.2 0.1"
+          contype="1" conaffinity="1"
+    /> -->
       <site name="uav1_s" pos="0 0 0" />
       <joint type="free" damping="0"/>
       <inertial pos="0 0 0" mass="0.0356" diaginertia="16.571710e-6 16.655602e-6 29.261652e-6"/>
@@ -146,7 +179,6 @@
       <site name="motor13" pos=" -0.03253  0.03253 0" size="0.000005"/>
       <site name="motor14" pos=" 0.03253 0.03253 0" size="0.000005"/>
     </body>
-
   </worldbody>
 
   <actuator>
@@ -155,19 +187,4 @@
     <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
     <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
   </actuator>
-
-
-
-    <tendon>
-      <spatial name="tendon1"  limited="true" range="0.0 0.5"  damping="0.0"  width="0.0015" rgba="0.1 0.8 0.1 1">
-          <site site="payload_s" />
-          <site site="uav1_s" />
-      </spatial>
-  </tendon>
-
-
-  <sensor>
-    <accelerometer name="payload_sensor" site="payload_s"/>
-  </sensor>
-
 </mujoco>
