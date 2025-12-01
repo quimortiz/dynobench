@@ -8,14 +8,11 @@ environment:
   - center: [0.0, 0.25, 0.5]
     size: [0.2, 0.2, 1.0]  
     type: box
-  - center: [0.0, 0.0, 0.25]
-    size: [0.2, 0.7, 0.5]  
-    type: box
-  - center: [0.0, 0.0, 0.9]
-    size: [0.2, 0.7, 0.2]  
+  - center: [0.0, 0.0, 0.3]
+    size: [0.2, 0.7, 0.6]  
     type: box
 
-name: mujocoquadspayload_window1
+name: mujocoquadspayload_obs1
 joint_robot:
 - start: [-1.0, 0.0, 0.25, 0.0, 0.0, 0.0, 1.0, # payload_pose
           -1.0, 0.0, 0.75, 0.0, 0.0, 0.0, 1.0, # quad1_pose
@@ -27,8 +24,8 @@ joint_robot:
          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, #payload_vel
          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, #quad1_vel
         ]
-  type: mujocoquadspayload_window1
+  type: mujocoquadspayload_obs1
 robots:
 - goal:  [1.0,  0.0, 0.75, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   start: [-1.0, 0.0, 0.75, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  type: mujocoquad_window
+  type: mujocoquad_obs

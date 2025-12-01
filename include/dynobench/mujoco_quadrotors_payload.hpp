@@ -164,7 +164,7 @@ struct Model_MujocoQuadsPayload : Model_robot {
   Eigen::VectorXd state_ref;
 
   std::vector<std::unique_ptr<fcl::CollisionObjectd>>
-      collision_objects; // QUIM : TODO move this to the base class!
+      collision_objects;
 
   virtual ~Model_MujocoQuadsPayload() = default;
 

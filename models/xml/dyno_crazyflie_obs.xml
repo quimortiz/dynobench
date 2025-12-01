@@ -14,7 +14,7 @@
   </visual>
 
   <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0">
-  <flag contact="enable"/>
+  <flag contact="disable"/>
 </option>
 
   <compiler inertiafromgeom="false" meshdir="cf2/assets" autolimits="false"/>
@@ -87,44 +87,19 @@
   </asset>
 
   <worldbody>
-    <geom name="obs1"
-        type="box"
-        pos="0.0 -0.25 0.5"
-        size="0.1 0.1 0.5"
-        rgba="0.8 0.2 0.2 0.8"
-        contype="0" conaffinity="0"
-        material="polished_plastic"
-      />
+  <geom name="obs1"
+            type="box"
+            pos="0.0 0.0 0.5"
+            size="0.075 0.075 0.5"
+            rgba="0.8 0.2 0.2 0.8"
+            contype="0" conaffinity="0"
+            material="polished_plastic"
+    />
 
-      <geom name="obs2"
-        type="box"
-        pos="0.0 0.25 0.5"
-        size="0.1 0.1 0.5"
-        rgba="0.8 0.2 0.2 0.8"
-        contype="0" conaffinity="0"
-        material="polished_plastic"
-      />
-
-      <geom name="obs3"
-        type="box"
-        pos="0.0 0.0 0.25"
-        size="0.1 0.35 0.25"
-        rgba="0.8 0.2 0.2 0.8"
-        contype="0" conaffinity="0"
-        material="polished_plastic"
-      />
-      <geom name="obs4"
-        type="box"
-        pos="0.0 0.0 0.9"
-        size="0.1 0.35 0.1"
-        rgba="0.8 0.2 0.2 0.8"
-        contype="0" conaffinity="0"
-        material="polished_plastic"
-      /> 
-
-    <geom name="floor" size="0 0 0.05" type="plane" material="groundplane" />
+    <geom name="env_limit" size="2.0 1.0 0.5" type="box" material="groundplane" contype="0" conaffinity="0" rgba="0.1 0.0 0.0 0.1" pos="0 0 0.5"/>
+    <geom name="floor" size="2.0 1.0 0.01" type="plane" material="groundplane" />
     <light pos="0 0 1.5" dir="0 0 -1" directional="true" />
-    <body name="cf21" pos="0.0 0.0 0.0" childclass="cf2" quat="1 0 0 0">
+    <body name="cf21" pos="0 0 0" childclass="cf2" quat="1 0 0 0">
        <!-- <geom name="sphere1"
           type="sphere"
           pos="0.0 0.0 0.0"
@@ -134,7 +109,7 @@
     /> -->
       <site name="uav1_s" pos="0 0 0" />
       <joint type="free" damping="0"/>
-      <inertial pos="0 0 0" mass="0.0356" diaginertia="16.571710e-6 16.655602e-6 29.261652e-6"/>
+      <inertial pos="0 0 0" mass="0.034" diaginertia="16.571710e-6 16.655602e-6 29.261652e-6"/>
       <geom mesh="cf2_0" material="propeller_plastic" class="visual"/>
       <geom mesh="cf2_1" material="medium_gloss_plastic" class="visual"/>
       <geom mesh="cf2_2" material="polished_gold" class="visual"/>
