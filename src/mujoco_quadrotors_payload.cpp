@@ -92,7 +92,6 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
 
   u_0.setOnes(4 * params.num_robots);
   // u_ref.setConstant(0.95);
-  // @QUIM: fix this values
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
   nx_col = m->nv;
