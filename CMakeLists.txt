@@ -12,10 +12,11 @@ enable_language(CXX)
 # find_package(pinocchio REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options serialization
                                        stacktrace_basic)
+
 find_package(fcl REQUIRED)
 find_package(yaml-cpp REQUIRED)
 find_package(Eigen3 REQUIRED)
-# find_package(pybind11 REQUIRED)
+# find_package(pybind11 REQUIRED) 
 
 add_subdirectory(deps/json)
 
@@ -69,7 +70,6 @@ add_library(
   ${SOURCE_n56})
 
 add_library(dynobench::dynobench ALIAS dynobench)
-
 set_property(TARGET dynobench PROPERTY POSITION_INDEPENDENT_CODE ON)
 
 target_include_directories(
@@ -77,57 +77,18 @@ target_include_directories(
   PUBLIC $<INSTALL_INTERFACE:include>
          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
          ${EIGEN3_INCLUDE_DIR}
-  PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/deps/json/include>
+  PRIVATE
+         ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
 
 target_compile_options(dynobench PRIVATE -Wall -Wextra)
 
 target_link_libraries(
   dynobench
   PUBLIC fcl yaml-cpp Boost::program_options Boost::serialization
-         Boost::stacktrace_basic ${CMAKE_DL_LIBS}
-  PUBLIC nlohmann_json::nlohmann_json)
+         Boost::stacktrace_basic nlohmann_json::nlohmann_json ${CMAKE_DL_LIBS})
 
-# Installation instructions
-
-#
-# include(GNUInstallDirs) set(INSTALL_CONFIGDIR
-# ${CMAKE_INSTALL_LIBDIR}/cmake/dynobench)
-#
-# install( TARGETS dynobench EXPORT dynobench-targets LIBRARY DESTINATION
-# ${CMAKE_INSTALL_LIBDIR} ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-#
-# install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-#
-# # Export the targets to a script install( EXPORT dynobench-targets FILE
-# dynobenchTargets.cmake NAMESPACE dynobench:: DESTINATION ${INSTALL_CONFIGDIR})
-#
-# # Create a ConfigVersion.cmake file include(CMakePackageConfigHelpers)
-# write_basic_package_version_file(
-# ${CMAKE_CURRENT_BINARY_DIR}/dynobenchConfigVersion.cmake VERSION
-# ${PROJECT_VERSION} COMPATIBILITY AnyNewerVersion)
-#
-# configure_package_config_file(
-# ${CMAKE_CURRENT_LIST_DIR}/cmake/dynobenchConfig.cmake.in
-# ${CMAKE_CURRENT_BINARY_DIR}/dynobenchConfig.cmake INSTALL_DESTINATION
-# ${INSTALL_CONFIGDIR})
-#
-# # Install the config, configversion and custom find modules install(FILES
-# ${CMAKE_CURRENT_BINARY_DIR}/dynobenchConfig.cmake
-# ${CMAKE_CURRENT_BINARY_DIR}/dynobenchConfigVersion.cmake DESTINATION
-# ${INSTALL_CONFIGDIR})
-#
-# #
-# ##############################################################################
-# # Exporting from the build tree #
-# configure_file(${CMAKE_CURRENT_LIST_DIR}/cmake/FindRapidJSON.cmake #
-# ${CMAKE_CURRENT_BINARY_DIR}/FindRapidJSON.cmake COPYONLY)
-#
-# export( EXPORT dynobench-targets FILE
-# ${CMAKE_CURRENT_BINARY_DIR}/dynobenchTargets.cmake NAMESPACE dynobench::)
-#
-# # Register package in the User Package Registry export(PACKAGE dynobench)
-
-# Add test
 
 option(BUILD_DYNOBENCH_TESTS "build test" OFF)
 option(BUILD_DYNOBENCH_PYBINDINGS "build bindings" OFF)
