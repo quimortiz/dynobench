@@ -231,11 +231,15 @@ struct Model_MujocoQuadsPayload : Model_robot {
   Eigen::Matrix4d B0;
   Eigen::Matrix4d B0inv;
 
+  // --- Cables / tendons data for complementarity ---
+  int num_cables_ = 0;           // number of MuJoCo tendons used as cables
+  Eigen::VectorXd tendon_rest_length_;  // rest (taut) length of each cable
+
   const bool adapt_vel = true;
   bool check_inner = true;
   mjModel* m;
   mjData* d;
-  mjData* tmp;
+  mutable mjData* tmp;
   bool viewer_ready_ = false;
   mjvScene   scn_;
   mjrContext con_;
@@ -372,6 +376,15 @@ struct Model_MujocoQuadsPayload : Model_robot {
       mjr_render({0,0,w,h}, &scn_, &con_);
     }
   }
+
+
+  void get_cable_slack_and_tension(const Eigen::Ref<const Eigen::VectorXd> &x,
+                                   const Eigen::Ref<const Eigen::VectorXd> &u,
+                                   int cable_id,
+                                   double &slack,
+                                   double &tension) const;
+
+  int num_cables() const { return num_cables_; }
 };
 
 } // namespace dynobench

@@ -1,8 +1,21 @@
 environment:
-  max: [2, 1.0, 1.0]
-  min: [-2, -1.0, 0.0]
-  obstacles: []
-name: mujocoquadspayload_empty2
+  max: [2, 0.5, 1.0]
+  min: [-2, -0.5, 0.0]
+  obstacles: 
+  - center: [0.0, -0.35, 0.5]
+    size: [0.1, 0.3, 1.0]
+    type: box
+  - center: [0.0, 0.35, 0.5]
+    size: [0.1, 0.3, 1.0]
+    type: box
+  - center: [0.0, 0.0, 1.0]
+    size: [0.1, 1.0, 0.02]
+    type: box
+  - center: [0.0, 0.0, 0.2]
+    size: [0.1, 1.0, 0.4]
+    type: box
+
+name: mujocoquadspayload_obs2
 joint_robot:
 - l: [0.5, 0.5]
   quadsNum: 2
@@ -20,11 +33,11 @@ joint_robot:
          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, #quad1_vel
          0.0, 0.0, 0.0, 0.0, 0.0, 0.0, #quad1_vel
         ]
-  type: mujocoquadspayload_empty2
+  type: mujocoquadspayload_obs2
 robots:
 - goal:  [1.0,  0.25, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   start: [-1.0, 0.25, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   type: mujocoquad_empty
 - goal:  [1.0,  -0.25, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   start: [-1.0, -0.25, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-  type: mujocoquad_empty
+  type: mujocoquad_obs

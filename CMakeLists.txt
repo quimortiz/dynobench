@@ -7,7 +7,7 @@ project(
   VERSION 0.1.0
   LANGUAGES CXX)
 
-set(MJ_ROOT "$ENV{HOME}/imrc/mujoco-3.3.3")
+set(MJ_ROOT "$ENV{HOME}/pc-dbCBS/deps/mujoco-3.3.6")
 
 # find_package(pinocchio REQUIRED)
 find_package(Boost REQUIRED COMPONENTS program_options serialization

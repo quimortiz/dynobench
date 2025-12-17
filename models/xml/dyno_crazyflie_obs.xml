@@ -158,9 +158,9 @@
   </worldbody>
 
   <actuator>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
+    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
+    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
+    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
+    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
   </actuator>
 </mujoco>

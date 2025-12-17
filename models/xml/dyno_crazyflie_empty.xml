@@ -14,7 +14,7 @@
   </visual>
 
   <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0">
-  <flag contact="enable"/>
+  <flag contact="disable"/>
 </option>
 
   <compiler inertiafromgeom="false" meshdir="cf2/assets" autolimits="false"/>
@@ -99,7 +99,7 @@
     /> -->
       <site name="uav1_s" pos="0 0 0" />
       <joint type="free" damping="0"/>
-      <inertial pos="0 0 0" mass="0.0356" diaginertia="16.571710e-6 16.655602e-6 29.261652e-6"/>
+      <inertial pos="0 0 0" mass="0.034" diaginertia="16.571710e-6 16.655602e-6 29.261652e-6"/>
       <geom mesh="cf2_0" material="propeller_plastic" class="visual"/>
       <geom mesh="cf2_1" material="medium_gloss_plastic" class="visual"/>
       <geom mesh="cf2_2" material="polished_gold" class="visual"/>
@@ -148,9 +148,9 @@
   </worldbody>
 
   <actuator>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
   </actuator>
 </mujoco>

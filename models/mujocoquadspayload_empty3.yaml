@@ -13,7 +13,7 @@ distance_weights_payload_pose: [1., 0.0]
 distance_weights_payload_vel: [0.1, 0.0]
 distance_weights_quads_pose: [1., 0.05]
 distance_weights_quads_vel: [.1, 0.05]
-model_path: "/home/khaledwahba94/imrc/db-CBS/dynoplan/dynobench/models/xml/3cfs_payload_tendons_empty.xml"
+model_path: "/home/khaledwahba94/pc-dbCBS/deps/dynoplan/dynobench/models/xml/3cfs_payload_tendons_empty.xml"
 dt: .01
 dynamics: "mujocoquadspayload"
 visualize: true

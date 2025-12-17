@@ -93,14 +93,14 @@
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <joint type="free" damping="0"/>
       <geom size="0.01" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
-      <inertial pos="0 0 0" mass="0.01" diaginertia="1e-8 1e-8 1e-8" />
+      <inertial pos="0 0 0" mass="0.005" diaginertia="1e-8 1e-8 1e-8" />
       <site name="payload_s" pos="0 0 0" />
     </body>
 
     <body name="cf21" pos="0.0 0.0 0.0" childclass="cf2" quat="1 0 0 0">
       <site name="uav1_s" pos="0 0 0" />
       <joint type="free" damping="0"/>
-      <inertial pos="0 0 0" mass="0.0356" diaginertia="16.571710e-6 16.655602e-6 29.261652e-6"/>
+      <inertial pos="0 0 0" mass="0.034" diaginertia="16.571710e-6 16.655602e-6 29.261652e-6"/>
       <geom mesh="cf2_0" material="propeller_plastic" class="visual"/>
       <geom mesh="cf2_1" material="medium_gloss_plastic" class="visual"/>
       <geom mesh="cf2_2" material="polished_gold" class="visual"/>
@@ -150,10 +150,10 @@
   </worldbody>
 
   <actuator>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
+    <motor class="cf2" ctrlrange="0.0 0.3" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
   </actuator>
 
 

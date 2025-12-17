@@ -89,46 +89,47 @@
   <worldbody>
     <geom name="obs1"
       type="box"
-      pos="0.0 -0.25 0.5"
-      size="0.1 0.1 0.5"
-      rgba="0.8 0.2 0.2 0.8"
+      pos="0.0 -0.35 0.5"
+      size="0.05 0.15 0.5"
+      rgba="0.8 0.2 0.2 0.2"
       contype="0" conaffinity="0"
       material="polished_plastic"
     />
 
     <geom name="obs2"
       type="box"
-      pos="0.0 0.25 0.5"
-      size="0.1 0.1 0.5"
-      rgba="0.8 0.2 0.2 0.8"
+      pos="0.0 0.35 0.5"
+      size="0.05 0.15 0.5"
+      rgba="0.8 0.2 0.2 0.2"
       contype="0" conaffinity="0"
       material="polished_plastic"
     />
 
     <geom name="obs3"
       type="box"
-      pos="0.0 0.0 0.3"
-      size="0.1 0.35 0.3"
-      rgba="0.8 0.2 0.2 0.8"
+      pos="0.0 0.0 1.0"
+      size="0.05 0.5 0.01"
+      rgba="0.8 0.2 0.2 0.2"
       contype="0" conaffinity="0"
       material="polished_plastic"
     />
-    <!-- <geom name="obs4"
+
+    <geom name="obs4"
       type="box"
-      pos="0.0 0.0 0.85"
-      size="0.1 0.35 0.15"
-      rgba="0.8 0.2 0.2 0.8"
+      pos="0.0 0.0 0.2"
+      size="0.05 0.5 0.2"
+      rgba="0.8 0.2 0.2 0.2"
       contype="0" conaffinity="0"
       material="polished_plastic"
-    /> -->
+    />
 
-    <geom name="env_limit" size="2.0 0.35 0.5" type="box" material="groundplane" contype="0" conaffinity="0" rgba="0.1 0.0 0.0 0.1" pos="0 0 0.5"/>
-    <geom name="floor" size="2.0 0.35 0.01" type="plane" material="groundplane" />
+    <geom name="env_limit" size="2.0 0.5 0.5" type="box" material="groundplane" contype="0" conaffinity="0" rgba="0.1 0.0 0.0 0.1" pos="0 0 0.5"/>
+    <geom name="floor" size="2.0 0.5 0.01" type="plane" material="groundplane" />
     <light pos="0 0 0.5" dir="0 0 -1" directional="true" />
 
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <joint type="free" damping="0"/>
-      <geom size="0.01" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
+      <geom size="0.03" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
       <inertial pos="0 0 0" mass="0.005" diaginertia="1e-8 1e-8 1e-8" />
       <site name="payload_s" pos="0 0 0" />
     </body>
@@ -202,7 +203,7 @@
 
 
     <tendon>
-      <spatial name="tendon1"  limited="true" range="0.0 0.5"  damping="0.0"  width="0.002" rgba="0.1 0.8 0.1 1">
+      <spatial name="tendon1"  limited="true" range="0.0 0.5" damping="0.0"  width="0.002" rgba="0.1 0.8 0.1 1">
           <site site="payload_s" />
           <site site="uav1_s" />
       </spatial>
