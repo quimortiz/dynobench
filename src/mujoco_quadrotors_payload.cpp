@@ -91,15 +91,14 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   }
 
   u_0.setOnes(4 * params.num_robots);
-  // u_ref.setConstant(0.95);
+  u_ref.setConstant(0.95);
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
-  nx_col = m->nv;
+  nx_col = m->nq;
   nx_pr = m->nq;
   is_2d = false;
 
   ref_dt = params.dt;
-  // u_ref.setConstant(0.95);
 
   arm = 0.707106781 * params.arm_length;
   u_nominal = params.m(0) * g / 4.; // now u is between [0,max_f]
@@ -163,10 +162,10 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   }
 
   u_weight.resize(4 * params.num_robots);
-  u_weight.setConstant(.5);
+  u_weight.setConstant(.7);
 
   x_weightb = Vxd::Zero(nx);
-  x_weightb.tail(m->nq+m->nv) = 400*Vxd::Ones(nx);
+  x_weightb.tail(m->nq+m->nv) = 300*Vxd::Ones(nx);
   // x_weightb.tail(m->nv) = 300*Vxd::Ones(nx);
   x_weightb.segment(3 ,4) = Eigen::VectorXd::Zero(4); // paylaod quat 
   x_weightb.segment(7*(params.num_robots+1) + 3 ,3) = Eigen::VectorXd::Zero(3); // ang vel payload
@@ -200,12 +199,63 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   state_weights = Vxd::Zero(nx);
   state_ref = Vxd::Zero(nx);
   // state_weights.setOnes();
-  // state_weights *= 0.01;
+  // state_weights *= 100.0;
   // for (size_t i = 0; i < params.num_robots; ++i) {
   //   state_weights.segment(7 + 7*i + 3, 4).setConstant(0.0);
   //   state_ref(7 + 7*i + 6) = 1.;
   // }
-  k_acc =0.005;
+
+  // nx should be: 7*(1 + num_robots) + 6*(1 + num_robots)
+
+  const std::size_t num_bodies = 1 + params.num_robots;  // 1 payload + quads
+  const std::size_t qpos_dim   = 7 * num_bodies;         // all qpos first
+  const std::size_t qvel_dim   = 6 * num_bodies;         // then all qvel
+
+  DYNO_CHECK_EQ(nx, qpos_dim + qvel_dim, AT);
+
+  // ---- weights (tune these) ----
+  const double w_quat        = 0.1;   // quaternion (x,y,z,w)
+  const double w_vel         = 0.1;  // velocities
+
+  // =============== PAYLOAD (body 0) =================
+  // qpos indices: 0..6  -> [px,py,pz, qx,qy,qz,qw]
+  // position:
+  // state_weights.segment<3>(0).setConstant(w_pos_payload);
+  // quaternion:
+  // state_weights.segment<4>(3).setConstant(w_quat);
+  // reference quaternion = identity: q = (0,0,0,1)
+  // state_ref(6) = 1.0;  // qw index for payload
+
+  // payload velocities: first 6 qvel entries
+  // qvel start index:
+  const std::size_t qvel_start = qpos_dim;
+  state_weights.segment<3>(qvel_start).setConstant(w_vel);
+
+  // =============== QUADS (bodies 1..num_robots) ===============
+  for (std::size_t i = 0; i < params.num_robots; ++i) {
+    const std::size_t body_idx   = 1 + i;             // payload=0, quad i = 1+i
+    const std::size_t qpos_base  = 7 * body_idx;      // start of this body's qpos
+    const std::size_t qvel_base  = qvel_start + 6 * body_idx; // start of qvel
+
+    // position of quad i
+    // state_weights.segment<3>(qpos_base).setConstant(w_pos_quads);
+
+    // quaternion of quad i (qx,qy,qz,qw)
+    state_weights.segment<4>(qpos_base + 3).setConstant(w_quat);
+
+    // reference quaternion = identity for quad i
+    state_ref(qpos_base + 6) = 1.0;  // qw index for this quad
+
+    // velocities of quad i
+    state_weights.segment<6>(qvel_base).setConstant(w_vel);
+  }
+
+  // (optional) debug print once
+  std::cout << "state_weights:\n" << state_weights.transpose() << std::endl;
+  std::cout << "state_ref:\n"     << state_ref.transpose()     << std::endl;
+
+
+  k_acc =0.0;
 
 
   __v.resize(2*m->nv);

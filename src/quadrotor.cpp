@@ -277,7 +277,8 @@ void Model_quad3d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 
   rotate_with_q(xq, f_u, y, data.Jx, data.Ja);
 
-  Jv_x.block<6, 6>(0, 7).diagonal() = Eigen::VectorXd::Ones(6); // dp / dv
+  // Jv_x.block<6, 6>(0, 7).diagonal() = Eigen::VectorXd::Ones(6); // dp / dv
+  Jv_x.block<3,3>(0, 7) = Eigen::Matrix3d::Identity();
   //
   //
   //

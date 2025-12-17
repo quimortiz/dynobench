@@ -146,7 +146,7 @@ Model_MujocoQuad::Model_MujocoQuad(
 
   u_weight = V4d(.7, .7, .7, .7);
   x_weightb = 200. * Vxd::Ones(13);
-  x_weightb.head(7) = Eigen::VectorXd::Zero(7);
+  // x_weightb.segment(3, 4) = Eigen::VectorXd::Zero(4);
 
   // COLLISIONS
   collision_geometries.clear();
