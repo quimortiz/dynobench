@@ -140,10 +140,10 @@ double check_cols(std::shared_ptr<Model_robot> model_robot,
 
 struct Feasibility_thresholds {
   double traj_tol = 1e-2;
-  double goal_tol = 1e-1;
-  double col_tol = 1e-2;
+  double goal_tol = 1e-2;
+  double col_tol = 1e-4;
   double x_bound_tol = 1e-2;
-  double u_bound_tol = 1e-2;
+  double u_bound_tol = 1e-3;
 
   void __load_data(void *source, bool boost, bool write = false,
                    const std::string &be = "") {
