@@ -13,7 +13,7 @@
       <rgba haze="0.15 0.25 0.35 1" />
   </visual>
 
-  <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0">
+  <option gravity="0 0 -9.81" integrator="Euler" timestep="0.02" density="0" viscosity="0">
     <flag contact="disable"/>
   </option>
   <compiler inertiafromgeom="false" meshdir="cf2/assets" autolimits="false"/>
@@ -116,8 +116,8 @@
 
     <geom name="obs4"
       type="box"
-      pos="0.0 0.0 0.2"
-      size="0.05 0.5 0.2"
+      pos="0.0 0.0 0.3"
+      size="0.05 0.5 0.3"
       rgba="0.8 0.2 0.2 0.2"
       contype="0" conaffinity="0"
       material="polished_plastic"
@@ -243,10 +243,10 @@
   </actuator>
 
   <actuator>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor21" name="f12"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor22" name="f22"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor23" name="f32"/>
-    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor24" name="f42"/>
+    <motor class="cf2" ctrlrange="0.0 1.4" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor21" name="f12"/>
+    <motor class="cf2" ctrlrange="0.0 1.4" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor22" name="f22"/>
+    <motor class="cf2" ctrlrange="0.0 1.4" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor23" name="f32"/>
+    <motor class="cf2" ctrlrange="0.0 1.4" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor24" name="f42"/>
   </actuator>
 
 
