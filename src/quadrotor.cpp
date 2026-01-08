@@ -148,9 +148,9 @@ Model_quad3d::Model_quad3d(const Quad3d_params &params,
   m = params.m;
   grav_v = Eigen::Vector3d(0, 0, -params.m * g);
 
-  u_weight = V4d(.5, .5, .5, .5);
-  x_weightb = 50. * Vxd::Ones(13);
-  x_weightb.head(7) = Eigen::VectorXd::Zero(7);
+  u_weight = V4d(.7, .7, .7, .7);
+  x_weightb = 250. * Vxd::Ones(13);
+  // x_weightb.head(7) = Eigen::VectorXd::Zero(7);
 
   if (params.shape == "box") {
     collision_geometries.emplace_back(std::make_shared<fcl::Boxd>(
@@ -276,8 +276,8 @@ void Model_quad3d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
   Eigen::Matrix3d R = Eigen::Quaterniond(q).toRotationMatrix();
 
   rotate_with_q(xq, f_u, y, data.Jx, data.Ja);
-
-  Jv_x.block<3, 3>(0, 7).diagonal() = Eigen::Vector3d::Ones(); // dp / dv
+  Jv_x.block<6, 6>(0, 7).diagonal() = Eigen::VectorXd::Ones(6); // dp / dv
+  // Jv_x.block<3, 3>(0, 7).diagonal() = Eigen::Vector3d::Ones(); // dp / dv
   //
   //
   //
