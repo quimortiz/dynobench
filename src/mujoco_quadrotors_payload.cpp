@@ -165,7 +165,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   u_weight.setConstant(.7);
 
   x_weightb = Vxd::Zero(nx);
-  x_weightb.tail(m->nq+m->nv) = 300*Vxd::Ones(nx);
+  x_weightb.tail(m->nq+m->nv) = 500*Vxd::Ones(nx);
   // x_weightb.tail(m->nv) = 300*Vxd::Ones(nx);
   x_weightb.segment(3 ,4) = Eigen::VectorXd::Zero(4); // paylaod quat 
   x_weightb.segment(7*(params.num_robots+1) + 3 ,3) = Eigen::VectorXd::Zero(3); // ang vel payload

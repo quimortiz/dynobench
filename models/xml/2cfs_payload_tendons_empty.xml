@@ -13,7 +13,7 @@
       <rgba haze="0.15 0.25 0.35 1" />
   </visual>
 
-  <option gravity="0 0 -9.81" integrator="Euler" timestep="0.01" density="0" viscosity="0">
+  <option gravity="0 0 -9.81" integrator="implicitfast" timestep="0.02" density="0" viscosity="0">
     <flag contact="disable"/>
   </option>
   <compiler inertiafromgeom="false" meshdir="cf2/assets" autolimits="false"/>
@@ -91,8 +91,8 @@
 
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <joint type="free" damping="0"/>
-      <geom size="0.01" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
-      <inertial pos="0 0 0" mass="0.01" diaginertia="1e-8 1e-8 1e-8" />
+      <geom size="0.03" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
+      <inertial pos="0 0 0" mass="0.005" diaginertia="1e-8 1e-8 1e-8" />
       <site name="payload_s" pos="0 0 0" />
     </body>
 
