@@ -9,7 +9,7 @@ arm_length: 0.046
 t2t: 0.006 # thrust-to-torque ratio
 m: [0.034]
 col_size_robot: 0.1
-col_size_payload: .03
+col_size_payload: .05
 distance_weights_payload_pose: [1., 0.0]
 distance_weights_payload_vel: [0.1, 0.0]
 distance_weights_quads_pose: [1.0, 0.3]

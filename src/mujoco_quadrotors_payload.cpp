@@ -91,7 +91,6 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   }
 
   u_0.setOnes(4 * params.num_robots);
-  u_ref.setConstant(0.95);
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
   nx_col = m->nq;
@@ -165,7 +164,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   u_weight.setConstant(.7);
 
   x_weightb = Vxd::Zero(nx);
-  x_weightb.tail(m->nq+m->nv) = 500*Vxd::Ones(nx);
+  x_weightb.tail(m->nq+m->nv) = 300*Vxd::Ones(nx);
   // x_weightb.tail(m->nv) = 300*Vxd::Ones(nx);
   x_weightb.segment(3 ,4) = Eigen::VectorXd::Zero(4); // paylaod quat 
   x_weightb.segment(7*(params.num_robots+1) + 3 ,3) = Eigen::VectorXd::Zero(3); // ang vel payload
@@ -214,8 +213,9 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   DYNO_CHECK_EQ(nx, qpos_dim + qvel_dim, AT);
 
   // ---- weights (tune these) ----
-  const double w_quat        = 0.1;   // quaternion (x,y,z,w)
-  const double w_vel         = 0.1;  // velocities
+  const double w_quat        = 0.001;   // quaternion (x,y,z,w)
+  const double w_vel         = 0.0;  // linear velocities
+  const double w_ang_vel     = 0.001;  // angular velocities
 
   // =============== PAYLOAD (body 0) =================
   // qpos indices: 0..6  -> [px,py,pz, qx,qy,qz,qw]
@@ -241,13 +241,14 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
     // state_weights.segment<3>(qpos_base).setConstant(w_pos_quads);
 
     // quaternion of quad i (qx,qy,qz,qw)
-    state_weights.segment<4>(qpos_base + 3).setConstant(w_quat);
+    state_weights.segment<4>(qpos_base+3).setConstant(w_quat);
 
     // reference quaternion = identity for quad i
     state_ref(qpos_base + 6) = 1.0;  // qw index for this quad
 
     // velocities of quad i
-    state_weights.segment<6>(qvel_base).setConstant(w_vel);
+    state_weights.segment<3>(qvel_base).setConstant(w_vel);
+    state_weights.segment<3>(qvel_base + 3).setConstant(w_ang_vel);
   }
 
   // (optional) debug print once
@@ -255,7 +256,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   std::cout << "state_ref:\n"     << state_ref.transpose()     << std::endl;
 
 
-  k_acc =0.0;
+  k_acc =0.005;
 
 
   __v.resize(2*m->nv);
@@ -407,15 +408,14 @@ void Model_MujocoQuadsPayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
                                  const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &u,
                                  double dt) {
-
   const int nb = params.num_robots + 1;             // payload + N quads
   auto qpos_mj = mjVec(d->qpos, m->nq);
   auto qvel_mj = mjVec(d->qvel, m->nv);
   auto ctrl_mj = mjVec(d->ctrl, m->nu);
   dyno2mj_pos(x.head(7*nb), nb, qpos_mj); // copy the dynobench qpos to mujoco qpos and reorder the quaternions
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
-  ctrl_mj = u; // copy the controls
-  ctrl_mj *= u_nominal;
+  ctrl_mj = u*u_nominal; // copy the controls
+  mj_forward(m, d);
   mj_step(m, d);
   Eigen::VectorXd xpos(7 * nb);             // [p, q_xyzw] for each
   mj2dyno_pos(qpos_mj, nb, xpos);               // wxyz → xyzw per body

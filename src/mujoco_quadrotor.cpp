@@ -80,12 +80,12 @@ Model_MujocoQuad::Model_MujocoQuad(
   // @QUIM: fix this values
   translation_invariance = 3;
   invariance_reuse_col_shape = false;
-  nx_col = m->nv;
+  nx_col = m->nq;
   nx_pr = m->nq;
   is_2d = false;
 
   ref_dt = params.dt;
-  u_ref.setConstant(0.95);
+  // u_ref.setConstant(0.95);
   arm = 0.707106781 * params.arm_length;
   u_nominal = params.mass * g / 4.; // now u is between [0,max_f]
 
@@ -159,6 +159,24 @@ Model_MujocoQuad::Model_MujocoQuad(
     set_position_lb(p_lb);
     set_position_ub(p_ub);
   }
+  const double w_quat        = 0.001;   // quaternion (x,y,z,w)
+  const double w_vel         = 0.0;  // linear velocities
+  const double w_ang_vel     = 0.001;  // angular velocities
+// Used for regularization costs
+  state_weights = Vxd::Zero(nx);
+  state_ref = Vxd::Zero(nx);
+  // quaternion of quad i (qx,qy,qz,qw)
+  state_weights.segment<4>(3).setConstant(w_quat);
+  // reference quaternion = identity for quad
+  state_ref(6) = 1.0;  // qw index for this quad
+  // velocities of quad 
+  state_weights.segment<3>(7).setConstant(w_vel);
+  state_weights.segment<3>(10).setConstant(w_ang_vel);
+
+  // (optional) debug print once
+  std::cout << "state_weights:\n" << state_weights.transpose() << std::endl;
+  std::cout << "state_ref:\n"     << state_ref.transpose()     << std::endl;
+
 
   std::cout << "Jvx_dim: " << 2*m->nv << ", " << m->nq + m->nv << std::endl;
   std::cout << "Jvu_dim: " << 2*m->nv << ", " << nu << std::endl;
@@ -193,7 +211,23 @@ void Model_MujocoQuad::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
   x = x_lb + (x_ub - x_lb)
                  .cwiseProduct(.5 * (Eigen::VectorXd::Random(nx) +
                                      Eigen::VectorXd::Ones(nx)));
-  x.segment(3, 4) = Eigen::Quaterniond::UnitRandom().coeffs();
+  // Constrain tilt to ±80 degrees
+  double max_tilt_angle = 40.0 * M_PI / 180.0; // Convert 80 degrees to radians
+
+  // Yaw is always 0
+  double yaw = 0.0;
+
+  // Sample pitch and roll uniformly within ±80 degrees
+  double pitch = max_tilt_angle * ((double)rand() / RAND_MAX * 2.0 - 1.0);
+  double roll = max_tilt_angle * ((double)rand() / RAND_MAX * 2.0 - 1.0);
+
+  // Convert to quaternion (ZYX convention)
+  Eigen::Quaterniond q = Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ())
+                        * Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY())
+                        * Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX());
+  
+  x.segment(3, 4) = q.coeffs(); // x, y, z, w order
+  // x.segment(3, 4) = Eigen::Quaterniond::UnitRandom().coeffs();
 }
 
 void Model_MujocoQuad::transformation_collision_geometries(

@@ -1,6 +1,6 @@
 #use default parameters
 # distance_weights: [1.0, 0.5, .1, .1]
-distance_weights: [1., .01, .2, .05]
+distance_weights: [1., .1, .05, .05]
 max_vel: 4
 max_angular_vel: 8
 max_acc: 25
