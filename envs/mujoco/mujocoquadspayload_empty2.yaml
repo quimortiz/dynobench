@@ -1,5 +1,5 @@
 environment:
-  max: [2, 1.0, 1.0]
+  max: [2, 1.0, 2.0]
   min: [-2, -1.0, 0.0]
   obstacles: []
 name: mujocoquadspayload_empty2

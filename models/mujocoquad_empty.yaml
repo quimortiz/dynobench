@@ -1,7 +1,7 @@
 #use default parameters
 # distance_weights: [1.0, 0.5, .1, .1]
 # distance_weights: [1., .8, .1, .1]
-distance_weights: [1., .3, .1, .1]
+distance_weights: [1., .3, .05, .05]
 max_vel: 4
 max_angular_vel: 8
 max_acc: 25
@@ -11,7 +11,7 @@ arm_length: 0.046
 t2t: 0.006 # thrust-to-torque ratio
 mass: 0.034
 size: 0.1
-model_path: "/home/khaledwahba94/pc-dbCBS/deps/dynoplan/dynobench/models/xml/dyno_crazyflie_empty.xml"
+model_path: "xml/dyno_crazyflie_empty.xml"
 dt: .02
 J_v: [16.571710e-6, 16.655602e-6, 29.261652e-6] # inertia matrix
 dynamics: "mujocoquad"

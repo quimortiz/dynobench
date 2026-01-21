@@ -4,6 +4,8 @@
 #include <fcl/geometry/shape/box.h>
 #include <fcl/geometry/shape/capsule.h>
 #include <fcl/geometry/shape/sphere.h>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 
 
@@ -35,6 +37,15 @@ void MujocoQuad_params::read_from_yaml(const char *file) {
   filename = file;
   YAML::Node node = YAML::LoadFile(file);
   read_from_yaml(node);
+
+  // --- minimal portable path fix ---
+  if (!model_path.empty()) {
+    fs::path mp(model_path);
+    if (mp.is_relative()) {
+      fs::path base = fs::path(filename).parent_path();   // dynobench/models/
+      model_path = (base / mp).lexically_normal().string();
+    }
+  }
 }
 
 Model_MujocoQuad::Model_MujocoQuad(

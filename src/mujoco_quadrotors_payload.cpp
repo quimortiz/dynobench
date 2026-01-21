@@ -4,6 +4,8 @@
 #include <fcl/geometry/shape/box.h>
 #include <fcl/geometry/shape/capsule.h>
 #include <fcl/geometry/shape/sphere.h>
+#include <filesystem>
+namespace fs = std::filesystem;
 
 
 
@@ -41,7 +43,17 @@ void MujocoQuadsPayload_params::read_from_yaml(const char *file) {
   filename = file;
   YAML::Node node = YAML::LoadFile(file);
   read_from_yaml(node);
+
+  // --- minimal portable path fix ---
+  if (!model_path.empty()) {
+    fs::path mp(model_path);
+    if (mp.is_relative()) {
+      fs::path base = fs::path(filename).parent_path();   // dynobench/models/
+      model_path = (base / mp).lexically_normal().string();
+    }
+  }
 }
+
 
 Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
     const MujocoQuadsPayload_params &params, const Eigen::VectorXd &p_lb,
@@ -214,7 +226,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
 
   // ---- weights (tune these) ----
   const double w_quat        = 0.001;   // quaternion (x,y,z,w)
-  const double w_vel         = 0.0;  // linear velocities
+  const double w_vel         = 0.001;  // linear velocities
   const double w_ang_vel     = 0.001;  // angular velocities
 
   // =============== PAYLOAD (body 0) =================
