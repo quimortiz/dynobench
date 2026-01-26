@@ -1,6 +1,6 @@
 environment:
-  max: [2, 1.0, 2.0]
-  min: [-2, -1.0, 0.0]
+  max: [10, 10.0, 2.0]
+  min: [-10, -10.0, 0.0]
   obstacles: []
 name: mujocoquadspayload_empty2
 joint_robot:

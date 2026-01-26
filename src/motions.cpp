@@ -154,7 +154,7 @@ void Trajectory::update_feasibility(const Feasibility_thresholds &thresholds,
   x_bounds_feas = x_bound_distance < thresholds.x_bound_tol;
   u_bounds_feas = u_bound_distance < thresholds.u_bound_tol;
 
-  feasible = traj_feas && goal_feas && start_feas && col_feas &&
+  feasible = traj_feas && start_feas && col_feas &&
              x_bounds_feas && u_bounds_feas;
 
   if (verbose) {
