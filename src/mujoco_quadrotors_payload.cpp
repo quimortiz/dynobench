@@ -11,6 +11,20 @@ namespace fs = std::filesystem;
 
 namespace dynobench {
 
+  static inline bool mj_unstable(const mjModel* m, const mjData* d) {
+  for (int i = 0; i < m->nv; ++i) {
+    if (!std::isfinite(d->qvel[i]) ||
+        !std::isfinite(d->qacc[i]) ||
+        std::abs(d->qacc[i]) > 1e8)
+      return true;
+  }
+  for (int i = 0; i < m->nq; ++i) {
+    if (!std::isfinite(d->qpos[i]))
+      return true;
+  }
+  return false;
+}
+
 void MujocoQuadsPayload_params::read_from_yaml(YAML::Node &node) {
 
   set_from_yaml(node, VAR_WITH_NAME(num_robots));
@@ -268,7 +282,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   std::cout << "state_ref:\n"     << state_ref.transpose()     << std::endl;
 
 
-  k_acc =0.005;
+  k_acc =0.2;
 
 
   __v.resize(2*m->nv);
@@ -393,6 +407,10 @@ void Model_MujocoQuadsPayload::calcV(Eigen::Ref<Eigen::VectorXd> ff,
   qvel_mj = x.tail(m->nv);  // similarly for the velocities
   ctrl_mj = u*u_nominal; // copy the controls
   mj_forward(m, d);
+  // if (mj_unstable(m, d)) {
+  //   ff.setZero();
+  //   return;
+  // }
   ff.head(m->nv) = qvel_mj;
   ff.tail(m->nv) = qacc_mj;
 }
@@ -429,6 +447,14 @@ void Model_MujocoQuadsPayload::step(Eigen::Ref<Eigen::VectorXd> xnext,
   ctrl_mj = u*u_nominal; // copy the controls
   mj_forward(m, d);
   mj_step(m, d);
+
+  // ---- ADD THIS CHECK --------------------
+  // if (mj_unstable(m, d)) {
+  //   xnext = x;      // fail-soft
+  //   return;
+  // }
+  // ----------------------------------------
+
   Eigen::VectorXd xpos(7 * nb);             // [p, q_xyzw] for each
   mj2dyno_pos(qpos_mj, nb, xpos);               // wxyz → xyzw per body
   xnext.head(m->nq) = xpos;
