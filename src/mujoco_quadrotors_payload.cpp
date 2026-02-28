@@ -96,11 +96,17 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
 
   d = mj_makeData(m);
   if (!d) {
+      mj_deleteModel(m);
+      m = nullptr;
       throw std::runtime_error("mj_makeData failed");
   }
 
   tmp = mj_makeData(m);
   if (!tmp) {
+      mj_deleteData(d);
+      d = nullptr;
+      mj_deleteModel(m);
+      m = nullptr;
       throw std::runtime_error("mj_makeData (tmp) failed");
   }
   if (params.name == "") {
@@ -282,7 +288,7 @@ Model_MujocoQuadsPayload::Model_MujocoQuadsPayload(
   std::cout << "state_ref:\n"     << state_ref.transpose()     << std::endl;
 
 
-  k_acc =0.2;
+  k_acc =0.005;
 
 
   __v.resize(2*m->nv);

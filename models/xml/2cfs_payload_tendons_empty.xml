@@ -92,7 +92,7 @@
     <body name="payload" pos="0.0 0.0 0.0" quat="1 0 0 0">
       <joint type="free" damping="0"/>
       <geom size="0.05" type="sphere" rgba="0.8 0.8 0.8 1"  group="1"/>
-      <inertial pos="0 0 0" mass="0.01" diaginertia="1e-8 1e-8 1e-8" />
+      <inertial pos="0 0 0" mass="0.005" diaginertia="1e-8 1e-8 1e-8" />
       <site name="payload_s" pos="0 0 0" />
     </body>
 
@@ -212,29 +212,42 @@
   </worldbody>
 
   <actuator>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor11" name="f11"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor12" name="f21"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor13" name="f31"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor14" name="f41"/>
   </actuator>
 
   <actuator>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor21" name="f12"/>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor22" name="f22"/>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor23" name="f32"/>
-    <motor class="cf2" ctrlrange="0.0 0.5" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor24" name="f42"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor21" name="f12"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor22" name="f22"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 -0.006" site="motor23" name="f32"/>
+    <motor class="cf2" ctrlrange="0.0 0.14" ctrllimited="true" gear="0 0 1 0 0 0.006"  site="motor24" name="f42"/>
   </actuator>
 
 
-    <tendon>
-      <spatial name="tendon1"  limited="true" range="0.0 0.5" stiffness="0.0" damping="0.0" width="0.001" rgba="0.1 0.8 0.1 1">
+    <!-- <tendon>
+      <spatial name="tendon1"  limited="true" actuatorfrcrange="0 0.5" range="0.0 0.5" stiffness="0.0" damping="0.0" width="0.001" rgba="0.1 0.8 0.1 1">
           <site site="payload_s" />
           <site site="uav1_s" />
       </spatial>
   </tendon>
   <tendon>
-      <spatial name="tendon2"  limited="true" range="0.0 0.5" stiffness="0.0" damping="0.0" width="0.001" rgba="0.1 0.8 0.1 1">
+      <spatial name="tendon2"  limited="true" actuatorfrcrange="0 0.5" range="0.0 0.5" stiffness="0.0" damping="0.0" width="0.001" rgba="0.1 0.8 0.1 1">
          <site site="payload_s" />
+          <site site="uav2_s" />
+      </spatial>
+  </tendon> -->
+
+    <tendon>
+      <spatial name="tendon1"  limited="true" actuatorfrcrange="0 0.6" range="0.0 0.5" stiffness="0.0" damping="0.0" width="0.001" rgba="0.1 0.8 0.1 1">
+          <site site="payload_s" />
+          <site site="uav1_s" />
+      </spatial>
+  </tendon>
+  <tendon>
+      <spatial name="tendon2"  limited="true" actuatorfrcrange="0 0.6" range="0.0 0.5" stiffness="0.0" damping="0.0" width="0.001" rgba="0.1 0.8 0.1 1">
+        <site site="payload_s" />
           <site site="uav2_s" />
       </spatial>
   </tendon>
