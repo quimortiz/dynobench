@@ -8,14 +8,16 @@ project(
   LANGUAGES CXX)
 
 # --- MuJoCo root (portable) ---
-set(MJ_ROOT "" CACHE PATH "Path to MuJoCo root (contains include/ and lib/)")
+set(MJ_ROOT
+    ""
+    CACHE PATH "Path to MuJoCo root (contains include/ and lib/)")
 
 if(NOT MJ_ROOT)
   if(DEFINED ENV{MJ_ROOT})
     set(MJ_ROOT "$ENV{MJ_ROOT}")
   else()
-    # If dynobench is built standalone, default relative to dynobench dir.
-    # If dynobench is included from pc-dbCBS, pc-dbCBS should set MJ_ROOT already.
+    # If dynobench is built standalone, default relative to dynobench dir. If
+    # dynobench is included from pc-dbCBS, pc-dbCBS should set MJ_ROOT already.
     set(MJ_ROOT "${CMAKE_CURRENT_LIST_DIR}/../../mujoco-3.3.6")
   endif()
 endif()
@@ -23,11 +25,16 @@ endif()
 message(STATUS "[dynobench] MJ_ROOT = ${MJ_ROOT}")
 
 if(NOT EXISTS "${MJ_ROOT}/include/mujoco/mujoco.h")
-  message(FATAL_ERROR "[dynobench] MuJoCo headers not found: ${MJ_ROOT}/include/mujoco/mujoco.h")
+  message(
+    FATAL_ERROR
+      "[dynobench] MuJoCo headers not found: ${MJ_ROOT}/include/mujoco/mujoco.h"
+  )
 endif()
 
 if(NOT EXISTS "${MJ_ROOT}/lib/libmujoco.so")
-  message(FATAL_ERROR "[dynobench] MuJoCo library not found: ${MJ_ROOT}/lib/libmujoco.so")
+  message(
+    FATAL_ERROR
+      "[dynobench] MuJoCo library not found: ${MJ_ROOT}/lib/libmujoco.so")
 endif()
 
 # find_package(pinocchio REQUIRED)

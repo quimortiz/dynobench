@@ -180,7 +180,7 @@ Model_MujocoQuad::Model_MujocoQuad(
   state_weights.segment<4>(3).setConstant(w_quat);
   // reference quaternion = identity for quad
   state_ref(6) = 1.0;  // qw index for this quad
-  // velocities of quad 
+  // velocities of quad
   state_weights.segment<3>(7).setConstant(w_vel);
   state_weights.segment<3>(10).setConstant(w_ang_vel);
 
@@ -236,7 +236,7 @@ void Model_MujocoQuad::sample_uniform(Eigen::Ref<Eigen::VectorXd> x) {
   Eigen::Quaterniond q = Eigen::AngleAxisd(yaw, Eigen::Vector3d::UnitZ())
                         * Eigen::AngleAxisd(pitch, Eigen::Vector3d::UnitY())
                         * Eigen::AngleAxisd(roll, Eigen::Vector3d::UnitX());
-  
+
   x.segment(3, 4) = q.coeffs(); // x, y, z, w order
   // x.segment(3, 4) = Eigen::Quaterniond::UnitRandom().coeffs();
 }
