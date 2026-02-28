@@ -1,18 +1,18 @@
 environment:
   max: [2, 0.35, 1.0]
   min: [-2, -0.35, 0.0]
-  obstacles: 
+  obstacles:
   - center: [0.0, -0.25, 0.5]
-    size: [0.2, 0.2, 1.0]  
+    size: [0.2, 0.2, 1.0]
     type: box
   - center: [0.0, 0.25, 0.5]
-    size: [0.2, 0.2, 1.0]  
+    size: [0.2, 0.2, 1.0]
     type: box
   - center: [0.0, 0.0, 0.25]
-    size: [0.2, 0.7, 0.5]  
+    size: [0.2, 0.7, 0.5]
     type: box
   - center: [0.0, 0.0, 0.9]
-    size: [0.2, 0.7, 0.2]  
+    size: [0.2, 0.7, 0.2]
     type: box
 
 name: mujocoquadspayload_window1

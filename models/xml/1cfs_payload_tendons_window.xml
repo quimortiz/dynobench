@@ -120,7 +120,7 @@
       rgba="0.8 0.2 0.2 0.8"
       contype="0" conaffinity="0"
       material="polished_plastic"
-    /> 
+    />
 
     <geom name="env_limit" size="2.0 0.35 0.5" type="box" material="groundplane" contype="0" conaffinity="0" rgba="0.1 0.0 0.0 0.1" pos="0 0 0.5"/>
     <geom name="floor" size="2.0 0.35 0.01" type="plane" material="groundplane" />

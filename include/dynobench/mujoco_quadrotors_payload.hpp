@@ -151,27 +151,89 @@ struct MujocoQuadsPayload_params {
 };
 
 struct Model_MujocoQuadsPayload : Model_robot {
-  // state x: [qpos qvel]
-  // xpos_{name}: [position quaternion]_{name of the body} \in R^{7x1}
-  // xvel_{name}: [velocity ang velocity in body frame]_{name of the body} \in R^{6x1}
-  // qpos: [xpos_{payload}, xpos_{quad1}, ..., xpos_{quadn}] \in R^{7*(n+1)}
-  // qvel: [xvel_{payload}, xvel_{quad1}, ..., xvel_{quadn}] \in R^{6*(n+1)}
-
-
-  // Regularization in the optimization problem.
-  // you have to make this genereal
+  // ----------------------------
+  // Regularization / misc
+  // ----------------------------
   Eigen::VectorXd state_weights;
   Eigen::VectorXd state_ref;
 
-  std::vector<std::unique_ptr<fcl::CollisionObjectd>>
-      collision_objects;
+  std::vector<std::unique_ptr<fcl::CollisionObjectd>> collision_objects;
 
-  virtual ~Model_MujocoQuadsPayload() = default;
-
-  // Eigen::VectorXd ff; // TODO: remember to allocate memory in constructor!
   MujocoQuadsPayload_params params;
 
-  virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
+  // --- Cables / tendons data for complementarity ---
+  int num_cables_ = 0;
+  Eigen::VectorXd tendon_rest_length_;
+
+  double arm = 0.0;
+  double g = 9.81;
+
+  double u_nominal = 0.0;
+  Eigen::Matrix4d B0;
+  Eigen::Matrix4d B0inv;
+
+  const bool adapt_vel = true;
+  bool check_inner = true;
+
+  // ----------------------------
+  // MuJoCo owned resources
+  // IMPORTANT: keep THESE names because your .cpp/methods already use them.
+  // ----------------------------
+  mjModel* m = nullptr;
+  mjData*  d = nullptr;
+  mutable mjData* tmp = nullptr;
+
+  // Viewer resources
+  bool viewer_ready_ = false;
+  mjvScene   scn_;
+  mjrContext con_;
+  mjvCamera  cam_;
+  mjvOption  opt_;
+
+  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
+
+  // ----------------------------
+  // Destructor: fixes the leak
+  // ----------------------------
+  ~Model_MujocoQuadsPayload() override {
+    // Viewer cleanup first (it may reference the model)
+    if (viewer_ready_) {
+      mjv_freeScene(&scn_);
+      mjr_freeContext(&con_);
+      viewer_ready_ = false;
+    }
+
+    // Delete mjData (tmp, d) before mjModel
+    if (tmp) { mj_deleteData(tmp); tmp = nullptr; }
+    if (d)   { mj_deleteData(d);   d   = nullptr; }
+    if (m)   { mj_deleteModel(m);  m   = nullptr; }
+  }
+
+  // ----------------------------
+  // No copy / no move (simple & safe)
+  // ----------------------------
+  Model_MujocoQuadsPayload(const Model_MujocoQuadsPayload&) = delete;
+  Model_MujocoQuadsPayload& operator=(const Model_MujocoQuadsPayload&) = delete;
+  Model_MujocoQuadsPayload(Model_MujocoQuadsPayload&&) = delete;
+  Model_MujocoQuadsPayload& operator=(Model_MujocoQuadsPayload&&) = delete;
+
+  // ----------------------------
+  // Constructors (unchanged)
+  // ----------------------------
+  Model_MujocoQuadsPayload(const char *file,
+                           const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+                           const Eigen::VectorXd &p_ub = Eigen::VectorXd())
+      : Model_MujocoQuadsPayload(MujocoQuadsPayload_params(file), p_lb, p_ub) {}
+
+  Model_MujocoQuadsPayload(
+      const MujocoQuadsPayload_params &params = MujocoQuadsPayload_params(),
+      const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
+      const Eigen::VectorXd &p_ub = Eigen::VectorXd());
+
+  // ----------------------------
+  // Existing API (unchanged)
+  // ----------------------------
+  void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override {
     NOT_IMPLEMENTED;
   }
 
@@ -182,7 +244,7 @@ struct Model_MujocoQuadsPayload : Model_robot {
 
   void get_payload_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                        Eigen::Ref<Eigen::Vector3d> out) {
-    out = x.segment(7*(params.num_robots+1), 3);
+    out = x.segment(7 * (params.num_robots + 1), 3);
   }
 
   void get_payload_q(const Eigen::Ref<const Eigen::VectorXd> &x,
@@ -192,191 +254,139 @@ struct Model_MujocoQuadsPayload : Model_robot {
 
   void get_payload_w(const Eigen::Ref<const Eigen::VectorXd> &x,
                      Eigen::Ref<Eigen::Vector3d> out) {
-    out = x.segment(7*(params.num_robots+1)+3, 3);
+    out = x.segment(7 * (params.num_robots + 1) + 3, 3);
   }
 
-  virtual void get_robot_i_position(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                    int i, Eigen::Ref<Eigen::Vector3d> out) {
+  void get_robot_i_position(const Eigen::Ref<const Eigen::VectorXd> &x,
+                            int i, Eigen::Ref<Eigen::Vector3d> out) {
     DYNO_CHECK_LEQ(i, params.num_robots - 1, "");
-
-    out = x.segment(7 + 7*i,3);
+    out = x.segment(7 + 7 * i, 3);
   }
-  virtual void get_robot_i_velocity(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                    int i, Eigen::Ref<Eigen::Vector3d> out) {
+
+  void get_robot_i_velocity(const Eigen::Ref<const Eigen::VectorXd> &x,
+                            int i, Eigen::Ref<Eigen::Vector3d> out) {
     DYNO_CHECK_LEQ(i, params.num_robots - 1, "");
-
-    out = x.segment(7*(params.num_robots+1) + 6*i, 3);
+    out = x.segment(7 * (params.num_robots + 1) + 6 * i, 3);
   }
-
 
   void get_robot_i_w(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
                      Eigen::Ref<Eigen::Vector3d> out) {
     DYNO_CHECK_LEQ(i, params.num_robots - 1, "");
-    out = x.segment(7*(params.num_robots+1) + 6*i + 3, 3);
+    out = x.segment(7 * (params.num_robots + 1) + 6 * i + 3, 3);
   }
 
-
-  virtual void
-  get_robot_i_quat(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
-                          Eigen::Ref<Eigen::Vector4d> out) {
+  void get_robot_i_quat(const Eigen::Ref<const Eigen::VectorXd> &x, int i,
+                        Eigen::Ref<Eigen::Vector4d> out) {
     DYNO_CHECK_LEQ(i, params.num_robots - 1, "");
-    // NOT_IMPLEMENTED_TODO; // @KHALED
-    out = x.segment(7 + 7*i + 3, 4);
+    out = x.segment(7 + 7 * i + 3, 4);
   }
 
-  double arm;
-  double g = 9.81;
-
-  double u_nominal;
-  Eigen::Matrix4d B0;
-  Eigen::Matrix4d B0inv;
-
-  // --- Cables / tendons data for complementarity ---
-  int num_cables_ = 0;           // number of MuJoCo tendons used as cables
-  Eigen::VectorXd tendon_rest_length_;  // rest (taut) length of each cable
-
-  const bool adapt_vel = true;
-  bool check_inner = true;
-  mjModel* m;
-  mjData* d;
-  mutable mjData* tmp;
-  bool viewer_ready_ = false;
-  mjvScene   scn_;
-  mjrContext con_;
-  mjvCamera  cam_;
-  mjvOption  opt_;
-
-  std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
-
-  Model_MujocoQuadsPayload(const Model_MujocoQuadsPayload &) = default;
-
-  Model_MujocoQuadsPayload(const char *file,
-                        const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
-                        const Eigen::VectorXd &p_ub = Eigen::VectorXd())
-      : Model_MujocoQuadsPayload(MujocoQuadsPayload_params(file), p_lb, p_ub) {}
-
-  Model_MujocoQuadsPayload(
-      const MujocoQuadsPayload_params &params = MujocoQuadsPayload_params(),
-      const Eigen::VectorXd &p_lb = Eigen::VectorXd(),
-      const Eigen::VectorXd &p_ub = Eigen::VectorXd());
-
-  virtual std::map<std::string, std::vector<double>>
+  std::map<std::string, std::vector<double>>
   get_info(const Eigen::Ref<const Eigen::VectorXd> &x) override;
 
-  virtual void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
+  void ensure(Eigen::Ref<Eigen::VectorXd> xout) override {
     for (int i = 0; i < params.num_robots + 1; ++i) {
-      xout.segment(7 * i + 3 , 4).normalize();
+      xout.segment(7 * i + 3, 4).normalize();
     }
   }
 
-  virtual void write_params(std::ostream &out) override { params.write(out); }
+  void write_params(std::ostream &out) override { params.write(out); }
 
-  virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) override;
+  Eigen::VectorXd get_x0(const Eigen::VectorXd &x) override;
 
-  virtual void transform_primitive(
+  void transform_primitive(
       const Eigen::Ref<const Eigen::VectorXd> &p,
       const std::vector<Eigen::VectorXd> &xs_in,
       const std::vector<Eigen::VectorXd> &us_in, TrajWrapper &traj_out,
-      // std::vector<Eigen::VectorXd> &xs_out,
-      // std::vector<Eigen::VectorXd> &us_out,
       std::function<bool(Eigen::Ref<Eigen::VectorXd>)> *is_valid_fun = nullptr,
       int *num_valid_states = nullptr) override {
-
     NOT_IMPLEMENTED
   }
 
-  virtual void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                      Eigen::Ref<Eigen::VectorXd> p) override {
-    // Not sure what to do here
+  void offset(const Eigen::Ref<const Eigen::VectorXd> &xin,
+              Eigen::Ref<Eigen::VectorXd> p) override {
     NOT_IMPLEMENTED;
   }
 
-  virtual size_t get_offset_dim() override {
-    // Not sure what to do here
+  size_t get_offset_dim() override { NOT_IMPLEMENTED; }
+
+  void canonical_state(const Eigen::Ref<const Eigen::VectorXd> &xin,
+                       Eigen::Ref<Eigen::VectorXd> xout) override {
     NOT_IMPLEMENTED;
   }
 
-  virtual void canonical_state(const Eigen::Ref<const Eigen::VectorXd> &xin,
-                               Eigen::Ref<Eigen::VectorXd> xout) override {
-    // Not sure what to do here
+  void transform_state(const Eigen::Ref<const Eigen::VectorXd> &p,
+                       const Eigen::Ref<const Eigen::VectorXd> &xin,
+                       Eigen::Ref<Eigen::VectorXd> xout) override {
     NOT_IMPLEMENTED;
   }
 
-  virtual void transform_state(const Eigen::Ref<const Eigen::VectorXd> &p,
-                               const Eigen::Ref<const Eigen::VectorXd> &xin,
-                               Eigen::Ref<Eigen::VectorXd> xout) override {
-    // Not sure what to do here
-    NOT_IMPLEMENTED;
-  }
+  void calcV(Eigen::Ref<Eigen::VectorXd> f,
+             const Eigen::Ref<const Eigen::VectorXd> &x,
+             const Eigen::Ref<const Eigen::VectorXd> &u) override;
 
-  virtual void calcV(Eigen::Ref<Eigen::VectorXd> f,
-                     const Eigen::Ref<const Eigen::VectorXd> &x,
-                     const Eigen::Ref<const Eigen::VectorXd> &u) override;
+  void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
+                 Eigen::Ref<Eigen::MatrixXd> Jv_u,
+                 const Eigen::Ref<const Eigen::VectorXd> &x,
+                 const Eigen::Ref<const Eigen::VectorXd> &u) override;
 
-  virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
-                         Eigen::Ref<Eigen::MatrixXd> Jv_u,
-                         const Eigen::Ref<const Eigen::VectorXd> &x,
-                         const Eigen::Ref<const Eigen::VectorXd> &u) override;
+  void step(Eigen::Ref<Eigen::VectorXd> xnext,
+            const Eigen::Ref<const Eigen::VectorXd> &x,
+            const Eigen::Ref<const Eigen::VectorXd> &u,
+            double dt) override;
 
-  virtual void step(Eigen::Ref<Eigen::VectorXd> xnext,
-                    const Eigen::Ref<const Eigen::VectorXd> &x,
-                    const Eigen::Ref<const Eigen::VectorXd> &u,
-                    double dt) override;
+  void stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
+                Eigen::Ref<Eigen::MatrixXd> Fu,
+                const Eigen::Ref<const Eigen::VectorXd> &x,
+                const Eigen::Ref<const Eigen::VectorXd> &u,
+                double dt) override;
 
-  virtual void stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
-                        Eigen::Ref<Eigen::MatrixXd> Fu,
-                        const Eigen::Ref<const Eigen::VectorXd> &x,
-                        const Eigen::Ref<const Eigen::VectorXd> &u,
-                        double dt) override;
+  double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+                  const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                          const Eigen::Ref<const Eigen::VectorXd> &y) override;
+  void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  virtual void sample_uniform(Eigen::Ref<Eigen::VectorXd> x) override;
+  void interpolate(Eigen::Ref<Eigen::VectorXd> xt,
+                   const Eigen::Ref<const Eigen::VectorXd> &from,
+                   const Eigen::Ref<const Eigen::VectorXd> &to,
+                   double dt) override;
 
-  virtual void interpolate(Eigen::Ref<Eigen::VectorXd> xt,
-                           const Eigen::Ref<const Eigen::VectorXd> &from,
-                           const Eigen::Ref<const Eigen::VectorXd> &to,
-                           double dt) override;
-
-  virtual void transformation_collision_geometries(
+  void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,
       std::vector<Transform3d> &ts) override;
 
-  virtual double
-  lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
-                   const Eigen::Ref<const Eigen::VectorXd> &y) override;
+  double lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
+                          const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  virtual double
-  lower_bound_time_pr(const Eigen::Ref<const Eigen::VectorXd> &x,
-                      const Eigen::Ref<const Eigen::VectorXd> &y) override;
+  double lower_bound_time_pr(const Eigen::Ref<const Eigen::VectorXd> &x,
+                             const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  virtual void collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
-                                  CollisionOut &cout) override;
+  void collision_distance(const Eigen::Ref<const Eigen::VectorXd> &x,
+                          CollisionOut &cout) override;
 
-  virtual double
-  lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
-                       const Eigen::Ref<const Eigen::VectorXd> &y) override;
+  double lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
+                              const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
   void init_mujoco_viewer() override {
-    if (viewer_ready_) return;          // already done
+    if (viewer_ready_) return;
 
-    mjv_defaultScene  (&scn_);
+    mjv_defaultScene(&scn_);
     mjr_defaultContext(&con_);
-    mjv_defaultCamera (&cam_);
-    mjv_defaultOption (&opt_);
+    mjv_defaultCamera(&cam_);
+    mjv_defaultOption(&opt_);
 
-    mjv_makeScene   (m, &scn_, 2000);
-    mjr_makeContext (m, &con_, mjFONTSCALE_150);
+    // IMPORTANT: use 'm' (the owned model pointer)
+    mjv_makeScene(m, &scn_, 2000);
+    mjr_makeContext(m, &con_, mjFONTSCALE_150);
 
     viewer_ready_ = true;
   };
+
   void render(int w, int h) override {
     if (params.visualize && viewer_ready_) {
-      mjr_render({0,0,w,h}, &scn_, &con_);
+      mjr_render({0, 0, w, h}, &scn_, &con_);
     }
   }
-
 
   void get_cable_slack_and_tension(const Eigen::Ref<const Eigen::VectorXd> &x,
                                    const Eigen::Ref<const Eigen::VectorXd> &u,
@@ -386,5 +396,4 @@ struct Model_MujocoQuadsPayload : Model_robot {
 
   int num_cables() const { return num_cables_; }
 };
-
 } // namespace dynobench
