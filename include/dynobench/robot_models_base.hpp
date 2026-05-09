@@ -23,8 +23,6 @@
 namespace dynobench
 {
 
-  // TODO: try to allocate states and controls together, and see if there is
-  // speedup due to better data locality
   struct TrajWrapper
   {
 
@@ -344,6 +342,12 @@ namespace dynobench
     // const Jcomponent firstsecond = both, const AssignmentOp = setto) const;
   };
 
+  struct geometric_shape {
+    std::string type;
+    Eigen::VectorXd size;
+    double radius;
+  };
+
   struct Model_robot
   {
 
@@ -388,11 +392,6 @@ namespace dynobench
     Eigen::VectorXd x_lb;
     bool uniform_sampling_u = true;
 
-    // virtual int number_of_r_dofs() = 0 ;
-    // virtual int number_of_so2() = 0 ;
-    // virtual void indices_of_so2(int &k, std::vector<size_t> &vect) = 0 ;
-    // virtual int number_of_robot() = 0 ;
-
     virtual int number_of_r_dofs() { NOT_IMPLEMENTED; }
     virtual int number_of_so2() { NOT_IMPLEMENTED; }
     virtual void indices_of_so2(int &k, std::vector<size_t> &vect)
@@ -401,8 +400,6 @@ namespace dynobench
     }
     virtual int number_of_robot() { NOT_IMPLEMENTED; }
 
-    // TODO: transition towards this API. The robot model should include
-    // regularization features/ineqs...
     virtual void regularization_cost(Eigen::Ref<Eigen::VectorXd> r,
                                      const Eigen::Ref<const Eigen::VectorXd> &x,
                                      const Eigen::Ref<const Eigen::VectorXd> &u)
@@ -433,8 +430,6 @@ namespace dynobench
     // State
     std::shared_ptr<StateDyno> state;
 
-    // crocoddyl::StateAbstractTpl> state;
-
     Eigen::VectorXd u_weight;  // For optimization
     Eigen::VectorXd x_weightb; //
 
@@ -449,15 +444,12 @@ namespace dynobench
 
     std::vector<Transform3d> ts_data;   // data
     std::vector<CollisionOut> col_outs; // data
-    //
-    //
-    //
+
+    
+    
     Model_robot() = default;
     Model_robot(std::shared_ptr<StateDyno> state, size_t nu);
 
-    // Returns x_0 for optimization. Can depend on a reference point. Default:
-    // return the ref point. Reasoning: in some systems, it is better to set the
-    // orientation/velocities of x0 to zero
     virtual Eigen::VectorXd get_x0(const Eigen::VectorXd &x) { return x; }
 
     virtual void set_position_ub(const Eigen::Ref<const Eigen::VectorXd> &p_ub)
@@ -560,12 +552,7 @@ namespace dynobench
       NOT_IMPLEMENTED;
     }
 
-    // virtual void stepDiffdt(Eigen::Ref<Eigen::MatrixXd> Fx,
-    //                         Eigen::Ref<Eigen::MatrixXd> Fu,
-    //                         const Eigen::Ref<const Eigen::VectorXd> &x,
-    //                         const Eigen::Ref<const Eigen::VectorXd> &u,
-    //                         double dt);
-
+    
     virtual void stepDiff_with_v(Eigen::Ref<Eigen::MatrixXd> Fx,
                                  Eigen::Ref<Eigen::MatrixXd> Fu,
                                  Eigen::Ref<Eigen::VectorXd> __v,
@@ -573,11 +560,6 @@ namespace dynobench
                                  const Eigen::Ref<const Eigen::VectorXd> &u,
                                  double dt);
 
-    // virtual void stepDiffdtX(Eigen::Ref<Eigen::MatrixXd> Fx,
-    //                          Eigen::Ref<Eigen::MatrixXd> Fu,
-    //                          const Eigen::Ref<const Eigen::VectorXd> &x,
-    //                          const Eigen::Ref<const Eigen::VectorXd> &u,
-    //                          double dt);
 
     virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                            Eigen::Ref<Eigen::MatrixXd> Jv_u,

@@ -64,11 +64,11 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
   std::string dynamics = node["dynamics"].as<std::string>();
   std::cout << STR_(dynamics) << std::endl;
 
-  if (dynamics == "unicycle1") {
+  if (dynamics == "unicycle_first_order") {
     return std::make_unique<Model_unicycle1>(file, p_lb, p_ub);
-  } else if (dynamics == "unicycle1_3d") {
+  } else if (dynamics == "unicycle_first_order_3d") {
     return std::make_unique<Model_unicycle1_3d>(file, p_lb, p_ub);
-  } else if (dynamics == "unicycle2") {
+  } else if (dynamics == "unicycle_second_order") {
     return std::make_unique<Model_unicycle2>(file, p_lb, p_ub);
   } else if (dynamics == "quad2d") {
     return std::make_unique<Model_quad2d>(file, p_lb, p_ub);
@@ -78,29 +78,14 @@ std::unique_ptr<Model_robot> robot_factory(const char *file,
     return std::make_unique<Model_acrobot>(file, p_lb, p_ub);
   } else if (dynamics == "car_with_trailers") {
     return std::make_unique<Model_car_with_trailers>(file, p_lb, p_ub);
-  } else if (dynamics == "car2") {
+  } else if (dynamics == "car_second_order") {
     return std::make_unique<Model_car2>(file, p_lb, p_ub);
-  } else if (dynamics == "quad2dpole") {
-    return std::make_unique<Model_quad2dpole>(file, p_lb, p_ub);
-  } else if (dynamics == "integrator2_2d") {
+  } else if (dynamics == "double_integrator_2d") {
     return std::make_unique<Integrator2_2d>(file, p_lb, p_ub);
-  } else if (dynamics == "integrator2_2d_coupled") {
-    return std::make_unique<Integrator2_2d_coupled>(file, p_lb, p_ub);
-  } else if (dynamics == "integrator1_2d") {
+  } else if (dynamics == "single_integrator") {
     return std::make_unique<Integrator1_2d>(file, p_lb, p_ub);
-  } else if (dynamics == "integrator2_3d") {
-    return std::make_unique<Integrator2_3d>(file, p_lb, p_ub); // use for the conservative residual force
-  } else if (dynamics == "integrator2_3d_res") {
-    return std::make_unique<Integrator2_3d_res>(file, p_lb, p_ub);
-  } else if (dynamics == "integrator2_3d_coupled") {
-    // return std::make_unique<Integrator2_3d_coupled>(file, p_lb, p_ub);
-    return std::make_unique<Integrator2_3d_joint>(file, p_lb, p_ub);
-  } else if (dynamics == "quad3dpayload") {
-    return std::make_unique<Model_quad3dpayload>(file, p_lb, p_ub);
-  } else if (dynamics == "quad3dpayload_point") {
-    return std::make_unique<Model_quad3dpayload_n>(file, p_lb, p_ub);
-  } else if (dynamics == "quad3dpayload_n") {
-    return std::make_unique<Model_quad3dpayload_n>(file, p_lb, p_ub);
+  } else if (dynamics == "double_integrator_3d") {
+    return std::make_unique<Integrator2_3d>(file, p_lb, p_ub);
   } else {
     std::string error = "dynamics: " + dynamics + " not implemented";
     ERROR_WITH_INFO(error);

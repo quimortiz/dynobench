@@ -131,6 +131,7 @@ void inline set_from_yaml(YAML::Node &node, Eigen::VectorXd &v,
   }
 }
 
+ 
 #define SET_FROM_YAML(T)                                                       \
   void inline set_from_yaml(YAML::Node &node, Eigen::Matrix<double, T, 1> &v,  \
                             const char *name) {                                \

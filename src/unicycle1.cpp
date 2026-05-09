@@ -13,14 +13,25 @@ void Unicycle1_params::read_from_yaml(const char *file) {
 }
 
 void Unicycle1_params::read_from_yaml(YAML::Node &node) {
-  set_from_yaml(node, VAR_WITH_NAME(max_vel));
-  set_from_yaml(node, VAR_WITH_NAME(min_vel));
+  set_from_yaml(node, VAR_WITH_NAME(max_speed));
+  set_from_yaml(node, VAR_WITH_NAME(min_speed));
   set_from_yaml(node, VAR_WITH_NAME(max_angular_vel));
   set_from_yaml(node, VAR_WITH_NAME(min_angular_vel));
-  set_from_yaml(node, VAR_WITH_NAME(shape));
+  // shape
+  if (YAML::Node s = node["shape"]) {
+    geom_shape.type = s["type"].as<std::string>();
+    if (geom_shape.type == "box") {
+      std::vector<double> tmp =
+          s["size"].as<std::vector<double>>();
+
+      geom_shape.size =
+          Eigen::Map<Eigen::VectorXd>(tmp.data(), tmp.size());
+
+    } else if (geom_shape.type == "sphere") {
+      geom_shape.radius = s["radius"].as<double>();
+    }
+  }
   set_from_yaml(node, VAR_WITH_NAME(dt));
-  set_from_yaml(node, VAR_WITH_NAME(size));
-  set_from_yaml(node, VAR_WITH_NAME(radius));
   set_from_yaml(node, VAR_WITH_NAME(distance_weights));
 }
 
@@ -53,8 +64,8 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
             << std::endl;
   x_desc = {"x[m]", "y[m]", "yaw[rad]"};
   u_desc = {"v[m/s]", "w[rad/s]"};
-  u_lb << params.min_vel, params.min_angular_vel;
-  u_ub << params.max_vel, params.max_angular_vel;
+  u_lb << params.min_speed, params.min_angular_vel;
+  u_ub << params.max_speed, params.max_angular_vel;
 
   u_0(0) = inside_bounds(u_0(0), u_lb(0), u_ub(0));
   u_0(1) = inside_bounds(u_0(1), u_lb(1), u_ub(1));
@@ -71,12 +82,12 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
   std::cout << STR_V(u_lb) << std::endl;
   std::cout << STR_V(u_ub) << std::endl;
 
-  if (params.shape == "box") {
+  if (params.geom_shape.type == "box") {
     collision_geometries.push_back(
-        std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
-  } else if (params.shape == "sphere") {
+        std::make_shared<fcl::Boxd>(params.geom_shape.size(0), params.geom_shape.size(1), 1.0));
+  } else if (params.geom_shape.type == "sphere") {
     collision_geometries.push_back(
-        std::make_shared<fcl::Sphered>(params.radius));
+        std::make_shared<fcl::Sphered>(params.geom_shape.radius));
   } else {
     ERROR_WITH_INFO("not implemented");
   }
@@ -107,9 +118,6 @@ void Model_unicycle1::calcV(Eigen::Ref<Eigen::VectorXd> v,
                             const Eigen::Ref<const Eigen::VectorXd> &x,
                             const Eigen::Ref<const Eigen::VectorXd> &u) {
 
-  // CHECK_EQ(v.size(), 3, AT);
-  // CHECK_EQ(x.size(), 3, AT);
-  // CHECK_EQ(u.size(), 2, AT);
   DYNO_CHECK_EQ(v.size(), 3, AT);
   DYNO_CHECK_EQ(x.size(), 3, AT);
   DYNO_CHECK_EQ(u.size(), 2, AT);
@@ -171,14 +179,12 @@ void Model_unicycle1::interpolate(Eigen::Ref<Eigen::VectorXd> xt,
 double
 Model_unicycle1::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                   const Eigen::Ref<const Eigen::VectorXd> &y) {
-  double max_vel_abs =
-      std::max(std::abs(params.max_vel), std::abs(params.min_vel));
+  double max_speed_abs =
+      std::max(std::abs(params.max_speed), std::abs(params.min_speed));
   double max_angular_vel_abs = std::max(std::abs(params.max_angular_vel),
                                         std::abs(params.min_angular_vel));
-  // return std::max((x.head<2>() - y.head<2>()).norm() / max_vel_abs,
-  //                 so2_distance(x(2), y(2)) / max_angular_vel_abs);
-  return ((x.head<2>() - y.head<2>()).norm() / max_vel_abs) + (so2_distance(x(2), y(2)) / max_angular_vel_abs);
+  return ((x.head<2>() - y.head<2>()).norm() / max_speed_abs) + (so2_distance(x(2), y(2)) / max_angular_vel_abs);
 
 }
 
-} // namespace dynobench
+}
