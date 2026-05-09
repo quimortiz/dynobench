@@ -41,7 +41,29 @@ struct MultiRobotTrajectory {
   }
 
   std::vector<dynobench::Trajectory> trajectories;
+  // Compute total control effort (sum of squared L2 norms of actions)
+  double get_control_effort() {
+    double effort = 0.0;
 
+    for (const auto& traj : trajectories) {
+      for (const auto& u : traj.actions) {
+        effort += u.squaredNorm();  // or u.norm() if you prefer L1-like aggregation
+      }
+    }
+
+    return effort;
+  }
+
+  /// Compute makespan as the maximum trajectory length (in steps)
+  size_t get_makespan_steps() {
+    size_t makespan = 0;
+
+    for (const auto& traj : trajectories) {
+      makespan = std::max(makespan, traj.states.size());
+    }
+    return makespan;
+  }
+  
   bool is_empty()
   {
     for (const auto &traj : trajectories)
