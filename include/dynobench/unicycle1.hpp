@@ -71,7 +71,7 @@ struct Unicycle1_params {
   double max_angular_vel = .5;
   double min_angular_vel = -.5;
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
-  Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
+  Eigen::VectorXd distance_weights = Eigen::Vector2d(1, .5);
   geometric_shape geom_shape;
   std::string shape;
   double radius = 0.1;
