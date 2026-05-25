@@ -2,7 +2,6 @@ import msgpack
 import viewer_cli
 import matplotlib.pyplot as plt
 
-
 # small script to load and display primitives
 
 # file = "../../envs/unicycle1_v0/motions/unicycle1_v0__ispso__2023_04_03__14_56_57.bin.im.bin.im.bin.small.msgpack"

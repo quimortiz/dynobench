@@ -12,7 +12,6 @@ sys.path.append(str(parent_dir))
 import sympy as sp
 from sympy.codegen.rewriting import create_expand_pow_optimization
 
-
 expand_opt = create_expand_pow_optimization(2)
 
 from helper import *
@@ -578,8 +577,7 @@ def writePython(step, num_uavs, payloadType):
         + "def step2(state, u, params, dt):"
         + "\n"
     )
-    stPr = (
-        r"""
+    stPr = r"""
     num_uavs, payloadType, m, Ji, mp, Jp, l, t2t, arm_length, dt, B = params
     J_vx = []
     J_vy = []
@@ -603,9 +601,7 @@ def writePython(step, num_uavs, payloadType):
         for i in range(0,7*num_uavs, 7):
             q.append(quatsws[i:i+4].tolist())
             w.append(quatsws[i+4:i+7].tolist())
-"""
-        + "\n"
-    )
+""" + "\n"
     step_func = "    step_next = np.empty({},)\n".format(step.rows)
 
     for i in range(step.rows):

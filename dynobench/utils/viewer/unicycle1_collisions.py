@@ -1,7 +1,6 @@
 import unicycle1_viewer
 import matplotlib.pyplot as plt
 
-
 viewer = unicycle1_viewer.Unicycle1Viewer()
 
 
