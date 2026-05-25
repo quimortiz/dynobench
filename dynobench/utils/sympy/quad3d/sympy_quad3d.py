@@ -223,9 +223,7 @@ def computeandWritef(state, action, params):
                                 auto const &J_v = params.J_v;"""
 
     calcV_linAcc = """      Eigen::Vector3d a({}, {}, {});
-        """.format(
-        sp.ccode(f[7]), sp.ccode(f[8]), sp.ccode(f[9])
-    )
+        """.format(sp.ccode(f[7]), sp.ccode(f[8]), sp.ccode(f[9]))
 
     calcV_assignment_ff = """        ff.head<3>() = vel;
                                          Eigen::Vector4d quat_dot({}, {}, {}, {});

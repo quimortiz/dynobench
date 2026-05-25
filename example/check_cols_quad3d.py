@@ -6,14 +6,12 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import sys
 
-
 sys.path.append(str(Path(__file__).parent.parent / "utils"))
 
 
 print(sys.path)
 
 from viewer.quad3d_viewer import Quad3dViewer
-
 
 env_file = "../envs/quadrotor_v0/quad_one_obs.yaml"
 
