@@ -1,6 +1,3 @@
-// #include "pinocchio/math/fwd.hpp"
-// #include "pinocchio/multibody/liegroup/liegroup.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -14,15 +11,9 @@
 #include <yaml-cpp/node/node.h>
 #include <yaml-cpp/node/parse.h>
 #include <yaml-cpp/yaml.h>
-
 #include "Eigen/Core"
-#include "dynobench/dyno_macros.hpp"
 
 #include <fcl/fcl.h>
-
-#include "dynobench/general_utils.hpp"
-#include "dynobench/math_utils.hpp"
-#include "dynobench/robot_models.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "fcl/broadphase/broadphase_dynamic_AABB_tree.h"
 #include "fcl/broadphase/default_broadphase_callbacks.h"
@@ -30,7 +21,12 @@
 #include "fcl/geometry/shape/sphere.h"
 #include "fcl/geometry/shape/ellipsoid.h"
 
+#include "dynobench/dyno_macros.hpp"
+#include "dynobench/general_utils.hpp"
+#include "dynobench/math_utils.hpp"
+#include "dynobench/robot_models.hpp"
 #include "dynobench/motions.hpp"
+
 #include <boost/archive/binary_iarchive.hpp>
 #include <boost/archive/binary_oarchive.hpp>
 #include <boost/histogram.hpp>
@@ -50,9 +46,6 @@ using V3d = Eigen::Vector3d;
 using V4d = Eigen::Vector4d;
 using Vxd = Eigen::VectorXd;
 using V1d = Eigen::Matrix<double, 1, 1>;
-
-// using namespace pinocchio;
-// using namespace crocoddyl;
 
 void Trajectory::read_from_yaml(const YAML::Node &node) {
 
@@ -152,9 +145,6 @@ void Trajectory::to_yaml_format_short(std::ostream &out,
   out << prefix << "states:" << std::endl;
   out << prefix << "  - " << states.at(0).format(FMT) << std::endl;
 
-  // out << prefix << "num_actions: " << actions.size() << std::endl;
-  // out << prefix << "actions:" << std::endl;
-  // out << prefix << "  - " << actions.at(0).format(FMT) << std::endl;
 };
 
 void Trajectory::update_feasibility(const Feasibility_thresholds &thresholds,
@@ -273,61 +263,45 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   p_ub = Eigen::Map<Eigen::VectorXd>(&max_.at(0), max_.size());
 
   // parse static obstacles anyway
-  if (env["environment"]["obstacles"]){
-    for (const auto &obs : env["environment"]["obstacles"] ) {
-      std::vector<double> size_ = obs["size"].as<std::vector<double>>();
-      Vxd size = Vxd::Map(size_.data(), size_.size());
-      auto obs_type = obs["type"].as<std::string>();
-      std::string octomap_filename;
-      if (obs_type == "octomap") {
-        octomap_filename = obs["octomap_file"].as<std::string>();
-      }
+  if (env["environment"]["obstacles"]) {
+    for (const auto &obs : env["environment"]["obstacles"]) {
 
       std::vector<double> center_ = obs["center"].as<std::vector<double>>();
       Vxd center = Vxd::Map(center_.data(), center_.size());
+      auto shape = obs["shape"];
+      std::string shape_type = shape["type"].as<std::string>();
 
-      obstacles.push_back(Obstacle{.type = obs_type,
-                                    .octomap_file = octomap_filename,
-                                    .size = size,
-                                    .center = center});
-    }
-  }
+      Vxd size; // used for box
+      double radius = 0.0;
+      std::string octomap_filename;
 
-  // check if the environment has moving obstacles
-  bool contains_moving_obstacles = false;
-  if (env["environment"]["moving_obstacles"]) {
-    contains_moving_obstacles = true;
-    std::cout << "contains moving obstacles" << std::endl;
-
-    for (const auto &obstacles : env["environment"]["moving_obstacles"]) {
-
-      std::vector<Obstacle> _obstacles;
-      for (const auto &obs : obstacles ) {
-        std::vector<double> size_ = obs["size"].as<std::vector<double>>();
-        Vxd size = Vxd::Map(size_.data(), size_.size());
-
-        auto obs_type = obs["type"].as<std::string>();
-        std::string octomap_filename;
-        if (obs_type == "octomap") {
-          octomap_filename = obs["octomap_file"].as<std::string>();
-        }
-
-        std::vector<double> center_ = obs["center"].as<std::vector<double>>();
-        Vxd center = Vxd::Map(center_.data(), center_.size());
-
-        _obstacles.push_back(Obstacle{.type = obs_type,
-                                      .octomap_file = octomap_filename,
-                                      .size = size,
-                                      .center = center});
+      if (shape_type == "box") {
+        std::vector<double> size_ = shape["size"].as<std::vector<double>>();
+        size = Vxd::Map(size_.data(), size_.size());
       }
-      time_varying_obstacles.push_back(_obstacles);
+      else if (shape_type == "sphere") {
+        radius = shape["radius"].as<double>();
+      }
+      else if (shape_type == "octomap") {
+        octomap_filename = shape["octomap_file"].as<std::string>();
+      }
+      else {
+        throw std::runtime_error("Unknown obstacle shape type: " + shape_type);
+      }
+
+      obstacles.push_back(Obstacle{
+        .type = shape_type,
+        .octomap_file = octomap_filename,
+        .size = size,
+        .radius = radius,
+        .center = center
+      });
     }
   }
 
   robotType = env["robots"][0]["type"].as<std::string>();
-
-  if (startsWith(robotType, "quad3d") &&
-      !startsWith(robotType, "quad3dpayload")) {
+  std::cout << "robot type: " << robotType << std::endl;
+  if (startsWith(robotType, "quad3d")) {
     start.segment<4>(3).normalize();
     goal.segment<4>(3).normalize();
   }
@@ -449,8 +423,6 @@ double check_trajectory(const std::vector<Vxd> &xs_out,
 
     model->step(xnext, x, u, dt(i));
 
-    // CSTR_V(xnext);
-    // CSTR_V(xs_out.at(i + 1));
     double jump = model->distance(xnext, xs_out.at(i + 1));
     if (jump > 1e-3 && verbose) {
       std::cout << "jump of " << jump << std::endl;
@@ -717,6 +689,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
     auto &obs_type = obs.type;
     auto &size = obs.size;
     auto &center = obs.center;
+    auto &radius = obs.radius;
 
     if (obs_type == "box") {
       std::shared_ptr<fcl::CollisionGeometryd> geom;
@@ -729,7 +702,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
       robot.obstacles.push_back(co);
     } else if (obs_type == "sphere") {
       std::shared_ptr<fcl::CollisionGeometryd> geom;
-      geom.reset(new fcl::Sphered(size(0)));
+      geom.reset(new fcl::Sphered(radius));
       auto co = new fcl::CollisionObjectd(geom);
       co->setTranslation(fcl::Vector3d(
           center(0), center(1), center.size() == 3 ? center(2) : ref_pos));
@@ -961,9 +934,7 @@ make_componentwise_histogram(const std::vector<Eigen::VectorXd> &states) {
         ::boost::histogram::make_histogram(::boost::histogram::axis::regular<>(
             num_bins, min_, max_, "x" + std::to_string(i)));
 
-    // CSTR_(h.size());
     std::for_each(xi.begin(), xi.end(), std::ref(h));
-    // CSTR_(h.size());
 
     std::vector<Bin> bins;
     for (auto &&x : indexed(h, ::boost::histogram::coverage::all)) {

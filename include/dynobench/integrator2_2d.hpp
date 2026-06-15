@@ -29,22 +29,20 @@ struct Integrator2_2d_params {
 
   Integrator2_2d_params() = default;
 
-  // time step for discrete-time dynamics
-  double dt = .1;
-
   // Control and state bounds
-  double max_vel = 1;
-  double max_acc = 1;
-
+  Eigen::Vector2d max_vel;
+  Eigen::Vector2d min_vel;
+  Eigen::Vector2d max_acc;
+  Eigen::Vector2d min_acc;
+  geometric_shape geom_shape;
+  double dt = .1;
   // filenam used to load the paratemers, it is set by read_from_yaml
   std::string filename = "";
-
   // shape for collision
-  std::string shape = "box";
-  double radius = 0.1;
+  std::string shape;
+  double radius;
   // For computing distance between states
-  Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
-
+  Eigen::VectorXd distance_weights;
   // Size for collision shape
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
 
