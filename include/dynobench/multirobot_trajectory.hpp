@@ -61,7 +61,7 @@ struct MultiRobotTrajectory {
     for (const auto& traj : trajectories) {
       makespan = std::max(makespan, traj.states.size());
     }
-    return makespan;
+    return makespan * 0.1; // dt
   }
   
   bool is_empty()
