@@ -55,7 +55,7 @@ struct MultiRobotTrajectory {
   }
 
   /// Compute makespan as the maximum trajectory length (in steps)
-  size_t get_makespan_steps() {
+  double get_makespan_steps() {
     size_t makespan = 0;
 
     for (const auto& traj : trajectories) {
