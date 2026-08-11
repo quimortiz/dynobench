@@ -47,7 +47,7 @@ struct MultiRobotTrajectory {
 
     for (const auto& traj : trajectories) {
       for (const auto& u : traj.actions) {
-        effort += u.squaredNorm();  // or u.norm() if you prefer L1-like aggregation
+        effort += u.norm();  // u.squaredNorm();
       }
     }
 
