@@ -268,19 +268,19 @@ void Problem::read_from_yaml(const YAML::Node &env) {
   p_lb = Eigen::Map<Eigen::VectorXd>(&min_.at(0), min_.size());
   p_ub = Eigen::Map<Eigen::VectorXd>(&max_.at(0), max_.size());
 
-  // parse static obstacles anyway
+  // parse static obstacles anyway - circular only
   if (env["environment"]["obstacles"]){
     for (const auto &obs : env["environment"]["obstacles"] ) {
-      std::vector<double> size_ = obs["size"].as<std::vector<double>>();
-      Vxd size = Vxd::Map(size_.data(), size_.size());
+      Eigen::VectorXd size_(1);
+      size_(0) = obs["size"].as<double>();
       auto obs_type = obs["type"].as<std::string>();
-
+      std::string octomap_filename;
       std::vector<double> center_ = obs["center"].as<std::vector<double>>();
       Vxd center = Vxd::Map(center_.data(), center_.size());
 
       obstacles.push_back(Obstacle{.type = obs_type,
-                                    .file_name = "",
-                                    .size = size,
+                                    .octomap_file = octomap_filename,
+                                    .size = size_,
                                     .center = center});
     }
   }
@@ -715,7 +715,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
                                        size.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
       robot.obstacles.push_back(co);
-    } else if (obs_type == "sphere") {
+    } else if (obs_type == "circular") {
       std::shared_ptr<fcl::CollisionGeometryd> geom;
       geom.reset(new fcl::Sphered(size(0)));
       auto co = new fcl::CollisionObjectd(geom);
