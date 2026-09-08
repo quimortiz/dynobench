@@ -304,7 +304,7 @@ void Problem::read_from_yaml(const YAML::Node &env) {
         Vxd center = Vxd::Map(center_.data(), center_.size());
 
         _obstacles.push_back(Obstacle{.type = obs_type,
-                                      .file_name = "",
+                                      .octomap_file = "",
                                       .size = size,
                                       .center = center});
       }

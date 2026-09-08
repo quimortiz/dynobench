@@ -150,7 +150,7 @@ namespace dynobench
   struct Obstacle
   {
     std::string type;
-    std::string file_name;
+    std::string octomap_file;
     Eigen::VectorXd size;
     Eigen::VectorXd center;
   };
