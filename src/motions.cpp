@@ -715,6 +715,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
                                        size.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
       robot.obstacles.push_back(co);
+
     } else if (obs_type == "circular") {
       std::shared_ptr<fcl::CollisionGeometryd> geom;
       geom.reset(new fcl::Sphered(size(0)));
@@ -722,6 +723,7 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->setTranslation(fcl::Vector3d(
           center(0), center(1), center.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
+
       robot.obstacles.push_back(co);
     } else if (obs_type == "ellipsoid") {
       std::shared_ptr<fcl::CollisionGeometryd> geom;
@@ -730,8 +732,19 @@ void load_env(Model_robot &robot, const Problem &problem) {
       co->setTranslation(fcl::Vector3d(
           center(0), center(1), center.size() == 3 ? center(2) : ref_pos));
       co->computeAABB();
+
       robot.obstacles.push_back(co);
-    } 
+    } else if (obs_type == "cylindrical") {
+        std::shared_ptr<fcl::CollisionGeometryd> geom;
+        geom.reset(new fcl::Cylinderd(size(0), 6.0));
+
+        auto co = new fcl::CollisionObjectd(geom);
+        co->setTranslation(
+            fcl::Vector3d(center(0), center(1), ref_pos));
+        co->computeAABB();
+
+        robot.obstacles.push_back(co);
+    }
      else {
       throw std::runtime_error("Unknown obstacle type! --" + obs_type);
     }
