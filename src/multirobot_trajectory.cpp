@@ -10,9 +10,6 @@ void from_joint_to_indiv_trajectory_meta(
     MultiRobotTrajectory &solution_multi_robot, // output, can be initialized with parallel_opt
     const std::vector<int> &times) {
 
-  // std::vector<int> nxs = solution_multi_robot.get_nxs(); // set already
-  // std::vector<int> nus = solution_multi_robot.get_nus();
-
   DYNO_CHECK_EQ(nxs.size(), nus.size(), "");
   DYNO_CHECK_EQ(nxs.size(), times.size(), "");
 
@@ -52,8 +49,6 @@ void from_joint_to_indiv_trajectory_meta(
               traj.actions.at(k).segment(nus_accumulated.at(j), nus.at(i)));
       }
 
-      // std::cout << "updating the solution for: " << i << std::endl;
-      // std::cout << "states before: " << solution_multi_robot.trajectories.at(i).states.size() << std::endl;
       solution_multi_robot.trajectories.at(i).states.resize(traj_out.states.size());
       solution_multi_robot.trajectories.at(i).actions.resize(traj_out.actions.size());
       solution_multi_robot.trajectories.at(i) = traj_out;

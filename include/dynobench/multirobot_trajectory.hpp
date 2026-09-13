@@ -144,7 +144,62 @@ struct MultiRobotTrajectory {
       traj.cost = static_cast<double>(traj.actions.size());
     }
   }
+// check for vel, acc magnitude
+  bool sanity_check() const
+  {
+    const double tol = 1e-9;
 
+    for (const auto &traj : trajectories)
+    {
+      if (traj.states.empty())
+        return false;
+
+      const int state_dim = traj.states.front().size();
+
+      if (state_dim != 4 && state_dim != 6)
+        return false;
+
+      const int dim = state_dim / 2;
+      const double max_vel = (dim == 2) ? 0.5 : 5.0; // hard-coded
+      const double max_acc = (dim == 2) ? 2.0 : 10.0; // hard-coded
+
+      // There should be one more state than action.
+      if (traj.states.size() != traj.actions.size() + 1)
+        return false;
+
+      for (size_t i = 0; i < traj.actions.size(); ++i)
+      {
+        const auto &u = traj.actions[i];
+        const auto &x = traj.states[i + 1];
+
+        // Acceleration magnitude
+        const double acc_mag = u.norm();
+
+        if (acc_mag > max_acc + tol)
+        {
+          std::cout << "SANITY CHECK FAILED: acceleration bound\n";
+          std::cout << "  t: " << i << "\n";
+          std::cout << "  acceleration magnitude: " << acc_mag << "\n";
+          std::cout << "  max acceleration: " << max_acc << "\n";
+          return false;
+        }
+
+        // Velocity magnitude
+        const double vel_mag = x.tail(dim).norm();
+
+        if (vel_mag > max_vel + tol)
+        {
+          std::cout << "SANITY CHECK FAILED: velocity bound\n";
+          std::cout << "  t: " << i + 1 << "\n";
+          std::cout << "  velocity magnitude: " << vel_mag << "\n";
+          std::cout << "  max velocity: " << max_vel << "\n";
+          return false;
+        }
+      }
+    }
+    return true;
+  }
+  
   dynobench::Trajectory transform_to_joint_trajectory() {
 
     dynobench::Trajectory joint_trajectory;

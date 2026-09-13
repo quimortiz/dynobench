@@ -27,10 +27,8 @@ void Integrator2_2d_params::read_from_yaml(const char *file) {
 }
 
 void Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
-  set_from_yaml(node, VAR_WITH_NAME(max_vel));
-  set_from_yaml(node, VAR_WITH_NAME(min_vel));
-  set_from_yaml(node, VAR_WITH_NAME(max_acc));
-  set_from_yaml(node, VAR_WITH_NAME(min_acc));
+  set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
+  set_from_yaml(node, VAR_WITH_NAME(acc_magnitude));
   // shape
   if (YAML::Node s = node["shape"]) {
     geom_shape.type = s["type"].as<std::string>();
@@ -56,10 +54,6 @@ void Integrator2_2d_params::write(std::ostream &out) {
 
   out << be << STR(shape, af) << std::endl;
   out << be << STR(dt, af) << std::endl;
-  out << be << STR(max_vel, af) << std::endl;
-  out << be << STR(min_vel, af) << std::endl;
-  out << be << STR(max_acc, af) << std::endl;
-  out << be << STR(min_acc, af) << std::endl;
   out << be << STR(distance_weights, af) << std::endl;
   out << be << STR(filename, af) << std::endl;
 }
@@ -84,15 +78,7 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
   distance_weights = params.distance_weights; // necessary for ompl wrapper
   name = "Integrator2_2d";
 
-  // dt for time-discretization
   ref_dt = params.dt;
-
-  // bound on state and control (x, y components)
-  u_lb << params.min_acc(0), params.min_acc(1);
-  u_ub << params.max_acc(0), params.max_acc(1);
-
-  x_lb << low__, low__, params.min_vel(0), params.min_vel(1);
-  x_ub << max__, max__, params.max_vel(0), params.max_vel(1);
 
   u_weight << 1., 1.;
   x_weightb << 100, 100, 100, 100;
@@ -115,12 +101,13 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
   }
 }
 int Integrator2_2d::number_of_r_dofs() { return 4; }
+
 double Integrator2_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
   std::array<double, 2> maxs = {
-      (x.head<2>() - y.head<2>()).norm() / params.max_vel.norm(),
-      (x.tail<2>() - y.tail<2>()).norm() / params.max_acc.norm()};
+      (x.head<2>() - y.head<2>()).norm() / params.vel_max,
+      (x.tail<2>() - y.tail<2>()).norm() / params.acc_max};
 
   return *std::max_element(maxs.begin(), maxs.end());
 }
@@ -132,20 +119,19 @@ void Integrator2_2d::set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) {
 double Integrator2_2d::lower_bound_time_vel(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
-  return (x.tail<2>() - y.tail<2>()).norm() / params.max_acc.norm();
+  return (x.tail<2>() - y.tail<2>()).norm() / params.acc_max;
 }
 
 double Integrator2_2d::lower_bound_time_pr(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  return (x.head<2>() - y.head<2>()).norm() / params.max_acc.norm();
+  return (x.head<2>() - y.head<2>()).norm() / params.acc_max;
 }
 
 double Integrator2_2d::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  // assert(distance_weights.size() == 2);
   return params.distance_weights(0) * (x.head<2>() - y.head<2>()).norm() +
          params.distance_weights(2) * (x.tail<2>() - y.tail<2>()).norm();
 };
