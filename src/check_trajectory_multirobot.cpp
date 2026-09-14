@@ -49,10 +49,6 @@ int main(int argc, char *argv[]) {
   problem.read_from_yaml(env_file.c_str());
   problem.models_base_path = models_base_path;
 
-  // std::shared_ptr<Model_robot> robot = robot_factory(
-  //     (problem.models_base_path + problem.robotType + ".yaml").c_str());
-  // load_env(*robot, problem);
-
   Trajectory traj;
 
   MultiRobotTrajectory multirobot_traj;
@@ -61,11 +57,6 @@ int main(int argc, char *argv[]) {
   traj = multirobot_traj.transform_to_joint_trajectory();
   traj.start = problem.start;
   traj.goal = problem.goal;
-
-  // "double_integrator_0",
-  // "unicycle_first_order_0",
-  // "single_integrator_0",
-  // "car_first_order_with_1_trailers_0"
 
   std::cout << "robot types are " << std::endl;
 

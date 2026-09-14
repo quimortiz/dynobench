@@ -30,10 +30,10 @@ struct Integrator2_2d_params {
   Integrator2_2d_params() = default;
 
   // Control and state bounds
-  double vel_magnitude = 0.5;
+  double vel_magnitude = 5.0;
   double acc_magnitude = 2.0;
   // same as magnitude values
-  double vel_max = 0.5;
+  double vel_max = 5.0;
   double acc_max = 2.0;
 
   geometric_shape geom_shape;
@@ -42,9 +42,9 @@ struct Integrator2_2d_params {
   std::string filename = "";
   // shape for collision
   std::string shape;
-  double radius;
+  double radius = 0.25;
   // For computing distance between states
-  Eigen::VectorXd distance_weights = Eigen::Vector2d(.5, .25);
+  Eigen::VectorXd distance_weights = Eigen::Vector2d(1, .5);
   // Size for collision shape
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
 

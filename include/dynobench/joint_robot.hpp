@@ -31,6 +31,7 @@ struct Joint_robot : Model_robot {
   Eigen::Vector3d large_radii = Eigen::Vector3d(.12, .12, .45); // from tro paper
   float fa_next;
   std::vector<int> nxs;
+  std::vector<int> nus;
 
   std::shared_ptr<fcl::BroadPhaseCollisionManagerd> col_mng_robots_;
 

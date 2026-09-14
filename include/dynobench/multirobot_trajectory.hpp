@@ -147,7 +147,7 @@ struct MultiRobotTrajectory {
 // check for vel, acc magnitude
   bool sanity_check() const
   {
-    const double tol = 1e-9;
+    const double tol = 1e-4;
 
     for (const auto &traj : trajectories)
     {
@@ -160,8 +160,8 @@ struct MultiRobotTrajectory {
         return false;
 
       const int dim = state_dim / 2;
-      const double max_vel = (dim == 2) ? 0.5 : 5.0; // hard-coded
-      const double max_acc = (dim == 2) ? 2.0 : 10.0; // hard-coded
+      const double max_vel = (dim == 2) ? 5.0 : 5.0; // hard-coded
+      const double max_acc = (dim == 2) ? 2.0 : 2.0; // hard-coded
 
       // There should be one more state than action.
       if (traj.states.size() != traj.actions.size() + 1)

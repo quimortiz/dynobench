@@ -80,6 +80,13 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
 
   ref_dt = params.dt;
 
+  // bound on state and control - square. Optimization will enforce a disk constraint
+  u_lb << -params.acc_max, -params.acc_max;
+  u_ub << params.acc_max, params.acc_max;
+
+  x_lb << low__, low__, -params.vel_max, -params.vel_max;
+  x_ub << max__, max__, params.vel_max, params.vel_max;
+
   u_weight << 1., 1.;
   x_weightb << 100, 100, 100, 100;
 

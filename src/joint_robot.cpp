@@ -80,7 +80,6 @@ Joint_robot::Joint_robot(
   if (!all_equal) {
     throw std::runtime_error("Warning: the robots have different dt");
   }
-  residual_force = is_residual;
   conservative = is_conservative;
   ref_dt = first_dt;
 
@@ -92,20 +91,11 @@ Joint_robot::Joint_robot(
   int k_u = 0, k_x = 0;
   for (auto &robot : jointRobot) {
     nxs.push_back(robot->nx);
+    nus.push_back(robot->nu);
     total_nxs += robot->nx;
 
     x_desc.insert(x_desc.end(), robot->x_desc.begin(), robot->x_desc.end());
     u_desc.insert(u_desc.end(), robot->u_desc.begin(), robot->u_desc.end());
-
-    size_t size_u = robot->u_lb.size();
-    u_lb.segment(k_u, size_u) = robot->u_lb;
-    u_ub.segment(k_u, size_u) = robot->u_ub;
-    k_u += size_u;
-
-    size_t size_x = robot->x_ub.size();
-    x_lb.segment(k_x, size_x) = robot->x_lb;
-    x_ub.segment(k_x, size_x) = robot->x_ub;
-    k_x += size_x;
 
     collision_geometries.insert(collision_geometries.end(),
                                 robot->collision_geometries.begin(),
@@ -172,30 +162,6 @@ void Joint_robot::calcV(Eigen::Ref<Eigen::VectorXd> v,
     k_v += size_nx;
     k_x += size_nx;
     k_u += size_nu;
-  }
-  // get f_res_dot as (f_res_next - f_res)/ ref_dt. It needs v to be computed already for the NN(x_next)
-  if(residual_force){
-    // get x_next = x + v*dt
-    std::vector<Eigen::VectorXd> ind_x; // x
-    from_joint_to_ind(x, ind_x);
-
-    std::vector<Eigen::VectorXd> ind_v; // x_dot/v, updates
-    from_joint_to_ind(v, ind_v);
-
-    size_t i = 0;
-    k_v = 0, k_x = 0;
-    for (auto &robot : v_jointRobot) {
-      size_nx = robot->nx;
-      fa_next = calcFaNext(/*idx*/i, ind_x, ind_v, v_jointRobot, ref_dt); // only last element needs to be updated with NN
-      // update the last element of v
-      Eigen::VectorXd segment = v.segment(k_v, size_nx);
-      float fa = x.segment(k_x, size_nx)(size_nx - 1); // last element of the state - f
-      segment(segment.size() - 1) = (fa_next - fa);
-      v.segment(k_v, size_nx) = segment; // update the x_dot to return
-      k_v += size_nx;
-      k_x += size_nx;
-      ++i; // keep track of robots
-    }
   }
 }
 
@@ -275,9 +241,6 @@ void Joint_robot::transformation_collision_geometries(
   for (auto &robot : v_jointRobot) {
     size_nx = robot->nx;
     size_ts = 1;
-    if (robot->name == "car_with_trailers") {
-      size_ts = 2;
-    }
     std::vector<Transform3d> tmp_ts(size_ts);
     robot->transformation_collision_geometries(x.segment(k_x, size_nx), tmp_ts);
     k_x += size_nx;
@@ -418,41 +381,6 @@ void Joint_robot::__collision_distance_soft(
     std::cout << "no _env in collision_distance, max" << std::endl;
     cout.distance = max__;
   }
-}
-// for the residuals. It assumes integrator2_3d with (x,y,z,vx,vy,vz)
-float Joint_robot::calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all, std::vector<std::shared_ptr<Model_robot>> &all_robots, double dt){
-  bool run_nn = false;
-  Eigen::VectorXd x_next = x_all.at(idx) + v_all.at(idx)*dt;
-  nn_reset();
-  for(size_t j = 0; j < x_all.size(); j++){
-    if(j != idx){ // all neighbors, except the robot itself
-      Eigen::VectorXd x_neighbor_next = x_all.at(j) + v_all.at(j)*dt;
-      auto dist = x_next.head<6>() - x_neighbor_next.head<6>(); // only pos, velocity
-      if(abs(dist(0)) < 0.2 && abs(dist(1)) < 0.2 && abs(dist(2)) < 1.5){
-        run_nn = true;
-        float input[6] = {static_cast<float>(dist(0)),
-                          static_cast<float>(dist(1)),
-                          static_cast<float>(dist(2)),
-                          static_cast<float>(dist(3)),
-                          static_cast<float>(dist(4)),
-                          static_cast<float>(dist(5))};
-        const auto nnType = (all_robots[j]->large_type == true)
-                      ? NN_ROBOT_LARGE
-                      : NN_ROBOT_SMALL;
-        nn_add_neighbor(input, nnType);
-      }
-    }
-  }
-  if(run_nn){
-    // all neighbors are added
-    const auto selfType = (all_robots[idx]->large_type == true)
-                ? NN_ROBOT_LARGE
-                : NN_ROBOT_SMALL;
-    const float *rhoOutput = nn_eval(selfType); // in grams
-    return rhoOutput[0] / 1000 * 9.81;// in Newtons;
-  }
-  else
-    return 0;
 }
 
 // get each robot's state separately and saves in y
