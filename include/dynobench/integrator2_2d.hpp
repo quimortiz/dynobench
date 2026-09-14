@@ -30,10 +30,10 @@ struct Integrator2_2d_params {
   Integrator2_2d_params() = default;
 
   // Control and state bounds
-  double vel_magnitude = 5.0;
+  double vel_magnitude = 0.5; // 5.
   double acc_magnitude = 2.0;
   // same as magnitude values
-  double vel_max = 5.0;
+  double vel_max = 0.5; // 5.
   double acc_max = 2.0;
 
   geometric_shape geom_shape;

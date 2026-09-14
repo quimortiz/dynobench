@@ -362,7 +362,7 @@ double check_x_bounds(const std::vector<Vxd> &xs_out,
   CHECK(model, AT);
 
   double max_out = 0.0;
-  const double max_speed = 5.0;
+  const double max_speed = 0.5;
 
   for (size_t i = 0; i < xs_out.size(); i++) {
     const auto &x = xs_out.at(i);
