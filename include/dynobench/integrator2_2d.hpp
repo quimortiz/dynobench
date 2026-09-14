@@ -33,15 +33,15 @@ struct Integrator2_2d_params {
   double dt = .1;
 
   // Control and state bounds
-  double max_vel = 1;
-  double max_acc = 1;
+  double max_vel = 0.5;
+  double max_acc = 2;
 
   // filenam used to load the paratemers, it is set by read_from_yaml
   std::string filename = "";
 
   // shape for collision
   std::string shape = "box";
-  double radius = 0.1;
+  double radius = 0.25;
   // For computing distance between states
   Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
 
