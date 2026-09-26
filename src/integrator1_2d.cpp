@@ -24,6 +24,8 @@ void Integrator1_2d_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(shape));
   set_from_yaml(node, VAR_WITH_NAME(dt));
   set_from_yaml(node, VAR_WITH_NAME(max_vel));
+  set_from_yaml(node, VAR_WITH_NAME(radius));
+  set_from_yaml(node, VAR_WITH_NAME(size));
 }
 
 void Integrator1_2d_params::write(std::ostream &out) {
