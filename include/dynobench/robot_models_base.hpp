@@ -100,7 +100,7 @@ namespace dynobench
       // Sort by last_state_f
       std::vector<TrajWrapper> sorted = input;
       std::sort(sorted.begin(), sorted.end(), [](const TrajWrapper &a, const TrajWrapper &b)
-                {  
+                {
       if (a.last_state_f != b.last_state_f)
         return a.last_state_f < b.last_state_f;
       // tie-breaker based on normalized distance

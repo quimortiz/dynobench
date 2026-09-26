@@ -102,7 +102,7 @@ int Integrator1_2d::number_of_r_dofs() { return 2; }
 double
 Integrator1_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
-  // approximate                                 
+  // approximate
   // std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.max_vel,
   //                               std::abs(x(1) - y(1)) / params.max_vel};
 
