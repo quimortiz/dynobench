@@ -112,11 +112,13 @@ int Integrator2_2d::number_of_r_dofs() { return 4; }
 double Integrator2_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  std::array<double, 2> maxs = {
-      (x.head<2>() - y.head<2>()).norm() / params.vel_max,
-      (x.tail<2>() - y.tail<2>()).norm() / params.acc_max};
+  // std::array<double, 2> maxs = {
+  //     (x.head<2>() - y.head<2>()).norm() / params.vel_max,
+  //     (x.tail<2>() - y.tail<2>()).norm() / params.acc_max};
 
-  return *std::max_element(maxs.begin(), maxs.end());
+  // return *std::max_element(maxs.begin(), maxs.end());
+  return  ((x.head<2>() - y.head<2>()).norm() / params.vel_max) + 
+      ((x.tail<2>() - y.tail<2>()).norm() / params.acc_max);
 }
 
 void Integrator2_2d::set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) {

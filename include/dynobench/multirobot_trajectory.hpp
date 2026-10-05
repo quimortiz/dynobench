@@ -112,38 +112,44 @@ struct MultiRobotTrajectory {
   }
 
   // db-lacam has [0,0] actions when the robot reaches its goal
-  void trimTrajectories()
+  // db-lacam has [0,0] actions when the robot reaches its goal
+  void trimTrajectories(
+    const std::vector<Eigen::VectorXd>& goals,
+    int position_dim)
   {
-    double tol = 1e-9;
-    for (auto &traj : trajectories)
+    const double pos_tol = 0.1;
+
+    for (size_t r = 0; r < trajectories.size(); ++r)
     {
-      // Find the last nonzero action
-      int last_nonzero = -1;
-      for (int i = traj.actions.size() - 1; i >= 0; --i)
+      auto& traj = trajectories[r];
+      const auto& goal = goals[r];
+
+      int goal_idx = -1;
+
+      for (int i = 0; i < static_cast<int>(traj.states.size()); ++i)
       {
-        if (traj.actions[i].cwiseAbs().maxCoeff() > tol)
+        const auto& state = traj.states[i];
+
+        double position_error =
+            (state.head(position_dim) -
+            goal.head(position_dim)).norm();
+
+        if (position_error < pos_tol)
         {
-          last_nonzero = i;
+          goal_idx = i;
           break;
         }
       }
 
-      if (last_nonzero >= 0)
+      if (goal_idx >= 0)
       {
-        // Keep actions up to last_nonzero
-        traj.actions.resize(last_nonzero + 1);
-        // States must be one longer than actions
-        traj.states.resize(last_nonzero + 2);
+        traj.states.resize(goal_idx + 1);
+        traj.actions.resize(goal_idx);
       }
-      else
-      {
-        // all actions are zero -> keep just the first state
-        traj.actions.clear();
-        traj.states.resize(1);
-      }
+
       traj.cost = static_cast<double>(traj.actions.size());
-    }
-  }
+    } 
+  } 
 // check for vel, acc magnitude
   bool sanity_check() const
   {
