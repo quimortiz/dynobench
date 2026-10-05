@@ -196,6 +196,7 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
   if (actions.size()) {
     max_jump = check_trajectory(states, actions, dts, robot, verbose);
     u_bound_distance = check_u_bounds(actions, robot, verbose);
+    // u_bound_distance = robot->check_u_bounds(actions, verbose);
   } else {
     // corner case: sometimes a trajectory is a single state
     max_jump = 0;
@@ -203,6 +204,7 @@ void Trajectory::check(std::shared_ptr<Model_robot> robot, bool verbose) {
   }
   // not state-wise checking, but magnitude
   x_bound_distance = check_x_bounds(states, robot, verbose);
+  // x_bound_distance = robot->check_x_bounds(states, verbose);
 
   if (goal.size()) {
     if (verbose) {
@@ -355,139 +357,54 @@ void get_states_and_actions(const YAML::Node &data,
                  [](const auto &s) { return Vxd::Map(s.data(), s.size()); });
 }
 
-// state magnitude (double integrator, joint-robot)
-double check_x_bounds(const std::vector<Vxd> &xs_out,
-                      std::shared_ptr<Model_robot> model, bool verbose) {
-  CHECK(xs_out.size(), AT);
-  CHECK(model, AT);
-
-  double max_out = 0.0;
-  const double max_speed = 0.5;
-
-  for (size_t i = 0; i < xs_out.size(); i++) {
-    const auto &x = xs_out.at(i);
-
-    double d = 0.0;
-
-    if (model->name == "Integrator2_2d") {
-      const double speed = x.tail(2).norm();
-      d = std::max(speed - max_speed, 0.0);
-
-      if (d > 0.01 && verbose) {
-        std::cout << "VELOCITY MAGNITUDE VIOLATION t=" << i << std::endl;
-        std::cout << "speed: " << speed << std::endl;
-        std::cout << "max speed: " << max_speed << std::endl;
-        CSTR_V(x);
-      }
-    }
-    else if (model->name == "joint_robot") {
-      // x = [x1, y1, vx1, vy1, x2, y2, vx2, vy2, ...]
-      const int num_robots = x.size() / 4;
-
-      for (int r = 0; r < num_robots; r++) {
-        const int idx = 4 * r;
-
-        const double vx = x(idx + 2);
-        const double vy = x(idx + 3);
-
-        const double speed = std::sqrt(vx * vx + vy * vy);
-
-        const double robot_d =
-            std::max(speed - max_speed, 0.0);
-
-        d = std::max(d, robot_d);
-
-        if (robot_d > 0.01 && verbose) {
-          std::cout
-              << "VELOCITY MAGNITUDE VIOLATION"
-              << " t=" << i
-              << " robot=" << r << std::endl;
-
-          std::cout << "speed: " << speed << std::endl;
-          std::cout << "max speed: " << max_speed << std::endl;
-          CSTR_V(x);
-        }
-      }
-    }
-    else {
-      std::cout << "check_x_bounds: not supported dynamics!"
-                << std::endl;
-      DYNO_CHECK(false, AT);
-    }
-
-    max_out = std::max(max_out, d);
-  }
-
-  return max_out;
-}
-
-// action magnitude (double integrator, joint-robot)
 double check_u_bounds(const std::vector<Vxd> &us_out,
                       std::shared_ptr<Model_robot> model, bool verbose) {
   CHECK(us_out.size(), AT);
   CHECK(model, AT);
 
-  double max_out = 0.0;
-  const double acc_mag = 2.0;
+  double max_out = 0;
 
   for (size_t i = 0; i < us_out.size(); i++) {
-    const auto &u = us_out.at(i);
+    auto &u = us_out.at(i);
+    double d = check_bounds_distance(u, model->get_u_lb(), model->get_u_ub());
 
-    double d = 0.0;
-
-    if (model->name == "Integrator2_2d") {
-      // u = [ax, ay]
-      d = std::max(u.norm() - acc_mag, 0.0);
-
-      if (d > 1e-2 && verbose) {
-        std::cout << "ACCELERATION MAGNITUDE VIOLATION t=" << i << std::endl;
-        std::cout << "acc magnitude: " << u.norm() << std::endl;
-        std::cout << "max acceleration: " << acc_mag << std::endl;
-        CSTR_V(u);
-      }
+    if (d > 1e-2 && verbose) {
+      std::cout << "U BOUND VIOLATION t=" << i << std::endl;
+      CSTR_(d);
+      CSTR_V(u);
+      CSTR_V(model->get_u_lb());
+      CSTR_V(model->get_u_ub());
     }
-    else if (model->name == "joint_robot") {
-      // u = [ax1, ay1, ax2, ay2, ...]
-
-      const int num_robots = u.size() / 2;
-
-      for (int r = 0; r < num_robots; r++) {
-        const auto acc = u.segment<2>(2 * r);
-        const double robot_acc_mag = acc.norm();
-
-        const double robot_d =
-            std::max(robot_acc_mag - acc_mag, 0.0);
-
-        if (robot_d > d)
-          d = robot_d;
-
-        if (robot_d > 1e-2 && verbose) {
-          std::cout
-              << "ACCELERATION MAGNITUDE VIOLATION"
-              << " t=" << i
-              << " robot=" << r << std::endl;
-
-          std::cout << "acc magnitude: "
-                    << robot_acc_mag << std::endl;
-
-          std::cout << "max acceleration: "
-                    << acc_mag << std::endl;
-
-          CSTR_V(acc);
-        }
-      }
-    }
-    else {
-      std::cout << "check_u_bounds: not supported dynamics!"
-                << std::endl;
-      DYNO_CHECK(false, AT);
-    }
-
     max_out = std::max(max_out, d);
   }
 
   return max_out;
 }
+
+double check_x_bounds(const std::vector<Vxd> &xs_out,
+                      std::shared_ptr<Model_robot> model, bool verbose) {
+  CHECK(xs_out.size(), AT);
+  CHECK(model, AT);
+
+  double max_out = 0;
+  // for (const auto &x : xs_out) {
+  for (size_t i = 0; i < xs_out.size(); i++) {
+
+    auto &x = xs_out.at(i);
+    double d = check_bounds_distance(x, model->get_x_lb(), model->get_x_ub());
+
+    if (d > .01 && verbose) {
+      std::cout << "X BOUND VIOLATION t=" << i << std::endl;
+      CSTR_(d);
+      CSTR_V(x);
+      CSTR_V(model->get_x_lb());
+      CSTR_V(model->get_x_ub());
+    }
+    max_out = std::max(max_out, d);
+  }
+  return max_out;
+}
+
 
 double check_trajectory(const std::vector<Vxd> &xs_out,
                         const std::vector<Vxd> &us_out, const Vxd &dt,

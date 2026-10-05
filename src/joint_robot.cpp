@@ -90,6 +90,7 @@ Joint_robot::Joint_robot(
   int total_nxs = 0;
   int k_u = 0, k_x = 0;
   for (auto &robot : jointRobot) {
+    robot_names.push_back(robot->name);
     nxs.push_back(robot->nx);
     nus.push_back(robot->nu);
     total_nxs += robot->nx;
@@ -395,4 +396,61 @@ void Joint_robot::from_joint_to_ind(const Eigen::VectorXd &x,
     k_x += size_nx;
   }
 }
+
+double Joint_robot::check_u_bounds(const std::vector<Eigen::VectorXd> &us_out,
+                                  bool verbose) {
+    size_t size_nu;
+    int k_u = 0;
+    double max_out = 0.0;
+
+    // Number of control dimensions for each robot
+    for (auto &robot : v_jointRobot) {
+      size_nu = robot->nu;
+
+      std::vector<Eigen::VectorXd> tmp_us;
+      tmp_us.reserve(us_out.size());
+
+      // Extract this robot's controls from every timestep
+      for (const auto &u : us_out) {
+        tmp_us.push_back(u.segment(k_u, size_nu));
+      }
+
+      // Check this robot's control bounds
+      double d = robot->check_u_bounds(tmp_us, verbose);
+
+      max_out = std::max(max_out, d);
+      k_u += size_nu;
+    }
+
+    return max_out;
+  }
+
+double Joint_robot::check_x_bounds(
+    const std::vector<Eigen::VectorXd> &xs_out,
+    bool verbose) {
+
+    size_t size_nx;
+    int k_x = 0;
+    double max_out = 0.0;
+
+    for (auto &robot : v_jointRobot) {
+      size_nx = robot->nx;
+
+      std::vector<Eigen::VectorXd> tmp_xs;
+      tmp_xs.reserve(xs_out.size());
+
+      // Extract this robot's state from every timestep
+      for (const auto &x : xs_out) {
+        tmp_xs.push_back(x.segment(k_x, size_nx));
+      }
+      // Check this robot's state bounds
+      double d = robot->check_x_bounds(tmp_xs, verbose);
+
+      max_out = std::max(max_out, d);
+
+      k_x += size_nx;
+    }
+
+    return max_out;
+  }
 }; // namespace dynobench

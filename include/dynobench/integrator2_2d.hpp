@@ -118,5 +118,9 @@ struct Integrator2_2d : public Model_robot {
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,
       std::vector<Transform3d> &ts) override;
+
+  virtual double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) override;
+
+  virtual double check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out, bool verbose) override;
 };
 } // namespace dynobench

@@ -19,7 +19,7 @@ struct Joint_robot : Model_robot {
   // should reach the goal. E.g. goal_times = [10, 20] means that the first
   // robot should reach its goal in 10 time steps and the second robot in 20
   // time steps. the time in seconds will be this number multiplied by dt.
-
+  std::vector<std::string> robot_names;
   std::vector<fcl::CollisionObjectd *> part_objs_;  // *
   std::vector<fcl::CollisionObjectd *> robot_objs_; // *
   // for the ellipsoid shape - for drones
@@ -83,6 +83,12 @@ struct Joint_robot : Model_robot {
   std::vector<std::shared_ptr<Model_robot>> v_jointRobot;
 
   float calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all, std::vector<std::shared_ptr<Model_robot>> &all_robots, double dt);
+  
   void from_joint_to_ind(const Eigen::VectorXd &x, std::vector<Eigen::VectorXd>& y);
+
+  virtual double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) override;
+
+  virtual double check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out, bool verbose) override;
+
 };
 } // namespace dynobench

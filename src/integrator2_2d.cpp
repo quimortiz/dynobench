@@ -186,4 +186,53 @@ void Integrator2_2d::transformation_collision_geometries(
   result = Eigen::Translation<double, 3>(fcl::Vector3d(x(0), x(1), 0));
   ts.at(0) = result;
 }
+
+// check bound on state and actions
+double Integrator2_2d::check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out, bool verbose) {
+
+  double max_out = 0.0;
+
+  for (size_t i = 0; i < xs_out.size(); i++) {
+    const auto &x = xs_out.at(i);
+
+    double d = 0.0;
+
+    const double speed = x.tail(2).norm();
+    d = std::max(speed - params.vel_max, 0.0);
+
+    if (d > 0.01 && verbose) {
+      std::cout << "VELOCITY MAGNITUDE VIOLATION t=" << i << std::endl;
+      std::cout << "speed: " << speed << std::endl;
+      std::cout << "max speed: " << params.vel_max << std::endl;
+      CSTR_V(x);
+    }
+
+    max_out = std::max(max_out, d);
+  }
+  return max_out;
+}
+ 
+double Integrator2_2d::check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) {
+
+  double max_out = 0.0;
+
+  for (size_t i = 0; i < us_out.size(); i++) {
+    const auto &u = us_out.at(i);
+
+    double d = 0.0;
+    // u = [ax, ay]
+    d = std::max(u.norm() - params.acc_max, 0.0);
+
+    if (d > 1e-2 && verbose) {
+      std::cout << "ACCELERATION MAGNITUDE VIOLATION t=" << i << std::endl;
+      std::cout << "acc magnitude: " << u.norm() << std::endl;
+      std::cout << "max acceleration: " << params.acc_max << std::endl;
+      CSTR_V(u);
+    }
+    max_out = std::max(max_out, d);
+  }
+
+  return max_out;
+}
+
 }; 

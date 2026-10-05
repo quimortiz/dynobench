@@ -480,80 +480,6 @@ bool Model_robot::is_state_valid(const Eigen::Ref<const Eigen::VectorXd> &x) {
   return true;
 }
 
-// void Model_unicycle1_R2SO2::step(Eigen::Ref<Eigen::VectorXd> xnext,
-//                                  const Eigen::Ref<const Eigen::VectorXd> &x,
-//                                  const Eigen::Ref<const Eigen::VectorXd> &u,
-//                                  double dt) {
-//
-//   Eigen::Vector3d v;
-//   calcV(v, x, u);
-//
-//   using Scalar = double;
-//   enum { Options = 0 };
-//
-//   typedef SpecialOrthogonalOperationTpl<2, Scalar, Options> SO2_operation;
-//   SO2_operation asO2;
-//   SO2_operation::ConfigVector_t pose_s;
-//   SO2_operation::ConfigVector_t pose_g;
-//   SO2_operation::TangentVector_t delta_pose;
-//
-//   const double c = cos(x[2]);
-//   const double s = sin(x[2]);
-//
-//   delta_pose(0) = v(2) * dt;
-//   pose_s(0) = c;
-//   pose_s(1) = s;
-//
-//   asO2.integrate(pose_s, delta_pose, pose_g);
-//   double angle_out = std::atan2(pose_g(1), pose_g(0));
-//
-//   xnext << x(0) + v(0) * dt, x(1) + v(1) * dt, angle_out;
-// }
-//
-// // step diff
-//
-// void Model_unicycle1_se2::calcV(Eigen::Ref<Eigen::VectorXd> v,
-//                                 const Eigen::Ref<const Eigen::VectorXd> &x,
-//                                 const Eigen::Ref<const Eigen::VectorXd> &u) {
-//
-//   // enum { Options = 0 };
-//   // typedef SpecialEuclideanOperationTpl<2, double, Options>
-//   // SE2Operation; SE2Operation aSE2;
-//
-//   const double c = cos(x[2]);
-//   const double s = sin(x[2]);
-//   v << c * u[0], s * u[0], u[1];
-// }
-//
-// void Model_unicycle1_se2::step(Eigen::Ref<Eigen::VectorXd> xnext,
-//                                const Eigen::Ref<const Eigen::VectorXd> &x,
-//                                const Eigen::Ref<const Eigen::VectorXd> &u,
-//                                double dt) {
-//
-//   Eigen::Vector3d v;
-//   calcV(v, x, u);
-//   enum { Options = 0 };
-//   typedef SpecialEuclideanOperationTpl<2, double, Options> SE2Operation;
-//   SE2Operation aSE2;
-//   SpecialEuclideanOperationTpl<2, double, Options>::ConfigVector_t pose_s,
-//       pose_g;
-//   SpecialEuclideanOperationTpl<2, double, Options>::TangentVector_t delta_u;
-//
-//   double c = std::cos(x(2));
-//   double s = std::sin(x(2));
-//   pose_s(0) = x(0);
-//   pose_s(1) = x(1);
-//   pose_s(2) = c;
-//   pose_s(3) = s;
-//
-//   aSE2.integrate(pose_s, v * dt, pose_g);
-//   double angle_out = std::atan2(pose_g(3), pose_g(2));
-//
-//   xnext(0) = pose_g(0);
-//   xnext(1) = pose_g(1);
-//   xnext(2) = angle_out;
-// }
-
 double Model_robot::cost(const Eigen::Ref<const Eigen::VectorXd> &x,
                          const Eigen::Ref<const Eigen::VectorXd> &u) const {
   // default cost is time
@@ -619,15 +545,6 @@ void Model_robot::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
   assert(static_cast<size_t>(Fu.rows()) == nx &&
          static_cast<size_t>(Fu.cols()) == nu);
   calcDiffV(__Jv_x, __Jv_u, x, u);
-  // euler_diff(Fx, Fu, dt, __Jv_x, __Jv_u);
-
-  // Fx.diagonal()
-
-  // Jy_x.noalias() = dt * Jv_x;
-  // for (size_t i = 0; i < n; i++) {
-  //   Jy_x(i, i) += 1;
-  // }
-  // Jy_u.noalias() = dt * Jv_u;
 
   calcV(__v, x, u); // todo: this is redundant
   state->Jintegrate(x, __v * dt, __Jfirst, __Jsecond);
@@ -636,22 +553,6 @@ void Model_robot::stepDiff(Eigen::Ref<Eigen::MatrixXd> Fx,
   Fu.noalias() += __Jsecond * dt * __Jv_u;
 }
 
-// void Model_robot::stepDiffdt(Eigen::Ref<Eigen::MatrixXd> Fx,
-//                              Eigen::Ref<Eigen::MatrixXd> Fu,
-//                              const Eigen::Ref<const Eigen::VectorXd> &x,
-//                              const Eigen::Ref<const Eigen::VectorXd> &u,
-//                              double dt) {
-//   DYNO_CHECK_EQ(nu, static_cast<size_t>(u.size()), AT);
-//   DYNO_CHECK_EQ(nx, static_cast<size_t>(x.size()), AT);
-//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.rows()), AT);
-//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fx.cols()), AT);
-//   DYNO_CHECK_EQ(nx, static_cast<size_t>(Fu.rows()), AT);
-//   DYNO_CHECK_EQ(static_cast<size_t>(Fu.cols()), nu + 1, AT);
-//   calcDiffV(__Jv_x, __Jv_u, x, u);
-//   euler_diff(Fx, Fu.block(0, 0, nx, nu), dt, __Jv_x, __Jv_u);
-//   calcV(__v, x, u);
-//   Fu.col(nu) = __v;
-// }
 
 void Model_robot::stepDiff_with_v(Eigen::Ref<Eigen::MatrixXd> Fx,
                                   Eigen::Ref<Eigen::MatrixXd> Fu,

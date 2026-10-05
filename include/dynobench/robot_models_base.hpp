@@ -704,6 +704,47 @@ namespace dynobench
       return d < tolerance;
     }
 
+  virtual double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) {
+  
+    double max_out = 0;
+  
+    for (size_t i = 0; i < us_out.size(); i++) {
+      auto &u = us_out.at(i);
+      double d = check_bounds_distance(u, get_u_lb(), get_u_ub());
+  
+      if (d > 1e-2 && verbose) {
+        std::cout << "U BOUND VIOLATION t=" << i << std::endl;
+        CSTR_(d);
+        CSTR_V(u);
+        CSTR_V(get_u_lb());
+        CSTR_V(get_u_ub());
+      }
+      max_out = std::max(max_out, d);
+    }
+    return max_out;
+  }
+
+  virtual double check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out, bool verbose) {
+  
+    double max_out = 0;
+
+    for (size_t i = 0; i < xs_out.size(); i++) {
+
+      auto &x = xs_out.at(i);
+      double d = check_bounds_distance(x, get_x_lb(), get_x_ub());
+
+      if (d > .01 && verbose) {
+        std::cout << "X BOUND VIOLATION t=" << i << std::endl;
+        CSTR_(d);
+        CSTR_V(x);
+        CSTR_V(get_x_lb());
+        CSTR_V(get_x_ub());
+      }
+      max_out = std::max(max_out, d);
+    }
+    return max_out;
+  }
+
     virtual void transform_primitive2(
         const Eigen::Ref<const Eigen::VectorXd> &p,
         const std::vector<Eigen::VectorXd> &xs_in,
