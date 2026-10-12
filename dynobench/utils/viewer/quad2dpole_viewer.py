@@ -21,7 +21,6 @@ import os
 import sys
 from robot_viewer import RobotViewer
 
-
 r = 1
 
 

@@ -3,7 +3,6 @@ from sympy import latex
 from sympy.physics.mechanics import *
 from datetime import datetime
 
-
 q, r, o, l, m, m_p, I, g, Tx, Ty, ddx, ddy, ddo, ddq, do, dq, f1, f2 = sp.symbols(
     "q, r, o, l, m,m_p, I, g, Tx, Ty, ddx, ddy, ddo, ddq, do, dq, f1, f2"
 )

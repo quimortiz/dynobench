@@ -1,7 +1,6 @@
 import car_with_trailer_viewer
 import matplotlib.pyplot as plt
 
-
 viewer = car_with_trailer_viewer.CarWithTrailerViewer()
 env = "../benchmark/car_first_order_with_1_trailers_0/bugtrap_0.yaml"
 
