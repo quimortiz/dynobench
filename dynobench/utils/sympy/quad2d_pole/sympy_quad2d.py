@@ -120,7 +120,6 @@ for file, var in out:
 
 from sympy.utilities.codegen import codegen
 
-
 _x, _y, _o, _q, _vx, _vy, _w, _vq = sp.symbols("xx yy oo qq vvx vvy ww vvq")
 
 
@@ -262,8 +261,7 @@ void quadpole_2d( const double* x , const double* u , const double* data,  doubl
     + r"using namespace std;"
 )
 
-assign_vars = (
-    r"""
+assign_vars = r"""
 const double xx = x[0];
 const double yy = x[1];
 const double oo = x[2];
@@ -279,9 +277,7 @@ const double m = data[1];
 const double m_p = data[2];
 const double l = data[3];
 const double r = data[4];
-const double g = data[5];"""
-    + "\n"
-)
+const double g = data[5];""" + "\n"
 
 
 footer = "\n}"

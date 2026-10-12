@@ -2,7 +2,6 @@ import sympy as sp
 from sympy import latex
 from sympy.physics.mechanics import *
 
-
 # %%
 print("cartpole")
 x, o = dynamicsymbols("x o")

@@ -6,14 +6,12 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 import sys
 
-
 sys.path.append(str(Path(__file__).parent.parent / "utils"))
 
 
 print(sys.path)
 
 from viewer.acrobot_viewer import AcrobotViewer
-
 
 env_file = "../envs/acrobot_v0/swing_up_obs.yaml"
 
