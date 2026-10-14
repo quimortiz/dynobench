@@ -253,7 +253,6 @@ void Problem::read_from_yaml(const YAML::Node &env) {
 
   start = Vxd::Map(_start.data(), _start.size());
   goal = Vxd::Map(_goal.data(), _goal.size());
-  std::cout << goal.size() << std::endl;
 
   std::vector<double> min_ =
       env["environment"]["min"].as<std::vector<double>>();

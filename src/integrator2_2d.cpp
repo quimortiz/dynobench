@@ -112,11 +112,6 @@ int Integrator2_2d::number_of_r_dofs() { return 4; }
 double Integrator2_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  // std::array<double, 2> maxs = {
-  //     (x.head<2>() - y.head<2>()).norm() / params.vel_max,
-  //     (x.tail<2>() - y.tail<2>()).norm() / params.acc_max};
-
-  // return *std::max_element(maxs.begin(), maxs.end());
   return  ((x.head<2>() - y.head<2>()).norm() / params.vel_max) + 
       ((x.tail<2>() - y.tail<2>()).norm() / params.acc_max);
 }
@@ -235,6 +230,31 @@ double Integrator2_2d::check_u_bounds(const std::vector<Eigen::VectorXd> &us_out
   }
 
   return max_out;
+}
+
+void Integrator2_2d::step(Eigen::Ref<Eigen::VectorXd> xnext,
+                          const Eigen::Ref<const Eigen::VectorXd>& x,
+                          const Eigen::Ref<const Eigen::VectorXd>& u,
+                          double dt)
+{
+  // Velocity update
+  Eigen::Vector2d new_vel;
+  new_vel(0) = x(2) + u(0) * dt;
+  new_vel(1) = x(3) + u(1) * dt;
+
+  // Clip velocity magnitude
+  const double speed = new_vel.norm();
+  if (speed > params.vel_max) {
+    new_vel *= params.vel_max / speed;
+  }
+
+  // Position update using the clipped new velocity
+  xnext(0) = x(0) + 0.5 * (x(2) + new_vel(0)) * dt;
+  xnext(1) = x(1) + 0.5 * (x(3) + new_vel(1)) * dt;
+
+  // Store clipped velocity
+  xnext(2) = new_vel(0);
+  xnext(3) = new_vel(1);
 }
 
 }; 

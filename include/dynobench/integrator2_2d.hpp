@@ -30,11 +30,11 @@ struct Integrator2_2d_params {
   Integrator2_2d_params() = default;
 
   // Control and state bounds
-  double vel_magnitude = 0.5; // 5.
-  double acc_magnitude = 2.0;
+  double vel_magnitude = 2.0; // 0.5;
+  double acc_magnitude = 2.0; // 2.0;
   // same as magnitude values
-  double vel_max = 0.5; // 5.
-  double acc_max = 2.0;
+  double vel_max = 2.0; // 0.5;
+  double acc_max = 2.0; // 2.0;
 
   geometric_shape geom_shape;
   double dt = .1;
@@ -107,6 +107,12 @@ struct Integrator2_2d : public Model_robot {
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;
+
+  virtual void step(Eigen::Ref<Eigen::VectorXd> xnext,
+                    const Eigen::Ref<const Eigen::VectorXd>& x,
+                    const Eigen::Ref<const Eigen::VectorXd>& u,
+                    double dt) override; 
+
   virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                          Eigen::Ref<Eigen::MatrixXd> Jv_u,
                          const Eigen::Ref<const Eigen::VectorXd> &x,
