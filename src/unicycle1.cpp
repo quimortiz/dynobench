@@ -92,9 +92,15 @@ Model_unicycle1::Model_unicycle1(const Unicycle1_params &params,
     ERROR_WITH_INFO("not implemented");
   }
 
+  // assumes box shape
   if (p_lb.size() && p_ub.size()) {
-    set_position_lb(p_lb);
-    set_position_ub(p_ub);
+    Eigen::VectorXd half_size = params.geom_shape.size / 2.0;
+
+    Eigen::VectorXd p_lb_adjusted = p_lb + half_size;
+    Eigen::VectorXd p_ub_adjusted = p_ub - half_size;
+
+    set_position_lb(p_lb_adjusted);
+    set_position_ub(p_ub_adjusted);
   }
 }
 // get number of dof for the constructor

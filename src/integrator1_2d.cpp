@@ -1,14 +1,11 @@
-#include "dynobench/integrator1_2d.hpp"
-
 #include "Eigen/Core"
-#include "dynobench/robot_models_base.hpp"
-#include "fcl/broadphase/broadphase_collision_manager.h"
 #include <algorithm>
-// #include <boost/serialization/list.hpp>
 #include <cmath>
+#include "dynobench/robot_models_base.hpp"
+#include "dynobench/integrator1_2d.hpp"
+#include "fcl/broadphase/broadphase_collision_manager.h"
 #include <fcl/geometry/shape/box.h>
 #include <fcl/geometry/shape/sphere.h>
-
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -20,10 +17,30 @@
 
 namespace dynobench {
 
+void Integrator1_2d_params::read_from_yaml(const char *file) {
+  std::cout << "loading file: " << file << std::endl;
+  filename = file;
+  YAML::Node node = YAML::LoadFile(file);
+  read_from_yaml(node);
+}
+
 void Integrator1_2d_params::read_from_yaml(YAML::Node &node) {
-  set_from_yaml(node, VAR_WITH_NAME(shape));
+  // shape
+  if (YAML::Node s = node["shape"]) {
+    geom_shape.type = s["type"].as<std::string>();
+    if (geom_shape.type == "box") {
+      std::vector<double> tmp =
+          s["size"].as<std::vector<double>>();
+
+      geom_shape.size =
+          Eigen::Map<Eigen::VectorXd>(tmp.data(), tmp.size());
+
+    } else if (geom_shape.type == "sphere") {
+      geom_shape.radius = s["radius"].as<double>();
+    }
+  }
   set_from_yaml(node, VAR_WITH_NAME(dt));
-  set_from_yaml(node, VAR_WITH_NAME(max_vel));
+  set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
 }
 
 void Integrator1_2d_params::write(std::ostream &out) {
@@ -37,15 +54,6 @@ void Integrator1_2d_params::write(std::ostream &out) {
   out << be << STR(filename, af) << std::endl;
 }
 
-void Integrator1_2d_params::read_from_yaml(const char *file) {
-  std::cout << "loading file: " << file << std::endl;
-  filename = file;
-  YAML::Node node = YAML::LoadFile(file);
-  read_from_yaml(node);
-}
-
-// Model_robot takes as input a state space and the size of the control space
-// In this case, the state space is R^4 and the control space is R^2
 Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
                                const Eigen::VectorXd &p_lb,
                                const Eigen::VectorXd &p_ub)
@@ -62,7 +70,6 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
 
   name = "Integrator1_2d";
 
-  // dt for time-discretization
   ref_dt = params.dt;
 
   // bound on state and control
@@ -73,21 +80,22 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
   x_ub << max__, max__;
 
   u_weight << 1., 1.;
-  x_weightb << 100, 100; // TODO: change!!
+  x_weightb << 100, 100; 
 
-  // add bounds on position if provided
+  // add bounds on position if provided (assumes robot is of spherical shape)
   if (p_lb.size() && p_ub.size()) {
-    set_position_lb(p_lb);
-    set_position_ub(p_ub);
+    const double radius = params.geom_shape.radius;
+    set_position_lb(p_lb.array() + radius);
+    set_position_ub(p_ub.array() - radius);
   }
 
   // collisions
-  if (params.shape == "box") {
+  if (params.geom_shape.type == "box") {
     collision_geometries.push_back(
-        std::make_shared<fcl::Boxd>(params.size(0), params.size(1), 1.0));
-  } else if (params.shape == "sphere") {
+        std::make_shared<fcl::Boxd>(params.geom_shape.size(0), params.geom_shape.size(1), 1.0));
+  } else if (params.geom_shape.type == "sphere") {
     collision_geometries.push_back(
-        std::make_shared<fcl::Sphered>(params.radius));
+        std::make_shared<fcl::Sphered>(params.geom_shape.radius));
   } else {
     ERROR_WITH_INFO("not implemented");
   }
@@ -95,17 +103,8 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
 
 int Integrator1_2d::number_of_r_dofs() { return 2; }
 
-// DISTANCE AND TIME (cost) - BOUNDS
-
-double
-Integrator1_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
+double Integrator1_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
-  // approximate                                 
-  // std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.max_vel,
-  //                               std::abs(x(1) - y(1)) / params.max_vel};
-
-  // return *std::max_element(maxs.begin(), maxs.end());
-  // precise - needed for grid-style env.
   return (x - y).norm() / params.max_vel;
 }
 
@@ -155,11 +154,11 @@ void Integrator1_2d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 void Integrator1_2d::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  assert(x.size() == 2);
-  assert(ts.size() == 1); // only one collision body
+    assert(x.size() == 2);
+    assert(ts.size() == 1); // only one collision body
 
-  fcl::Transform3d result;
-  result = Eigen::Translation<double, 3>(fcl::Vector3d(x(0), x(1), 0));
-  ts.at(0) = result;
-}
-}; // namespace dynobench
+    fcl::Transform3d result;
+    result = Eigen::Translation<double, 3>(fcl::Vector3d(x(0), x(1), 0));
+    ts.at(0) = result;
+  }
+}; 
