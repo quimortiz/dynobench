@@ -80,7 +80,7 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
   x_ub << max__, max__;
 
   u_weight << 1., 1.;
-  x_weightb << 100, 100; 
+  x_weightb << 100, 100;
 
   // add bounds on position if provided (assumes robot is of spherical shape)
   if (p_lb.size() && p_ub.size()) {
@@ -161,4 +161,4 @@ void Integrator1_2d::transformation_collision_geometries(
     result = Eigen::Translation<double, 3>(fcl::Vector3d(x(0), x(1), 0));
     ts.at(0) = result;
   }
-}; 
+};

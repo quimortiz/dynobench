@@ -111,7 +111,7 @@ struct Integrator2_2d : public Model_robot {
   virtual void step(Eigen::Ref<Eigen::VectorXd> xnext,
                     const Eigen::Ref<const Eigen::VectorXd>& x,
                     const Eigen::Ref<const Eigen::VectorXd>& u,
-                    double dt) override; 
+                    double dt) override;
 
   virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                          Eigen::Ref<Eigen::MatrixXd> Jv_u,

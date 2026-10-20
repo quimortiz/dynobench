@@ -63,7 +63,7 @@ struct MultiRobotTrajectory {
     }
     return makespan * 0.1; // dt
   }
-  
+
   bool is_empty()
   {
     for (const auto &traj : trajectories)
@@ -148,8 +148,8 @@ struct MultiRobotTrajectory {
       }
 
       traj.cost = static_cast<double>(traj.actions.size());
-    } 
-  } 
+    }
+  }
 // check for vel, acc magnitude
   bool sanity_check() const
   {
@@ -205,7 +205,7 @@ struct MultiRobotTrajectory {
     }
     return true;
   }
-  
+
   dynobench::Trajectory transform_to_joint_trajectory() {
 
     dynobench::Trajectory joint_trajectory;

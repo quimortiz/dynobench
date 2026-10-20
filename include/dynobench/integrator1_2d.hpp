@@ -32,7 +32,7 @@ struct Integrator1_2d_params {
 
   double dt = .1;
   // Control and state bounds
-  double max_vel = 0.5; 
+  double max_vel = 0.5;
   double vel_magnitude = 2.0;
   std::string filename = "";
   std::string shape = "sphere";
@@ -75,7 +75,7 @@ struct Integrator1_2d : public Model_robot {
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;
- 
+
   virtual void calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
                          Eigen::Ref<Eigen::MatrixXd> Jv_u,
                          const Eigen::Ref<const Eigen::VectorXd> &x,
@@ -85,4 +85,4 @@ struct Integrator1_2d : public Model_robot {
       const Eigen::Ref<const Eigen::VectorXd> &x,
       std::vector<Transform3d> &ts) override;
   };
-} 
+}

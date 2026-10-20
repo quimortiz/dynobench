@@ -83,7 +83,7 @@ struct Joint_robot : Model_robot {
   std::vector<std::shared_ptr<Model_robot>> v_jointRobot;
 
   float calcFaNext(size_t idx, std::vector<Eigen::VectorXd> &x_all, std::vector<Eigen::VectorXd> &v_all, std::vector<std::shared_ptr<Model_robot>> &all_robots, double dt);
-  
+
   void from_joint_to_ind(const Eigen::VectorXd &x, std::vector<Eigen::VectorXd>& y);
 
   virtual double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) override;

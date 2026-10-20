@@ -114,7 +114,7 @@ int Integrator2_2d::number_of_r_dofs() { return 4; }
 double Integrator2_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  return  ((x.head<2>() - y.head<2>()).norm() / params.vel_max) + 
+  return  ((x.head<2>() - y.head<2>()).norm() / params.vel_max) +
       ((x.tail<2>() - y.tail<2>()).norm() / params.acc_max);
 }
 
@@ -210,7 +210,7 @@ double Integrator2_2d::check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out
   }
   return max_out;
 }
- 
+
 double Integrator2_2d::check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) {
 
   double max_out = 0.0;
@@ -259,4 +259,4 @@ void Integrator2_2d::step(Eigen::Ref<Eigen::VectorXd> xnext,
   xnext(3) = new_vel(1);
 }
 
-}; 
+};
