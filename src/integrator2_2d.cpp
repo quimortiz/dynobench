@@ -29,6 +29,8 @@ void Integrator2_2d_params::read_from_yaml(const char *file) {
 void Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
   set_from_yaml(node, VAR_WITH_NAME(acc_magnitude));
+  vel_max = vel_magnitude;
+  acc_max = acc_magnitude;
   // shape
   if (YAML::Node s = node["shape"]) {
     geom_shape.type = s["type"].as<std::string>();
