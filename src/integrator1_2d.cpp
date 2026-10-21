@@ -41,6 +41,7 @@ void Integrator1_2d_params::read_from_yaml(YAML::Node &node) {
   }
   set_from_yaml(node, VAR_WITH_NAME(dt));
   set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
+  max_vel = vel_magnitude;
 }
 
 void Integrator1_2d_params::write(std::ostream &out) {
