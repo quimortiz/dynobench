@@ -1,13 +1,11 @@
 #pragma once
 #include "Eigen/Core"
 #include "dyno_macros.hpp"
-
 #include "dynobench/robot_models_base.hpp"
 #include "fcl/broadphase/broadphase_collision_manager.h"
 #include "general_utils.hpp"
 #include "math_utils.hpp"
 #include <algorithm>
-// #include <boost/serialization/list.hpp>
 #include <boost/serialization/split_member.hpp>
 #include <boost/serialization/string.hpp>
 #include <boost/serialization/vector.hpp>

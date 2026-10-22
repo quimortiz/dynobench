@@ -29,20 +29,23 @@ struct Integrator2_3d_params {
 
   Integrator2_3d_params() = default;
 
-  // time step for discrete-time dynamics
-  double dt = .1;
-
   // Control and state bounds
-  double max_vel = 0.5;
-  double min_vel = -0.5;
-  double max_acc = 2.0;
-  double min_acc = -2.0;
+  double vel_magnitude = 2.0;
+  double acc_magnitude = 2.0;
+  double vel_max = 0.5;
+  double vel_min = -0.5;
+  double acc_max = 2.0;
+  double acc_min = -2.0;
+
+  geometric_shape geom_shape;
+  double dt = .1;
+  // filenam used to load the paratemers, it is set by read_from_yaml
   std::string filename = "";
-  std::string shape = "sphere";
-  double radius = 0.1;
-  Eigen::Vector2d distance_weights = Eigen::Vector2d(1, .5);
+  // shape for collision
+  std::string shape;
+  double radius = 0.25;
+  Eigen::VectorXd distance_weights = Eigen::Vector2d(1, .5);
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
-  Eigen::Vector3d radii = Eigen::Vector3d(.12, .12, .3); // from tro paper
 
   void read_from_yaml(const char *file);
   void read_from_yaml(YAML::Node &node);
@@ -67,37 +70,21 @@ struct Integrator2_3d : public Model_robot {
     k += 6;
    }
   virtual int number_of_robot() override { return 1; }
-  // DISTANCE AND TIME (cost) - BOUNDS
-  // Distances and bounds are useuful in search/motion planning algorithms.
 
-  // distance between two states, using weights probided in params
   virtual double distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                           const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  // lower bound on time to reach y from x, using state/control bounds
-  // provided in params.
-  virtual double
-  lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
+  virtual double lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                    const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  // Setting velocity to 0 if an state
   virtual void set_0_velocity(Eigen::Ref<Eigen::VectorXd> x) override;
 
-  // lower bound on time, considering only the velcoity component of the state
-  virtual double
-  lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
+  virtual double lower_bound_time_vel(const Eigen::Ref<const Eigen::VectorXd> &x,
                        const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  // lower bound on time, considering only the position component of the state
-  virtual double
-  lower_bound_time_pr(const Eigen::Ref<const Eigen::VectorXd> &x,
+  virtual double lower_bound_time_pr(const Eigen::Ref<const Eigen::VectorXd> &x,
                       const Eigen::Ref<const Eigen::VectorXd> &y) override;
 
-  // DYNAMICS
-  //
-  // Calc Velocity (xdot = f(x,u)).
-  // Note: The step using euler intergration is automatically computed
-  // from the velocity in the base class
   virtual void calcV(Eigen::Ref<Eigen::VectorXd> v,
                      const Eigen::Ref<const Eigen::VectorXd> &x,
                      const Eigen::Ref<const Eigen::VectorXd> &u) override;
@@ -106,11 +93,13 @@ struct Integrator2_3d : public Model_robot {
                          const Eigen::Ref<const Eigen::VectorXd> &x,
                          const Eigen::Ref<const Eigen::VectorXd> &u) override;
 
-  // Collisions
-  // This updates the position of the collisions shape(s) of the robot.
-  // The collision distance/check  is implemented  in the base class.
   virtual void transformation_collision_geometries(
       const Eigen::Ref<const Eigen::VectorXd> &x,
       std::vector<Transform3d> &ts) override;
-};
-} // namespace dynobench
+  
+  virtual void step(Eigen::Ref<Eigen::VectorXd> xnext,
+                    const Eigen::Ref<const Eigen::VectorXd>& x,
+                    const Eigen::Ref<const Eigen::VectorXd>& u,
+                    double dt) override;
+  };
+} 

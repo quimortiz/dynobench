@@ -92,8 +92,9 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
 
   // add bounds on position if provided
   if (p_lb.size() && p_ub.size()) {
-    set_position_lb(p_lb);
-    set_position_ub(p_ub);
+    const double radius = params.geom_shape.radius;
+    set_position_lb(p_lb.array() + radius);
+    set_position_ub(p_ub.array() - radius);
   }
 
   // collisions

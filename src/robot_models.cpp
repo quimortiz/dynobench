@@ -1,6 +1,3 @@
-// #include "pinocchio/math/fwd.hpp"
-// #include "pinocchio/multibody/liegroup/liegroup.hpp"
-
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
@@ -14,17 +11,13 @@
 #include <yaml-cpp/node/node.h>
 #include <yaml-cpp/node/parse.h>
 #include <yaml-cpp/yaml.h>
-
 #include "Eigen/Core"
-#include "dynobench/dyno_macros.hpp"
-
 #include <fcl/fcl.h>
-
+#include "dynobench/dyno_macros.hpp"
 #include "dynobench/general_utils.hpp"
 #include "dynobench/math_utils.hpp"
 #include "dynobench/motions.hpp"
 #include "dynobench/robot_models.hpp"
-
 #include "dynobench/acrobot.hpp"
 #include "dynobench/car.hpp"
 #include "dynobench/car2.hpp"
