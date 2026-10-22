@@ -29,6 +29,8 @@ void Integrator2_2d_params::read_from_yaml(const char *file) {
 void Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
   set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
   set_from_yaml(node, VAR_WITH_NAME(acc_magnitude));
+  vel_max = vel_magnitude;
+  acc_max = acc_magnitude;
   // shape
   if (YAML::Node s = node["shape"]) {
     geom_shape.type = s["type"].as<std::string>();
@@ -113,7 +115,7 @@ int Integrator2_2d::number_of_r_dofs() { return 4; }
 double Integrator2_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  return  ((x.head<2>() - y.head<2>()).norm() / params.vel_max) + 
+  return  ((x.head<2>() - y.head<2>()).norm() / params.vel_max) +
       ((x.tail<2>() - y.tail<2>()).norm() / params.acc_max);
 }
 
@@ -209,7 +211,7 @@ double Integrator2_2d::check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out
   }
   return max_out;
 }
- 
+
 double Integrator2_2d::check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) {
 
   double max_out = 0.0;
@@ -258,4 +260,4 @@ void Integrator2_2d::step(Eigen::Ref<Eigen::VectorXd> xnext,
   xnext(3) = new_vel(1);
 }
 
-}; 
+};

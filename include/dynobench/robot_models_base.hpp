@@ -97,7 +97,7 @@ namespace dynobench
       // Sort by last_state_f
       std::vector<TrajWrapper> sorted = input;
       std::sort(sorted.begin(), sorted.end(), [](const TrajWrapper &a, const TrajWrapper &b)
-                {  
+                {
       if (a.last_state_f != b.last_state_f)
         return a.last_state_f < b.last_state_f;
       // tie-breaker based on normalized distance
@@ -149,7 +149,7 @@ namespace dynobench
     std::string type;
     std::string octomap_file;
     Eigen::VectorXd size;
-    double radius; 
+    double radius;
     Eigen::VectorXd center;
   };
 
@@ -445,8 +445,8 @@ namespace dynobench
     std::vector<Transform3d> ts_data;   // data
     std::vector<CollisionOut> col_outs; // data
 
-    
-    
+
+
     Model_robot() = default;
     Model_robot(std::shared_ptr<StateDyno> state, size_t nu);
 
@@ -552,7 +552,7 @@ namespace dynobench
       NOT_IMPLEMENTED;
     }
 
-    
+
     virtual void stepDiff_with_v(Eigen::Ref<Eigen::MatrixXd> Fx,
                                  Eigen::Ref<Eigen::MatrixXd> Fu,
                                  Eigen::Ref<Eigen::VectorXd> __v,
@@ -705,13 +705,13 @@ namespace dynobench
     }
 
   virtual double check_u_bounds(const std::vector<Eigen::VectorXd> &us_out, bool verbose) {
-  
+
     double max_out = 0;
-  
+
     for (size_t i = 0; i < us_out.size(); i++) {
       auto &u = us_out.at(i);
       double d = check_bounds_distance(u, get_u_lb(), get_u_ub());
-  
+
       if (d > 1e-2 && verbose) {
         std::cout << "U BOUND VIOLATION t=" << i << std::endl;
         CSTR_(d);
@@ -725,7 +725,7 @@ namespace dynobench
   }
 
   virtual double check_x_bounds(const std::vector<Eigen::VectorXd> &xs_out, bool verbose) {
-  
+
     double max_out = 0;
 
     for (size_t i = 0; i < xs_out.size(); i++) {

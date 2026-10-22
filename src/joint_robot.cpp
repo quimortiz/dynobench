@@ -94,6 +94,9 @@ Joint_robot::Joint_robot(
     nxs.push_back(robot->nx);
     nus.push_back(robot->nu);
     total_nxs += robot->nx;
+    u_lb.segment(k_u, robot->nu) = robot->get_u_lb();
+    u_ub.segment(k_u, robot->nu) = robot->get_u_ub();
+    k_u += robot->nu;
 
     x_desc.insert(x_desc.end(), robot->x_desc.begin(), robot->x_desc.end());
     u_desc.insert(u_desc.end(), robot->u_desc.begin(), robot->u_desc.end());
