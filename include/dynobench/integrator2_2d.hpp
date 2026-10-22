@@ -33,7 +33,7 @@ struct Integrator2_2d_params {
   double vel_magnitude = 2.0; // 0.5;
   double acc_magnitude = 2.0; // 2.0;
   // same as magnitude values
-  double vel_max = 2.0; // 0.5;
+  double vel_max = 0.5;
   double acc_max = 2.0; // 2.0;
 
   geometric_shape geom_shape;

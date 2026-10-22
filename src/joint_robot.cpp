@@ -98,6 +98,16 @@ Joint_robot::Joint_robot(
     x_desc.insert(x_desc.end(), robot->x_desc.begin(), robot->x_desc.end());
     u_desc.insert(u_desc.end(), robot->u_desc.begin(), robot->u_desc.end());
 
+    size_t size_u = robot->u_lb.size();
+    u_lb.segment(k_u, size_u) = robot->u_lb;
+    u_ub.segment(k_u, size_u) = robot->u_ub;
+    k_u += size_u;
+
+    size_t size_x = robot->x_ub.size();
+    x_lb.segment(k_x, size_x) = robot->x_lb;
+    x_ub.segment(k_x, size_x) = robot->x_ub;
+    k_x += size_x;
+
     collision_geometries.insert(collision_geometries.end(),
                                 robot->collision_geometries.begin(),
                                 robot->collision_geometries.end());
