@@ -27,8 +27,6 @@ void Integrator2_2d_params::read_from_yaml(const char *file) {
 }
 
 void Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
-  set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
-  set_from_yaml(node, VAR_WITH_NAME(acc_magnitude));
   // shape
   if (YAML::Node s = node["shape"]) {
     geom_shape.type = s["type"].as<std::string>();
@@ -45,6 +43,13 @@ void Integrator2_2d_params::read_from_yaml(YAML::Node &node) {
   }
   set_from_yaml(node, VAR_WITH_NAME(dt));
   set_from_yaml(node, VAR_WITH_NAME(distance_weights));
+  // state and action bounds
+  vel_max = node["L1"]["vel_max"].as<float>();
+  vel_min = node["L1"]["vel_min"].as<float>();
+  acc_max = node["L1"]["acc_max"].as<float>();
+  acc_min = node["L1"]["acc_min"].as<float>();
+  vel_magnitude = node["L2"]["vel_magnitude"].as<float>();
+  acc_magnitude = node["L2"]["acc_magnitude"].as<float>();
 }
 
 void Integrator2_2d_params::write(std::ostream &out) {
@@ -75,16 +80,16 @@ Integrator2_2d::Integrator2_2d(const Integrator2_2d_params &params,
   nx_pr = 2;    //  position is defined by first two components of state
   translation_invariance = 2; // 2d robot is translation invariant
 
-  distance_weights = params.distance_weights; // necessary for ompl wrapper
+  distance_weights = params.distance_weights;
   name = "Integrator2_2d";
 
   ref_dt = params.dt;
 
   // bound on state and control - square. Optimization will enforce a disk constraint
-  u_lb << -params.acc_max, -params.acc_max;
+  u_lb << params.acc_min, params.acc_min;
   u_ub << params.acc_max, params.acc_max;
 
-  x_lb << low__, low__, -params.vel_max, -params.vel_max;
+  x_lb << low__, low__, params.vel_min, params.vel_min;
   x_ub << max__, max__, params.vel_max, params.vel_max;
 
   u_weight << 1., 1.;

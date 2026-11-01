@@ -189,7 +189,7 @@ void Integrator2_3d::step(Eigen::Ref<Eigen::VectorXd> xnext,
                           double dt)
   {
     // Velocity update
-    Eigen::Vector2d new_vel;
+    Eigen::Vector3d new_vel;
     new_vel(0) = x(3) + u(0) * dt;
     new_vel(1) = x(4) + u(1) * dt;
     new_vel(2) = x(5) + u(2) * dt;
