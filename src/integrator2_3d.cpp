@@ -27,8 +27,6 @@ void Integrator2_3d_params::read_from_yaml(const char *file) {
 }
 
 void Integrator2_3d_params::read_from_yaml(YAML::Node &node) {
-  set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
-  set_from_yaml(node, VAR_WITH_NAME(acc_magnitude));
   // shape
   if (YAML::Node s = node["shape"]) {
     geom_shape.type = s["type"].as<std::string>();
@@ -43,6 +41,14 @@ void Integrator2_3d_params::read_from_yaml(YAML::Node &node) {
     }
   }
   set_from_yaml(node, VAR_WITH_NAME(dt));
+  set_from_yaml(node, VAR_WITH_NAME(distance_weights));
+  // state and action bounds
+  vel_max = node["L1"]["vel_max"].as<float>();
+  vel_min = node["L1"]["vel_min"].as<float>();
+  acc_max = node["L1"]["acc_max"].as<float>();
+  acc_min = node["L1"]["acc_min"].as<float>();
+  vel_magnitude = node["L2"]["vel_magnitude"].as<float>();
+  acc_magnitude = node["L2"]["acc_magnitude"].as<float>();
 }
 
 
@@ -71,7 +77,7 @@ Integrator2_3d::Integrator2_3d(const Integrator2_3d_params &params,
   nx_pr = 3;
   translation_invariance = 3;
 
-  distance_weights = params.distance_weights; // necessary for ompl wrapper
+  distance_weights = params.distance_weights; 
   name = "Integrator2_3d";
 
   ref_dt = params.dt;
@@ -131,7 +137,7 @@ double Integrator2_3d::distance(const Eigen::Ref<const Eigen::VectorXd> &x,
                                 const Eigen::Ref<const Eigen::VectorXd> &y) {
 
   return params.distance_weights(0) * (x.head<3>() - y.head<3>()).norm() +
-         params.distance_weights(1) * (x.tail<3>() - y.tail<3>()).norm();
+         params.distance_weights(3) * (x.tail<3>() - y.tail<3>()).norm();
 };
 
 void Integrator2_3d::calcV(Eigen::Ref<Eigen::VectorXd> v,
@@ -175,7 +181,6 @@ void Integrator2_3d::calcDiffV(Eigen::Ref<Eigen::MatrixXd> Jv_x,
 void Integrator2_3d::transformation_collision_geometries(
     const Eigen::Ref<const Eigen::VectorXd> &x, std::vector<Transform3d> &ts) {
 
-  // assert(x.size() == 6);
   assert(ts.size() == 1); // only one collision body
 
   fcl::Transform3d result;
