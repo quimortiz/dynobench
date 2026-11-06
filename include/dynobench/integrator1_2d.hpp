@@ -28,15 +28,19 @@ struct Integrator1_2d_params {
 
   Integrator1_2d_params() = default;
 
-  double dt = .1;
   // Control and state bounds
-  double max_vel = 0.5; 
   double vel_magnitude = 2.0;
+  // L1
+  double vel_max;
+  double vel_min;
+
   std::string filename = "";
-  std::string shape = "sphere";
+  std::string shape;
   geometric_shape geom_shape;
-  double radius = 0.1;
+  double radius;
+  double dt = .1;
   Eigen::Vector2d size = Eigen::Vector2d(.5, .25);
+  
   void read_from_yaml(const char *file);
   void read_from_yaml(YAML::Node &node);
   void write(std::ostream &out);

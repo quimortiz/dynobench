@@ -40,7 +40,10 @@ void Integrator1_2d_params::read_from_yaml(YAML::Node &node) {
     }
   }
   set_from_yaml(node, VAR_WITH_NAME(dt));
-  set_from_yaml(node, VAR_WITH_NAME(vel_magnitude));
+  // action bounds
+  vel_max = node["L1"]["vel_max"].as<float>();
+  vel_min = node["L1"]["vel_min"].as<float>();
+  vel_magnitude = node["L2"]["vel_magnitude"].as<float>();
 }
 
 void Integrator1_2d_params::write(std::ostream &out) {
@@ -50,7 +53,7 @@ void Integrator1_2d_params::write(std::ostream &out) {
 
   out << be << STR(shape, af) << std::endl;
   out << be << STR(dt, af) << std::endl;
-  out << be << STR(max_vel, af) << std::endl;
+  out << be << STR(vel_max, af) << std::endl;
   out << be << STR(filename, af) << std::endl;
 }
 
@@ -73,8 +76,8 @@ Integrator1_2d::Integrator1_2d(const Integrator1_2d_params &params,
   ref_dt = params.dt;
 
   // bound on state and control
-  u_lb << -params.max_vel, -params.max_vel;
-  u_ub << params.max_vel, params.max_vel;
+  u_lb << params.vel_min, params.vel_min;
+  u_ub << params.vel_max, params.vel_max;
 
   x_lb << low__, low__;
   x_ub << max__, max__;
@@ -105,15 +108,15 @@ int Integrator1_2d::number_of_r_dofs() { return 2; }
 
 double Integrator1_2d::lower_bound_time(const Eigen::Ref<const Eigen::VectorXd> &x,
                                  const Eigen::Ref<const Eigen::VectorXd> &y) {
-  return (x - y).norm() / params.max_vel;
+  return (x - y).norm() / params.vel_max;
 }
 
 double Integrator1_2d::lower_bound_time_pr(
     const Eigen::Ref<const Eigen::VectorXd> &x,
     const Eigen::Ref<const Eigen::VectorXd> &y) {
 
-  std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.max_vel,
-                                std::abs(x(1) - y(1)) / params.max_vel};
+  std::array<double, 2> maxs = {std::abs(x(0) - y(0)) / params.vel_max,
+                                std::abs(x(1) - y(1)) / params.vel_max};
 
   return *std::max_element(maxs.begin(), maxs.end());
 }
